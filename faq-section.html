@@ -1,0 +1,76 @@
+<!-- FAQ секция для SEO -->
+<div id="faq-section" style="margin: 50px 0; padding: 30px 0; background: #f8f9fa;">
+    <div class="container" style="max-width: 1020px; margin: 0 auto; padding: 0 15px;">
+        <h2 style="text-align: center; color: #2A6AB2; font-size: 32px; margin-bottom: 40px;">Часто задаваемые вопросы</h2>
+        
+        <div class="faq-item" style="margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 10px; cursor: pointer;" onclick="toggleFAQ(this)">
+                Как замерить окно для москитной сетки?
+            </h3>
+            <div class="faq-answer" style="display: none; color: #666; line-height: 1.6;">
+                <p>Для замера москитной сетки нужно измерить ширину и высоту створки окна. Измерения производятся по внутреннему краю створки. Для получения точных размеров рекомендуем воспользоваться услугами нашего замерщика.</p>
+            </div>
+        </div>
+        
+        <div class="faq-item" style="margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 10px; cursor: pointer;" onclick="toggleFAQ(this)">
+                Сколько стоит установка москитной сетки?
+            </h3>
+            <div class="faq-answer" style="display: none; color: #666; line-height: 1.6;">
+                <p>Стоимость установки москитной сетки составляет от 300 рублей за штуку. Цена зависит от сложности монтажа и количества сеток. При заказе нескольких сеток действуют скидки.</p>
+            </div>
+        </div>
+        
+        <div class="faq-item" style="margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 10px; cursor: pointer;" onclick="toggleFAQ(this)">
+                Какие цвета рамок доступны?
+            </h3>
+            <div class="faq-answer" style="display: none; color: #666; line-height: 1.6;">
+                <p>Доступны следующие цвета рамок: белый, коричневый, антрацит. Также возможна покраска в любой цвет по RAL. Белый цвет является стандартным и не требует дополнительной оплаты.</p>
+            </div>
+        </div>
+        
+        <div class="faq-item" style="margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 10px; cursor: pointer;" onclick="toggleFAQ(this)">
+                Через сколько времени будет готова моя сетка?
+            </h3>
+            <div class="faq-answer" style="display: none; color: #666; line-height: 1.6;">
+                <p>Стандартные москитные сетки изготавливаются в течение 1-2 дней. Сетки антикошка и антипыль могут занять 2-3 дня. При срочном заказе возможна изготовление в день заказа.</p>
+            </div>
+        </div>
+        
+        <div class="faq-item" style="margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 10px; cursor: pointer;" onclick="toggleFAQ(this)">
+                Есть ли гарантия на москитные сетки?
+            </h3>
+            <div class="faq-answer" style="display: none; color: #666; line-height: 1.6;">
+                <p>Да, мы предоставляем гарантию 1 год на все москитные сетки. Гарантия распространяется на качество материалов и изготовления. При обнаружении дефектов производим бесплатный ремонт или замену.</p>
+            </div>
+        </div>
+        
+        <div class="faq-item" style="margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #333; font-size: 18px; margin-bottom: 10px; cursor: pointer;" onclick="toggleFAQ(this)">
+                Как ухаживать за москитной сеткой?
+            </h3>
+            <div class="faq-answer" style="display: none; color: #666; line-height: 1.6;">
+                <p>Москитную сетку рекомендуется чистить 2-3 раза в сезон. Для очистки используйте мягкую щетку и теплую воду с мылом. Не используйте агрессивные моющие средства. Сетку можно снимать для удобства очистки.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleFAQ(element) {
+    const answer = element.nextElementSibling;
+    const isVisible = answer.style.display === 'block';
+    
+    // Закрываем все ответы
+    const allAnswers = document.querySelectorAll('.faq-answer');
+    allAnswers.forEach(ans => ans.style.display = 'none');
+    
+    // Открываем текущий ответ, если он был закрыт
+    if (!isVisible) {
+        answer.style.display = 'block';
+    }
+}
+</script> 

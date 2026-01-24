@@ -1,0 +1,40 @@
+User-agent: *
+Crawl-delay: 3
+Host: https://www.setki21.ru
+Sitemap: https://www.setki21.ru/sitemap.xml
+Sitemap: https://www.setki21.ru/sitemap-images.xml
+
+# Разрешить индексацию основных страниц
+Allow: /
+Allow: /antikoshka/
+Allow: /antipyl/
+Allow: /antimoshka/
+Allow: /vstavnye/
+Allow: /remont/
+Allow: /privacy/
+
+# Запретить индексацию служебных директорий
+Disallow: /bitrix/
+Disallow: /css/
+Disallow: /js/
+Disallow: /images/
+Disallow: /upload/
+Disallow: /ajax/
+Disallow: /*.php$
+Disallow: /*?*
+Disallow: /admin/
+Disallow: /tmp/
+Disallow: /cache/
+
+# Специальные правила для поисковых роботов
+User-agent: Yandex
+Crawl-delay: 2
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term
+
+User-agent: Googlebot
+Crawl-delay: 1
+Allow: /
+
+User-agent: Bingbot
+Crawl-delay: 2
+Allow: /

@@ -1,0 +1,227 @@
+function calc() {
+	var vertical_value;
+	var horizontal_value;
+	
+	//setTimeout( function() {	
+		//vertical_value = $( "#slider-vertical" ).slider( "option", "value" );
+		//horizontal_value = $( "#slider-horizontal" ).slider( "option", "value" );
+		vertical_value = $( "#horizontal" ).val();
+		horizontal_value = $( "#vertical" ).val();
+	//} , 1);	
+	
+	//console.log(horizontal_value + " - " + vertical_value);
+	
+	var area_doors = vertical_value * horizontal_value;
+	var price;
+	
+	//console.log(area_doors);
+	var radio_value = $("#radio_value").val();
+	//console.log(radio_value);
+	
+	if(radio_value==1){
+		if(area_doors < 1000000){ // меньше ляма
+			price = PRICE_CALC_1;
+		}else{
+			if(area_doors < 1500000){
+				price = PRICE_CALC_2;
+			}
+			else{
+				price = PRICE_CALC_3;
+			}
+		}
+	}
+	
+	if(radio_value==2){
+		if(area_doors < 1000000){ // меньше ляма
+			price = PRICE_CALC_4;
+		}else{
+			if(area_doors < 1500000){
+				price = PRICE_CALC_5;
+			}
+			else{
+				price = PRICE_CALC_6;
+			}
+		}
+	}
+	
+	$(".price span").text(price);
+	
+}
+
+function add_order() {
+	//$( ".list_order table" ).append( "<tr><td> 1. </td><td> Противомоскитная сетка - </td><td> - белая рамка - </td><td> - 500x1200 мм - </td><td> - 2 ШТ - </td><td> - 1160 Р </td></tr>" );
+	
+	var count_tr = $( ".list_order table tr" ).length + 1;
+	var color = $("#block_radio .item.active").text();
+	var horizontal = $("#horizontal").val();
+	var vertical = $("#vertical").val();
+	var count = +$("#count").val();
+	var price = +$(".price span").text();
+	price = price * count;
+	
+	var list_order = "<tr><td> "+count_tr+". </td><td> Противомоскитная сетка - </td><td> - "+color.toLowerCase()+" рамка - </td><td> - "+horizontal+"x"+vertical+" мм - </td><td> - "+count+" ШТ - </td><td> - <span class='price_item'>"+price+"</span> Р </td></tr>\n";
+	$( ".list_order_table table" ).append(list_order);
+	
+	var total_price = 0;
+	$( ".price_item" ).each(function( index ) {
+	  total_price += parseInt($( this ).text());
+	});
+	$( ".total_price span" ).text(total_price);
+	$( "#total_price_value" ).val(total_price);
+}
+
+(function($) {
+	$(function() {
+	  //$('input[type=radio]').styler({ //[type=checkbox] 
+	   $('input, select').styler();
+		//selectSearch: true,
+	  });
+})(jQuery);
+
+/* $('.mainButton').click(function(e) {
+setTimeout( function() {
+	  $('input, select').trigger('refresh');
+	}, 100);
+}); */
+		
+	
+
+
+$(function() {
+    $("#slider-horizontal").slider({
+		orientation: "horizontal",
+		animate: true,
+		range: "min",
+        value: 700,
+        min: 200,
+        max: 1500,
+        step: 5,
+        slide: function( event, ui ) {
+            //calc(ui.value);            
+			//console.log("--" + ui.value);
+			$( "#horizontal" ).val( ui.value );
+			calc();
+        }
+    });
+	
+	$( "#slider-vertical" ).slider({
+	  orientation: "vertical",
+	  animate: true,
+	  range: "min",
+	  min: 200,
+	  max: 2000,
+	  value: 1200,
+	  step: 5,
+	  slide: function( event, ui ) {
+		  //calc(ui.value);		  
+		  $( "#vertical" ).val( ui.value );
+		  calc();
+	  }
+	});
+	
+	
+	$( "#horizontal" ).val( $( "#slider-horizontal" ).slider( "value" ) );
+	$( "#vertical" ).val( $( "#slider-vertical" ).slider( "value" ) );
+	
+	$("#block_radio .item").on('click', function() {
+        $("#block_radio .item.active").removeClass('active');
+        $(this).addClass('active');
+        $("#radio_value").val($(this).data('radio'));
+        //$("#radio_value").val($(this).text());		
+        calc();
+    });
+	
+	
+	$(".add_order").on('click', function() {        		
+        add_order();
+		return false;
+    });
+	
+	
+	
+	$('.delivery_block').click(function(e) {
+		e.stopPropagation();
+		//alert(e.target);
+	});
+	$("body").on('click', function(e) {
+		$(".delivery_block").css("display", "none");
+    });
+	$(".choose").on('click', function(evt) {   
+		if($(".delivery_block").css("display") == "none"){
+			$(".delivery_block").css("display", "block")
+		}else{
+			$(".delivery_block").css("display", "none");
+			return false;
+		}
+			
+        $(".delivery_block").css("position", "absolute")
+		
+		evt = window.event ? window.event : evt;
+		
+       /*  $(".delivery_block").css("top", evt.pageY+15) //clientX
+        $(".delivery_block").css("left", evt.pageX-50) //clientY */
+		
+		$(".delivery_block").css("top", this.offsetTop+35) //clientX
+        $(".delivery_block").css("left", this.offsetLeft) //clientY
+		
+		//var content_center = document.getElementById('content_center');
+		/* var content_center = document.querySelector('.delivery_block');
+		//var w = content_center.clientWidth;
+		var w = content_center.offsetTop;
+		alert(w); */
+		
+		//alert(evt.pageX +', '+ evt.pageY);
+		return false;
+    });
+	
+	$( ".delivery_block input[type=radio]" ).on( "change", function() {
+	  $( ".delivery_price span" ).html( $( ".delivery_block input:checked" ).val());
+	  $( ".total_order_price span" ).html( $( ".delivery_block input:checked" ).val());
+	  $( "#total_order_value" ).val( $( ".delivery_block input:checked" ).val());
+	});
+		
+	$(".clean_button").on('click', function() {        		
+        $(".list_order table").empty();
+		$(".total_price span").text("0");
+		$(".list_order_textarea").val("");
+    });
+	
+	$(".form_show").on('click', function() {
+		//$( ".list_order_textarea" ).val($(".list_order_table").html());
+		var list_order_textarea =  $(".list_order_table").html();  //.text();
+		if(list_order_textarea.length > 0){
+			$( ".list_order_textarea" ).val("\n" + list_order_textarea);
+			var remodal = $('[data-remodal-id=modal]').remodal();
+			remodal.open();
+			setTimeout( function() {
+			  $('input, select').trigger('refresh');
+			}, 100);
+		}else{
+			alert("Ващ заказ пуст!");
+		}
+		
+    });
+	
+	$('#horizontal, #vertical').on('input keyup', function()
+	{
+		$( "#slider-horizontal" ).slider( "option", "value", $("#horizontal").val() );
+		$( "#slider-vertical" ).slider( "option", "value", $("#vertical").val() );
+		calc();
+	})
+	
+	$('#count').on('change', function()
+	{
+		var count_val = $( "#count" ).val();
+		if(count_val < 1){
+			$( "#count" ).val("1");
+			return false;
+		}
+	})	
+	
+	jQuery(function($){
+	   $(".putPhone").mask("+7 (999) 999-99-99");
+	});
+	
+	calc();
+	
+});

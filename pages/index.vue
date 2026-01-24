@@ -35,6 +35,7 @@ useHead({
         "@id": "https://www.setki21.ru",
         "url": url,
         "telephone": "+7 (8352) 38-14-20",
+        "email": "info@setki21.ru",
         "priceRange": "RUB",
         "address": {
           "@type": "PostalAddress",
@@ -53,7 +54,38 @@ useHead({
           "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
           "opens": "10:00",
           "closes": "18:00"
-        }
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "4.9",
+          "reviewCount": "89"
+        },
+        "review": [
+          {
+            "@type": "Review",
+            "author": {
+              "@type": "Person",
+              "name": "Анна С."
+            },
+            "reviewRating": {
+              "@type": "Rating",
+              "ratingValue": "5"
+            },
+            "reviewBody": "Отличное качество сеток, замерщик приехал вовремя, установка заняла всего час."
+          },
+          {
+            "@type": "Review",
+            "author": {
+              "@type": "Person",
+              "name": "Дмитрий М."
+            },
+            "reviewRating": {
+              "@type": "Rating",
+              "ratingValue": "5"
+            },
+            "reviewBody": "Устанавливали сетки на балкон. Качество материалов на высоте, крепления надежные."
+          }
+        ]
       })
     }
   ]
@@ -84,7 +116,12 @@ useHead({
             </div>
           </div>
           <div class="lg:w-1/2 relative">
-            <img src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png" alt="Рамочная москитная сетка" class="rounded-[3rem] shadow-2xl border-4 border-white" />
+            <img
+              src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png"
+              alt="Рамочная москитная сетка на пластиковом окне"
+              class="rounded-[3rem] shadow-2xl border-4 border-white"
+              loading="eager"
+            />
             <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
               <p class="text-brand-blue font-black text-xl leading-none italic uppercase">Best Seller</p>
               <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">Срок 1 день</p>
@@ -106,7 +143,7 @@ useHead({
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <video controls muted playsinline class="rounded-3xl shadow-lg w-full">
+              <video controls muted playsinline preload="metadata" class="rounded-3xl shadow-lg w-full">
                 <source src="/zamer.mp4" type="video/mp4">
                 Ваш браузер не поддерживает видео.
               </video>
@@ -149,4 +186,3 @@ useHead({
     </section>
   </div>
 </template>
-

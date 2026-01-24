@@ -37,6 +37,7 @@ useHead({
         "offers": {
           "@type": "Offer",
           "url": url,
+          "email": "info@setki21.ru",
           "priceCurrency": "RUB",
           "price": "1450",
           "availability": "https://schema.org/InStock"

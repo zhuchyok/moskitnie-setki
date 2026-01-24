@@ -37,6 +37,7 @@ useHead({
         "offers": {
           "@type": "Offer",
           "url": url,
+          "email": "info@setki21.ru",
           "priceCurrency": "RUB",
           "price": "1000",
           "availability": "https://schema.org/InStock"
@@ -76,7 +77,12 @@ useHead({
             </div>
           </div>
           <div class="lg:w-1/2 relative">
-            <img src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png" alt="Москитная сетка Антимошка" class="rounded-[3rem] shadow-2xl border-4 border-white" />
+            <img
+              src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png"
+              alt="Москитная сетка Антимошка с мелкой ячейкой 0.8x0.8 мм"
+              class="rounded-[3rem] shadow-2xl border-4 border-white"
+              loading="lazy"
+            />
             <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
               <p class="text-brand-blue font-black text-xl leading-none italic uppercase">Extra Protection</p>
               <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">От мелкого гнуса</p>

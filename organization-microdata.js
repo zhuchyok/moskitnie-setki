@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
         "contactPoint": {
             "@type": "ContactPoint",
             "telephone": "+7-937-123-45-67",
+            "email": "info@setki21.ru",
             "contactType": "customer service",
             "availableLanguage": ["Russian"],
             "hoursAvailable": {

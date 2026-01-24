@@ -1,0 +1,16 @@
+{
+  "name": "Сетки 21 - Москитные сетки",
+  "short_name": "Сетки 21",
+  "description": "Производство и установка москитных сеток в Чебоксарах и Новочебоксарске",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2A6AB2",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

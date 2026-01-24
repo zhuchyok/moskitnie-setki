@@ -29,7 +29,8 @@ useHead({
         "description": "Замена комплектующих и полотна москитных сеток в Чебоксарах",
         "provider": {
           "@type": "LocalBusiness",
-          "name": "Сетки 21"
+          "name": "Сетки 21",
+          "email": "info@setki21.ru"
         },
         "areaServed": {
           "@type": "City",

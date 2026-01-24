@@ -53,7 +53,7 @@ const acceptAllCookies = () => {
             <img src="/images/logo_clean.png?v=2" alt="Сетки 21" class="h-12 transition-transform group-hover:scale-105" />
             <div class="hidden sm:block">
               <h1 class="text-xl font-black leading-none text-brand-blue tracking-tight uppercase">СЕТКИ 21</h1>
-              <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Производство в Чебоксарах</p>
+              <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Производство замер монтаж от 1 дня</p>
             </div>
           </NuxtLink>
 
@@ -104,7 +104,7 @@ const acceptAllCookies = () => {
               <img src="/images/logo_clean.png" alt="Сетки 21" class="h-10 brightness-0 invert" />
               <div>
                 <h3 class="text-xl font-black text-white uppercase tracking-tight">СЕТКИ 21</h3>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest">Производство в Чебоксарах</p>
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest">Производство замер монтаж от 1 дня</p>
               </div>
             </div>
             <p class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
@@ -126,6 +126,7 @@ const acceptAllCookies = () => {
               <p>📍 Чебоксары, ул. Гражданская, 53, оф.1</p>
               <p>📍 Новочебоксарск, ул. Винокурова, 109</p>
               <p>📞 +7 (8352) 38-14-20</p>
+              <p>✉️ <a href="mailto:info@setki21.ru" class="hover:text-white transition-colors">info@setki21.ru</a></p>
             </div>
           </div>
         </div>

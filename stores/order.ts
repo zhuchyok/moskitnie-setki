@@ -58,6 +58,8 @@ export const useOrderStore = defineStore('order', {
       height: 1000,
       color: 1,
       count: 1,
+      installation: false,
+      handleType: 'pvc', // 'pvc' or 'metal'
     },
     delivery: 'Оф.Чебоксары',
     deliveryPrice: 0
@@ -94,13 +96,14 @@ export const useOrderStore = defineStore('order', {
   },
   actions: {
     addToOrder() {
-      const price = this.currentPrice * this.config.count
+      const price = (this.currentPrice + (this.config.installation ? 300 : 0) + (this.config.handleType === 'metal' ? 100 : 0)) * this.config.count
       const colorName = ['БЕЛАЯ', 'КОРИЧНЕВАЯ', 'АНТРАЦИТ', 'RAL'][this.config.color - 1]
+      const handleName = this.config.handleType === 'metal' ? 'МЕТАЛЛ' : 'ПВХ'
       
       this.items.push({
         id: Date.now(),
         type: this.config.type,
-        typeName: this.config.typeName,
+        typeName: `${this.config.typeName} (${handleName})${this.config.installation ? ' + МОНТАЖ' : ''}`,
         color: colorName,
         width: this.config.width,
         height: this.config.height,

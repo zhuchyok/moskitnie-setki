@@ -2,6 +2,17 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 const store = useOrderStore()
 
+// Состояние кнопки "Добавить в заказ"
+const isAdded = ref(false)
+
+const handleAddToOrder = () => {
+  store.addToOrder()
+  isAdded.value = true
+  setTimeout(() => {
+    isAdded.value = false
+  }, 1000)
+}
+
 const types = [
   { id: 'standart', name: 'СТАНДАРТ' },
   { id: 'antimoshka', name: 'АНТИМОШКА' },
@@ -18,10 +29,9 @@ const colors = [
 ]
 
 const deliveries = [
-  { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары', price: 0 },
-  { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск', price: 0 },
-  { id: 'Доставка', name: 'Доставка по городу', price: 400 },
-  { id: 'Установка', name: 'Монтаж (за 1 шт)', price: 300 }
+  { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0 },
+  { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0 },
+  { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: 400 }
 ]
 
 const selectType = (id: string, name: string) => {
@@ -139,7 +149,7 @@ const submitOrder = async () => {
     <!-- Калькулятор -->
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 min-h-[650px]">
       <!-- Визуализация (Левая часть) -->
-      <div class="lg:w-5/12 bg-gray-50/50 p-12 flex flex-col items-center justify-center relative border-r border-gray-100">
+      <div class="lg:w-4/12 bg-gray-50/50 p-12 flex flex-col items-center justify-center relative border-r border-gray-100">
         <div class="relative border-[8px] border-brand-dark bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
              :style="{ width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px' }">
           <!-- Сетка с разным размером ячейки -->
@@ -178,7 +188,7 @@ const submitOrder = async () => {
       </div>
 
       <!-- Управление (Правая часть) -->
-      <div class="lg:w-7/12 p-10 lg:p-20 flex flex-col justify-center">
+      <div class="lg:w-8/12 p-10 lg:p-20 flex flex-col justify-center">
         <div class="flex items-center gap-5 mb-12">
           <div class="w-14 h-14 bg-brand-blue rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-brand-blue/30 transform -rotate-3">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -273,18 +283,103 @@ const submitOrder = async () => {
             </div>
           </div>
 
+          <!-- Новая панель параметров (Монтаж, Ручки, Количество) -->
+          <div class="pt-10 border-t border-gray-100">
+            <div class="flex flex-col sm:flex-row items-start justify-between gap-8 md:gap-12">
+              
+              <!-- Монтаж -->
+              <div class="flex-1 w-full sm:w-auto">
+                <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Монтаж</p>
+                <div class="flex items-center justify-center gap-3 min-h-[50px]">
+                  <button @click="store.updateConfig({ installation: !store.config.installation })"
+                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <div class="flex items-baseline justify-center min-w-[60px]">
+                    <span class="font-black text-2xl text-brand-blue leading-none transition-colors uppercase cursor-pointer select-none" @click="store.updateConfig({ installation: !store.config.installation })">
+                      {{ store.config.installation ? 'ДА' : 'НЕТ' }}
+                    </span>
+                  </div>
+                  <button @click="store.updateConfig({ installation: !store.config.installation })"
+                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Ручки -->
+              <div class="flex-1 w-full sm:w-auto">
+                <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Ручки</p>
+                <div class="flex items-center justify-center gap-3 min-h-[50px]">
+                  <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
+                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <div class="flex items-baseline justify-center min-w-[80px]">
+                    <span class="font-black text-2xl text-brand-blue leading-none transition-colors uppercase cursor-pointer select-none" @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })">
+                      {{ store.config.handleType === 'pvc' ? 'ПВХ' : 'МЕТАЛ' }}
+                    </span>
+                  </div>
+                  <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
+                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Количество -->
+              <div class="flex-1 w-full sm:w-auto">
+                <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Количество</p>
+                <div class="flex items-center justify-center gap-3 min-h-[50px]">
+                  <button @click="store.updateConfig({ count: Math.max(1, store.config.count - 1) })"
+                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <div class="flex items-baseline justify-center min-w-[40px]">
+                    <input type="text" 
+                           v-model.number="store.config.count"
+                           @input="store.config.count = Math.max(1, parseInt(String(store.config.count)) || 1)"
+                           class="w-12 text-center bg-transparent border-none focus:outline-none font-black text-2xl text-brand-blue leading-none transition-colors" />
+                  </div>
+                  <button @click="store.updateConfig({ count: store.config.count + 1 })"
+                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
           <!-- Цена и Кнопка -->
-          <div class="pt-12 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-10">
-            <div class="text-center sm:text-left">
-              <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-2">Цена за 1 шт</p>
-              <div class="flex items-baseline gap-3 justify-center sm:justify-start">
-                <span class="text-6xl font-black text-brand-blue leading-none tracking-tighter">{{ store.currentPrice }}</span>
-                <span class="text-2xl font-black text-gray-200">₽</span>
+          <div class="pt-12 border-t border-gray-100 flex flex-col sm:flex-row items-end justify-between gap-6">
+            <div class="text-center sm:text-left w-full sm:w-auto">
+              <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-2">Итоговая цена</p>
+              <div class="flex items-baseline gap-1 justify-center sm:justify-start">
+                <span class="text-6xl font-black text-brand-blue leading-none tracking-tighter">{{ store.currentPrice * store.config.count + (store.config.installation ? 300 * store.config.count : 0) + (store.config.handleType === 'metal' ? 100 * store.config.count : 0) }}</span>
+                <span class="text-2xl font-black text-gray-200 uppercase leading-none self-baseline ml-1" style="font-size: 1.5rem; line-height: 1;">₽</span>
               </div>
             </div>
-            <button @click="store.addToOrder()"
-                    class="w-full sm:w-auto bg-brand-dark hover:bg-black text-white font-black py-6 px-14 rounded-[1.5rem] transition-all shadow-[0_20px_50px_-10px_rgba(0,0,0,0.3)] hover:shadow-brand-dark/40 active:scale-95 uppercase text-xs tracking-[0.2em]">
-              Добавить в заказ
+            <button @click="handleAddToOrder()"
+                    :class="[
+                      'w-full sm:w-auto font-black py-5 px-14 rounded-[1.5rem] transition-all shadow-[0_20px_50px_-10px_rgba(0,0,0,0.3)] active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap',
+                      isAdded 
+                        ? 'bg-brand-blue text-white hover:bg-brand-blue' 
+                        : 'bg-brand-dark hover:bg-black text-white hover:shadow-brand-dark/40'
+                    ]">
+              {{ isAdded ? 'Добавлено' : 'Добавить в заказ' }}
             </button>
           </div>
         </div>
@@ -311,6 +406,8 @@ const submitOrder = async () => {
                 <th class="pb-8 pr-4">Тип полотна</th>
                 <th class="pb-8 px-4">Габариты</th>
                 <th class="pb-8 px-4">Цвет рамки</th>
+                <th class="pb-8 px-4">Монтаж</th>
+                <th class="pb-8 px-4">Ручки</th>
                 <th class="pb-8 px-4">Кол-во</th>
                 <th class="pb-8 px-4 text-right">Стоимость</th>
                 <th class="pb-8 pl-4"></th>
@@ -318,9 +415,22 @@ const submitOrder = async () => {
             </thead>
             <tbody class="text-sm font-bold text-brand-dark">
               <tr v-for="item in store.items" :key="item.id" class="border-b border-gray-50 group hover:bg-gray-50/50 transition-colors">
-                <td class="py-8 pr-4 uppercase text-xs font-black">{{ item.typeName }}</td>
+                <td class="py-8 pr-4 uppercase text-xs font-black">{{ item.typeName.split(' (')[0] }}</td>
                 <td class="py-8 px-4 text-gray-500 font-medium">{{ item.width }} x {{ item.height }} мм</td>
                 <td class="py-8 px-4 text-gray-500 font-medium">{{ item.color }}</td>
+                <td class="py-8 px-4">
+                  <span :class="[
+                    'text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider',
+                    item.typeName.includes(' + МОНТАЖ') ? 'bg-blue-50 text-brand-blue' : 'bg-gray-50 text-gray-400'
+                  ]">
+                    {{ item.typeName.includes(' + МОНТАЖ') ? 'ДА' : 'НЕТ' }}
+                  </span>
+                </td>
+                <td class="py-8 px-4">
+                  <span class="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gray-50 text-gray-500">
+                    {{ item.typeName.includes('(МЕТАЛЛ)') ? 'МЕТАЛЛ' : 'ПВХ' }}
+                  </span>
+                </td>
                 <td class="py-8 px-4 font-black">{{ item.count }} шт</td>
                 <td class="py-8 px-4 text-right text-brand-blue text-lg font-black">{{ item.price }} ₽</td>
                 <td class="py-8 pl-4 text-right">
@@ -349,7 +459,7 @@ const submitOrder = async () => {
                           : 'bg-transparent border-gray-200/50 text-gray-400 hover:border-gray-200'
                       ]">
                 <span>{{ d.name }}</span>
-                <span :class="d.price > 0 ? 'text-brand-blue' : 'text-green-500'">{{ d.price > 0 ? `+${d.price} ₽` : 'Бесплатно' }}</span>
+                <span class="text-brand-blue">{{ d.price > 0 ? `${d.price} ₽` : '0 ₽' }}</span>
               </button>
             </div>
           </div>

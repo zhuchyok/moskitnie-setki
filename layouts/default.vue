@@ -33,8 +33,8 @@ const acceptCookies = () => {
       <div class="container mx-auto px-4 py-3">
         <div class="flex flex-wrap justify-between items-center gap-4">
           <!-- Logo Section -->
-          <NuxtLink to="/" class="flex items-center gap-4 group">
-            <img src="/images/logo_clean.png" alt="Сетки 21" class="h-12 transition-transform group-hover:scale-105" />
+          <NuxtLink to="/" class="logo-link flex items-center gap-4 group">
+            <img src="/images/logo_clean.png?v=2" alt="Сетки 21" class="h-12 transition-transform group-hover:scale-105" />
             <div class="hidden sm:block">
               <h1 class="text-xl font-black leading-none text-brand-blue tracking-tight uppercase">СЕТКИ 21</h1>
               <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Производство в Чебоксарах</p>
@@ -158,5 +158,12 @@ const acceptCookies = () => {
 <style>
 .router-link-active {
   @apply bg-brand-blue text-white shadow-md;
+}
+
+/* Logo link should never have active background */
+.logo-link.router-link-active {
+  background-color: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
 }
 </style>

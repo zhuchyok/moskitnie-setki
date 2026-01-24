@@ -78,7 +78,7 @@ const submitOrder = async () => {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 space-y-12">
+  <div class="container mx-auto px-4 space-y-12">
     <!-- Калькулятор -->
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 min-h-[650px]">
       <!-- Визуализация (Левая часть) -->

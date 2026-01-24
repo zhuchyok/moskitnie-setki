@@ -91,7 +91,6 @@ useHead({
 
     <section class="py-20 bg-white">
       <div class="container mx-auto px-4">
-        <div class="max-w-5xl mx-auto">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
               <img src="/upload/iblock/963/963b80b25938266f19cda63ac6f838b4.png" alt="Ручки для вставной сетки" class="rounded-3xl shadow-lg order-2 md:order-1 group-hover:scale-105 transition-transform duration-500" />
@@ -130,7 +129,6 @@ useHead({
             </div>
             <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
           </div>
-        </div>
       </div>
     </section>
   </div>

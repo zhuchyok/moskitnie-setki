@@ -36,7 +36,7 @@ useHead({
 <template>
   <div>
     <section class="py-16 bg-white">
-      <div class="container mx-auto px-4 max-w-4xl">
+      <div class="container mx-auto px-4">
         <div class="bg-gray-50 rounded-[3rem] p-8 md:p-16 shadow-sm border border-gray-100">
           <h1 class="text-2xl md:text-3xl font-black mb-12 text-brand-blue uppercase tracking-tight text-center leading-tight">
             ПОЛИТИКА В ОТНОШЕНИИ ОБРАБОТКИ ПЕРСОНАЛЬНЫХ ДАННЫХ С ИСПОЛЬЗОВАНИЕМ ИНФОРМАЦИОННО-КОММУНИКАЦИОННОЙ СЕТИ ИНТЕРНЕТ

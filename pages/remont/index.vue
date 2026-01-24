@@ -104,7 +104,7 @@ const services = [
 
     <section class="py-20 bg-white">
       <div class="container mx-auto px-4">
-        <div class="max-w-5xl mx-auto bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
+        <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
           <div class="relative z-10 grid md:grid-cols-2 gap-16 items-center">
             <div>
               <h2 class="text-3xl font-black mb-8 uppercase tracking-widest text-center md:text-left">Как заказать?</h2>

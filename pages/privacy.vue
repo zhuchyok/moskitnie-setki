@@ -181,7 +181,7 @@ useHead({
           </div>
 
           <div class="mt-16 text-center">
-            <NuxtLink to="/" class="inline-flex items-center gap-2 bg-brand-blue text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-brand-blue/20 active:scale-95">
+            <NuxtLink to="/" class="inline-flex items-center gap-2 bg-brand-blue text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#1e5a9a] transition-all shadow-xl shadow-brand-blue/20 active:scale-95">
               ← Вернуться на главную
             </NuxtLink>
           </div>

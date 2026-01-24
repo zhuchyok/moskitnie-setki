@@ -11,6 +11,11 @@ const navLinks = [
 // Cookie Banner Logic
 const showCookieBanner = ref(false)
 const cookieAccepted = useCookie('cookie_accepted', { maxAge: 60 * 60 * 24 * 365 })
+const cookieAnalytics = useCookie('cookie_analytics', { maxAge: 60 * 60 * 24 * 365 })
+const cookieMarketing = useCookie('cookie_marketing', { maxAge: 60 * 60 * 24 * 365 })
+
+const analyticsChecked = ref(false)
+const marketingChecked = ref(false)
 
 onMounted(() => {
   if (!cookieAccepted.value) {
@@ -20,7 +25,18 @@ onMounted(() => {
   }
 })
 
-const acceptCookies = () => {
+const saveSelectedCookies = () => {
+  cookieAnalytics.value = analyticsChecked.value ? 'yes' : 'no'
+  cookieMarketing.value = marketingChecked.value ? 'yes' : 'no'
+  cookieAccepted.value = 'yes'
+  showCookieBanner.value = false
+}
+
+const acceptAllCookies = () => {
+  analyticsChecked.value = true
+  marketingChecked.value = true
+  cookieAnalytics.value = 'yes'
+  cookieMarketing.value = 'yes'
   cookieAccepted.value = 'yes'
   showCookieBanner.value = false
 }
@@ -129,24 +145,49 @@ const acceptCookies = () => {
     >
       <div v-if="showCookieBanner" class="fixed bottom-0 left-0 right-0 z-[100] p-4 md:p-8">
         <div class="container mx-auto max-w-5xl">
-          <div class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_70px_-10px_rgba(0,0,0,0.4)] border border-white/20 p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
+          <div class="bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_70px_-10px_rgba(0,0,0,0.4)] border border-white/20 p-8 md:p-10 relative overflow-hidden">
             <!-- Декор -->
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-brand-blue/5 rounded-full blur-3xl"></div>
             
-            <div class="flex-grow text-center md:text-left relative z-10">
-              <div class="flex items-center justify-center md:justify-start gap-3 mb-3">
-                <span class="text-2xl">🍪</span>
+            <div class="relative z-10">
+              <!-- Заголовок -->
+              <div class="flex items-center gap-3 mb-4">
                 <h4 class="text-sm font-black uppercase tracking-[0.2em] text-brand-dark">Конфиденциальность</h4>
               </div>
-              <p class="text-xs text-gray-500 leading-relaxed max-w-2xl font-medium">
-                Мы заботимся о ваших данных. Продолжая работу с сайтом, вы соглашаетесь на использование файлов cookie и принимаете нашу 
-                <NuxtLink to="/privacy" class="text-brand-blue font-black underline decoration-2 underline-offset-4 hover:text-blue-700 transition-colors">Политику конфиденциальности</NuxtLink> в соответствии с ФЗ-152 «О персональных данных».
+              
+              <!-- Текст -->
+              <p class="text-sm text-gray-600 leading-relaxed mb-6">
+                Мы используем файлы cookie: 
+                <b class="text-brand-dark">необходимые</b> (для работы сайта), 
+                <b class="text-brand-dark">аналитические</b> (для сбора статистики), 
+                <b class="text-brand-dark">маркетинговые</b> (для персонализации рекламы). 
+                Подробнее см. <NuxtLink to="/privacy" class="text-brand-blue font-bold underline decoration-2 underline-offset-4 hover:text-[#1e5a9a] transition-colors">Политику обработки персональных данных</NuxtLink>.
               </p>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-4 relative z-10">
-              <button @click="acceptCookies" class="whitespace-nowrap bg-brand-blue hover:bg-blue-700 text-white font-black py-5 px-12 rounded-[1.5rem] transition-all shadow-2xl shadow-brand-blue/30 active:scale-95 uppercase text-[10px] tracking-[0.2em]">
-                Принимаю
-              </button>
+              
+              <!-- Чекбоксы и кнопки -->
+              <div class="flex flex-wrap items-center gap-6">
+                <label class="flex items-center gap-2 cursor-not-allowed">
+                  <input type="checkbox" checked disabled class="w-4 h-4 accent-brand-blue" />
+                  <span class="text-sm font-bold text-gray-400">Необходимые</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" v-model="analyticsChecked" class="w-4 h-4 accent-brand-blue cursor-pointer" />
+                  <span class="text-sm font-bold text-brand-dark group-hover:text-brand-blue transition-colors">Аналитические</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer group">
+                  <input type="checkbox" v-model="marketingChecked" class="w-4 h-4 accent-brand-blue cursor-pointer" />
+                  <span class="text-sm font-bold text-brand-dark group-hover:text-brand-blue transition-colors">Маркетинговые</span>
+                </label>
+                
+                <div class="flex gap-3 ml-auto">
+                  <button @click="saveSelectedCookies" class="bg-white border-2 border-brand-blue text-brand-blue font-black py-3 px-6 rounded-xl hover:bg-brand-blue hover:text-white transition-all text-xs uppercase tracking-wider">
+                    Сохранить выбор
+                  </button>
+                  <button @click="acceptAllCookies" class="bg-brand-blue text-white font-black py-3 px-6 rounded-xl hover:bg-[#1e5a9a] transition-all shadow-lg shadow-brand-blue/30 text-xs uppercase tracking-wider">
+                    Принять все
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

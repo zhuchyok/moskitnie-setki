@@ -330,7 +330,7 @@ const submitOrder = async () => {
                     :disabled="!form.agree"
                     :class="[
                       'w-full font-black py-6 rounded-[2rem] transition-all shadow-2xl active:scale-95 uppercase text-xs tracking-[0.3em] mt-6',
-                      form.agree ? 'bg-brand-blue hover:bg-blue-700 text-white shadow-brand-blue/40' : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
+                      form.agree ? 'bg-brand-blue hover:bg-[#1e5a9a] text-white shadow-brand-blue/40' : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
                     ]">
               Заказать
             </button>

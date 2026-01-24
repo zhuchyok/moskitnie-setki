@@ -56,7 +56,7 @@ useHead({
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Вставные сетки <span class="text-brand-blue">VSN</span> — без сверления
             </h1>
-            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium">
+            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Самый современный вид сеток. Устанавливаются в световой проем изнутри помещения. Никаких отверстий в раме и риска выпадения сетки наружу. Идеальное прилегание и эстетичный вид.
             </p>
             <div class="grid grid-cols-2 gap-4">
@@ -100,10 +100,10 @@ useHead({
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Почему выбирают VSN?</h2>
-              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium">
+              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium text-justify">
                 "Конструкция разработана так, чтобы сетка вставлялась в проем и фиксировалась специальными зацепами. Это исключает риск падения сетки даже при сильном ветре."
               </p>
-              <p class="text-gray-600 leading-relaxed font-medium">
+              <p class="text-gray-600 leading-relaxed font-medium text-justify">
                 Вставные сетки — это выбор тех, кто ценит сохранность оконных рам и максимальную безопасность. Установка производится таким образом, чтобы затем можно было удобно снять и почистить при загрязнении.
               </p>
             </div>

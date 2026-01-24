@@ -61,7 +61,7 @@ useHead({
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Сетка <span class="text-brand-blue">Антикошка</span> — защита ваших питомцев
             </h1>
-            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium">
+            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Изготовим москитные сетки Антикошка в Чебоксарах и Новочебоксарске по индивидуальным размерам. Полотно Pet Screen из прочной полиэстеровой нити толщиной 0,6 мм, покрытой ПВХ, выдерживает когти кошек и птиц.
             </p>
             <div class="grid grid-cols-2 gap-4">
@@ -105,10 +105,10 @@ useHead({
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Особенности системы</h2>
-              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium">
+              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium text-justify">
                 "Обычная москитная сетка не способна выдержать вес домашнего животного. Для того, чтобы полотно было устойчивым к действиям кошек, его изготавливают из особых высокопрочных нитей."
               </p>
-              <p class="text-gray-600 leading-relaxed font-medium">
+              <p class="text-gray-600 leading-relaxed font-medium text-justify">
                 Сетку натягивают на алюминиевый профиль с повышенными прочностными характеристиками. Конструкция полностью устойчива к любым действиям домашних питомцев – сетку невозможно разорвать когтями или клювом.
               </p>
             </div>

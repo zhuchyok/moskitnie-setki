@@ -56,7 +56,7 @@ useHead({
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Сетка <span class="text-brand-blue">Антипыль</span> — Poll-Tex
             </h1>
-            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium">
+            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Идеальное решение для аллергиков и жителей домов рядом с дорогами. Сетка работает как фильтр, задерживая пыль, копоть и пыльцу растений благодаря электростатическому эффекту.
             </p>
             <div class="grid grid-cols-2 gap-4">
@@ -100,10 +100,10 @@ useHead({
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Как это работает?</h2>
-              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium">
+              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium text-justify">
                 "Нейлоновые нити полотна обладают электростатическим эффектом, буквально притягивая к себе частицы пыли и не давая им попасть в комнату."
               </p>
-              <p class="text-gray-600 leading-relaxed font-medium">
+              <p class="text-gray-600 leading-relaxed font-medium text-justify">
                 Сетка Антипыль (Poll-Tex) — это самый оптимальный способ обезопасить себя и своих близких от уличной пыли и пыльцы растений, что особенно важно для людей с аллергией. Подоконники остаются чистыми в 3 раза дольше.
               </p>
             </div>

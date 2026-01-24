@@ -56,7 +56,7 @@ const services = [
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Ремонт <span class="text-brand-blue">сеток</span> — быстро и надежно
             </h1>
-            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium">
+            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Если рамка вашей сетки цела, но полотно порвалось или сломались ручки — не обязательно покупать новую. Мы выполним качественный ремонт за 15 минут в вашем присутствии!
             </p>
             <div class="grid grid-cols-2 gap-4">

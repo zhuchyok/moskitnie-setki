@@ -69,7 +69,7 @@ useHead({
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Рамочная <span class="text-brand-blue">москитная сетка</span> — за 1 день
             </h1>
-            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium">
+            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Изготовим москитные сетки на окна в Чебоксарах и Новочебоксарске по индивидуальным размерам. Наши сетки устанавливаются на любые пластиковые и деревянные окна с помощью прочных металлических крепежей.
             </p>
             <div class="grid grid-cols-2 gap-4">
@@ -113,10 +113,10 @@ useHead({
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Как замерить?</h2>
-              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium">
+              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium text-justify">
                 "Нужно лишь измерить ширину и высоту створки, для которой нужна москитная сетка. Этот способ замера предназначен для предварительного расчета стоимости."
               </p>
-              <p class="text-gray-600 leading-relaxed font-medium">
+              <p class="text-gray-600 leading-relaxed font-medium text-justify">
                 Полотно москитной сетки из стекловолокна Fiberglass с размером ячейки 1,2×1,2 мм обеспечивает отличную защиту от комаров, мух, ос, пчел и тополиного пуха, сохраняя при этом максимальную вентиляцию.
               </p>
             </div>

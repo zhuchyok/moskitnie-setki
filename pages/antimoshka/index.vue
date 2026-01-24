@@ -61,7 +61,7 @@ useHead({
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Сетка <span class="text-brand-blue">Антимошка</span> — Micro Mesh
             </h1>
-            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium">
+            <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Уникальная москитная сетка для дверей и окон, которая защищает от насекомых, тополиного пуха и самых маленьких мошек. Главное отличие — небольшие ячейки 0.8х0.8 мм.
             </p>
             <div class="grid grid-cols-2 gap-4">
@@ -105,10 +105,10 @@ useHead({
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Технология Micro Mesh</h2>
-              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium">
+              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium text-justify">
                 "Полотна Micro Mesh изготавливают из нейлона и стекловолокна. Конструкция выходит прочной, надежной и не мешает воздухообмену."
               </p>
-              <p class="text-gray-600 leading-relaxed font-medium">
+              <p class="text-gray-600 leading-relaxed font-medium text-justify">
                 Прозрачность данного полотна ровна 50%, а прочность 70 %. Полотно «Антимошка» отлично подойдет для загородных домов, коттеджей, городских квартир, веранд. При нагревании не выделяет токсины.
               </p>
             </div>

@@ -100,7 +100,13 @@ const acceptAllCookies = () => {
       <div class="container mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div class="col-span-1 md:col-span-2">
-            <img src="/images/logo_clean.png" alt="Сетки 21" class="h-10 mb-6 brightness-0 invert" />
+            <div class="flex items-center gap-4 mb-6">
+              <img src="/images/logo_clean.png" alt="Сетки 21" class="h-10 brightness-0 invert" />
+              <div>
+                <h3 class="text-xl font-black text-white uppercase tracking-tight">СЕТКИ 21</h3>
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest">Производство в Чебоксарах</p>
+              </div>
+            </div>
             <p class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
               Изготовим москитные сетки на окна в Чебоксарах и Новочебоксарске по индивидуальным размерам за 1 день. 
               Используем только качественные комплектующие и металлический крепеж.
@@ -110,7 +116,7 @@ const acceptAllCookies = () => {
             <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm">Продукция</h4>
             <ul class="space-y-3 text-sm text-gray-400">
               <li v-for="link in navLinks" :key="link.path">
-                <NuxtLink :to="link.path" class="hover:text-white transition-colors uppercase text-xs font-bold">{{ link.name }}</NuxtLink>
+                <NuxtLink :to="link.path" class="footer-link hover:text-white transition-colors uppercase text-xs font-bold">{{ link.name }}</NuxtLink>
               </li>
             </ul>
           </div>
@@ -120,7 +126,6 @@ const acceptAllCookies = () => {
               <p>📍 Чебоксары, ул. Гражданская, 53, оф.1</p>
               <p>📍 Новочебоксарск, ул. Винокурова, 109</p>
               <p>📞 +7 (8352) 38-14-20</p>
-              <p>✉️ sloboda@100kna.ru</p>
             </div>
           </div>
         </div>
@@ -206,5 +211,15 @@ const acceptAllCookies = () => {
   background-color: transparent !important;
   color: inherit !important;
   box-shadow: none !important;
+}
+
+/* Footer links should not have active styling */
+.footer-link.router-link-active {
+  background-color: transparent !important;
+  color: #9ca3af !important;
+  box-shadow: none !important;
+}
+.footer-link.router-link-active:hover {
+  color: #ffffff !important;
 }
 </style>

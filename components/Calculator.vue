@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 const store = useOrderStore()
 
 const types = [
@@ -30,6 +30,52 @@ const selectType = (id: string, name: string) => {
 
 const selectColor = (id: number) => {
   store.updateConfig({ color: id })
+}
+
+// Размер ячейки сетки в зависимости от типа полотна
+const meshSize = computed(() => {
+  switch (store.config.type) {
+    case 'antimoshka': return 4  // мелкая ячейка 0.8x0.8
+    case 'antipyl': return 3     // мелкая ячейка
+    case 'antikoshka': return 5  // крупная ячейка Pet Screen
+    case 'vstavnye': return 4    // стандартная
+    default: return 4            // стандартная 1.2x1.2
+  }
+})
+
+// Толщина нити сетки
+const meshThickness = computed(() => {
+  return store.config.type === 'antikoshka' ? '2px' : '1px'
+})
+
+// Редактирование размеров вручную
+const editingWidth = ref(false)
+const editingHeight = ref(false)
+const tempWidth = ref(350)
+const tempHeight = ref(1000)
+
+const startEditWidth = () => {
+  tempWidth.value = store.config.width
+  editingWidth.value = true
+}
+
+const startEditHeight = () => {
+  tempHeight.value = store.config.height
+  editingHeight.value = true
+}
+
+const saveWidth = () => {
+  let val = parseInt(tempWidth.value) || 350
+  val = Math.max(200, Math.min(9999, val))
+  store.updateConfig({ width: val })
+  editingWidth.value = false
+}
+
+const saveHeight = () => {
+  let val = parseInt(tempHeight.value) || 1000
+  val = Math.max(200, Math.min(9999, val))
+  store.updateConfig({ height: val })
+  editingHeight.value = false
 }
 
 const isModalOpen = ref(false)
@@ -84,14 +130,27 @@ const submitOrder = async () => {
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-5/12 bg-gray-50/50 p-12 flex flex-col items-center justify-center relative border-r border-gray-100">
         <div class="relative border-[8px] border-brand-dark bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
-             :style="{ width: Math.max(180, store.config.width / 3) + 'px', height: Math.max(250, store.config.height / 3) + 'px' }">
-          <!-- Сетка -->
-          <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:4px_4px]"></div>
-          <div class="text-[8px] font-black text-brand-dark/10 uppercase tracking-[0.3em] select-none">Fiberglass Mesh</div>
+             :style="{ width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px' }">
+          <!-- Сетка с разным размером ячейки -->
+          <div class="absolute inset-0 opacity-20 transition-all"
+               :style="{ 
+                 backgroundImage: `radial-gradient(#000 ${meshThickness}, transparent ${meshThickness})`,
+                 backgroundSize: meshSize + 'px ' + meshSize + 'px' 
+               }"></div>
           
-          <!-- Ручки -->
-          <div class="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-1.5 bg-brand-dark/30 rounded-full -ml-2.5"></div>
-          <div class="absolute right-0 top-1/2 -translate-y-1/2 w-5 h-1.5 bg-brand-dark/30 rounded-full -mr-2.5"></div>
+          <!-- Перегородка посередине -->
+          <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 bg-brand-dark"></div>
+          
+          <!-- Ручки для вставной (сверху и снизу) -->
+          <template v-if="store.config.type === 'vstavnye'">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5"></div>
+            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5"></div>
+          </template>
+          <!-- Ручки для остальных (по бокам, чуть ниже перегородки) -->
+          <template v-else>
+            <div class="absolute left-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -ml-2.5"></div>
+            <div class="absolute right-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -mr-2.5"></div>
+          </template>
         </div>
         
         <!-- Размеры под рамкой -->
@@ -141,7 +200,22 @@ const submitOrder = async () => {
             <div class="space-y-5">
               <div class="flex justify-between items-end">
                 <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Ширина</label>
-                <span class="text-2xl font-black text-brand-blue">{{ store.config.width }} <small class="text-[10px] text-gray-300 ml-1">ММ</small></span>
+                <div class="flex items-baseline gap-1">
+                  <input v-if="editingWidth" 
+                         type="text" 
+                         v-model="tempWidth" 
+                         @blur="saveWidth" 
+                         @keyup.enter="saveWidth"
+                         @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
+                         maxlength="4"
+                         class="w-28 text-2xl font-black text-brand-blue text-center bg-blue-50 border-2 border-brand-blue rounded-xl px-3 py-2 focus:outline-none" 
+                         autofocus />
+                  <span v-else 
+                        @click="startEditWidth" 
+                        class="text-2xl font-black text-brand-blue cursor-pointer hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors" 
+                        title="Нажмите для ввода">{{ store.config.width }}</span>
+                  <small class="text-[10px] text-gray-300 ml-1">ММ</small>
+                </div>
               </div>
               <input type="range" min="200" max="1500" step="5" v-model.number="store.config.width"
                      class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer accent-brand-blue shadow-inner" />
@@ -149,7 +223,22 @@ const submitOrder = async () => {
             <div class="space-y-5">
               <div class="flex justify-between items-end">
                 <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Высота</label>
-                <span class="text-2xl font-black text-brand-blue">{{ store.config.height }} <small class="text-[10px] text-gray-300 ml-1">ММ</small></span>
+                <div class="flex items-baseline gap-1">
+                  <input v-if="editingHeight" 
+                         type="text" 
+                         v-model="tempHeight" 
+                         @blur="saveHeight" 
+                         @keyup.enter="saveHeight"
+                         @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
+                         maxlength="4"
+                         class="w-28 text-2xl font-black text-brand-blue text-center bg-blue-50 border-2 border-brand-blue rounded-xl px-3 py-2 focus:outline-none" 
+                         autofocus />
+                  <span v-else 
+                        @click="startEditHeight" 
+                        class="text-2xl font-black text-brand-blue cursor-pointer hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors" 
+                        title="Нажмите для ввода">{{ store.config.height }}</span>
+                  <small class="text-[10px] text-gray-300 ml-1">ММ</small>
+                </div>
               </div>
               <input type="range" min="200" max="2000" step="5" v-model.number="store.config.height"
                      class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer accent-brand-blue shadow-inner" />
@@ -210,7 +299,7 @@ const submitOrder = async () => {
               <tr class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
                 <th class="pb-8 pr-4">Тип полотна</th>
                 <th class="pb-8 px-4">Габариты</th>
-                <th class="pb-8 px-4">Цвет</th>
+                <th class="pb-8 px-4">Цвет рамки</th>
                 <th class="pb-8 px-4">Кол-во</th>
                 <th class="pb-8 px-4 text-right">Стоимость</th>
                 <th class="pb-8 pl-4"></th>

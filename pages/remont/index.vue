@@ -72,7 +72,7 @@ const services = [
           </div>
           <div class="lg:w-1/2 relative">
             <img src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png" alt="Ремонт москитных сеток" class="rounded-[3rem] shadow-2xl border-4 border-white" />
-            <div class="absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
+            <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
               <p class="text-brand-blue font-black text-xl leading-none italic uppercase">Quick Fix</p>
               <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">Гарантия на работы</p>
             </div>

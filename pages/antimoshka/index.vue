@@ -77,7 +77,7 @@ useHead({
           </div>
           <div class="lg:w-1/2 relative">
             <img src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png" alt="Москитная сетка Антимошка" class="rounded-[3rem] shadow-2xl border-4 border-white" />
-            <div class="absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
+            <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
               <p class="text-brand-blue font-black text-xl leading-none italic uppercase">Extra Protection</p>
               <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">От мелкого гнуса</p>
             </div>
@@ -98,7 +98,10 @@ useHead({
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <img src="/upload/iblock/963/963b80b25938266f19cda63ac6f838b4.png" alt="Ручки для сетки Антимошка" class="rounded-3xl shadow-lg order-2 md:order-1 group-hover:scale-105 transition-transform duration-500" />
+              <video controls muted playsinline class="rounded-3xl shadow-lg w-full">
+                <source src="/zamer.mp4" type="video/mp4">
+                Ваш браузер не поддерживает видео.
+              </video>
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Технология Micro Mesh</h2>

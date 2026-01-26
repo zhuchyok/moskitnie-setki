@@ -40,6 +40,15 @@ const acceptAllCookies = () => {
   cookieAccepted.value = 'yes'
   showCookieBanner.value = false
 }
+
+// Mobile Menu
+const mobileMenuOpen = ref(false)
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+}
+const closeMobileMenu = () => {
+  mobileMenuOpen.value = false
+}
 </script>
 
 <template>
@@ -49,11 +58,14 @@ const acceptAllCookies = () => {
       <div class="container mx-auto px-4 py-3">
         <div class="flex flex-wrap justify-between items-center gap-4">
           <!-- Logo Section -->
-          <NuxtLink to="/" class="logo-link flex items-center gap-4 group">
-            <img src="/images/logo_clean.png?v=2" alt="Сетки 21" class="h-12 transition-transform group-hover:scale-105" />
-            <div class="hidden sm:block">
-              <h1 class="text-xl font-black leading-none text-brand-blue tracking-tight uppercase">СЕТКИ 21</h1>
-              <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Производство замер монтаж от 1 дня</p>
+          <NuxtLink to="/" class="logo-link flex items-center gap-3 sm:gap-4 group">
+            <img src="/images/logo_clean.png?v=2" alt="Сетки 21" class="h-10 sm:h-12 transition-transform group-hover:scale-105" />
+            <div>
+              <h1 class="text-lg sm:text-xl font-black leading-none text-brand-blue tracking-tight uppercase">СЕТКИ 21</h1>
+              <p class="text-[8px] sm:text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                <span class="sm:hidden">Производство</span>
+                <span class="hidden sm:inline">Производство замер монтаж от 1 дня</span>
+              </p>
             </div>
           </NuxtLink>
 
@@ -72,8 +84,47 @@ const acceptAllCookies = () => {
           </div>
         </div>
 
-        <!-- Navigation Menu -->
-        <nav class="mt-4 border-t border-gray-50 pt-3">
+        <!-- Mobile Menu Button -->
+        <div class="flex md:hidden items-center justify-between mt-3 pt-3 border-t border-gray-50">
+          <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Меню</span>
+          <button @click="toggleMobileMenu" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+            <svg v-if="!mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-brand-dark" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="opacity-0 -translate-y-2"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 -translate-y-2"
+        >
+          <nav v-if="mobileMenuOpen" class="md:hidden mt-3 pb-3">
+            <ul class="flex flex-col gap-1">
+              <li v-for="link in navLinks" :key="link.path">
+                <NuxtLink 
+                  :to="link.path" 
+                  @click="closeMobileMenu"
+                  class="block px-4 py-3 rounded-xl text-sm font-black transition-all uppercase tracking-wider"
+                  active-class="bg-brand-blue text-white shadow-md"
+                  inactive-class="text-gray-600 hover:text-brand-blue hover:bg-blue-50"
+                >
+                  {{ link.name }}
+                </NuxtLink>
+              </li>
+            </ul>
+          </nav>
+        </Transition>
+
+        <!-- Desktop Navigation Menu -->
+        <nav class="hidden md:block mt-4 border-t border-gray-50 pt-3">
           <ul class="flex flex-wrap justify-center gap-1 sm:gap-4">
             <li v-for="link in navLinks" :key="link.path">
               <NuxtLink 

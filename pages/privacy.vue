@@ -1,15 +1,20 @@
 <script setup lang="ts">
 const store = useOrderStore()
 
-const title = 'Политика конфиденциальности - Сетки 21'
+const title = 'Политика конфиденциальности — Сетки 21'
 const description = 'Политика обработки персональных данных компании Сетки 21. Информация о защите персональных данных клиентов.'
+const url = 'https://www.setki21.ru/privacy'
 
 useHead({
   title,
   meta: [
     { name: 'description', content: description },
-    { name: 'robots', content: 'noindex, nofollow' }
+    { name: 'robots', content: 'noindex, nofollow' },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
+    { property: 'og:url', content: url },
   ],
+  link: [{ rel: 'canonical', href: url }],
   script: [
     {
       type: 'application/ld+json',

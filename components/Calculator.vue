@@ -16,9 +16,14 @@ const handleAddToOrder = () => {
 const types = [
   { id: 'standart', name: 'СТАНДАРТ' },
   { id: 'antimoshka', name: 'АНТИМОШКА' },
+  { id: 'ultravyu', name: 'УЛЬТРАВЬЮ' },
   { id: 'antikoshka', name: 'АНТИКОШКА' },
-  { id: 'antipyl', name: 'АНТИПЫЛЬ' },
-  { id: 'vstavnye', name: 'ВСТАВНАЯ VSN' }
+  { id: 'antipyl', name: 'АНТИПЫЛЬ' }
+]
+
+const frameTypes = [
+  { id: 'standart', name: 'РАМОЧНАЯ' },
+  { id: 'vstavnaya', name: 'ВСТАВНАЯ VSN' }
 ]
 
 const colors = [
@@ -38,6 +43,10 @@ const selectType = (id: string, name: string) => {
   store.updateConfig({ type: id, typeName: name })
 }
 
+const selectFrameType = (id: string) => {
+  store.updateConfig({ frameType: id })
+}
+
 const selectColor = (id: number) => {
   store.updateConfig({ color: id })
 }
@@ -46,9 +55,9 @@ const selectColor = (id: number) => {
 const meshSize = computed(() => {
   switch (store.config.type) {
     case 'antimoshka': return 4  // мелкая ячейка 0.8x0.8
+    case 'ultravyu': return 4    // повышенная прозрачность, мелкая ячейка
     case 'antipyl': return 3     // мелкая ячейка
     case 'antikoshka': return 5  // крупная ячейка Pet Screen
-    case 'vstavnye': return 4    // стандартная
     default: return 4            // стандартная 1.2x1.2
   }
 })
@@ -105,7 +114,7 @@ const submitOrder = async () => {
     formPhone: form.phone,
     formAddress: form.address,
     formComment: form.comment,
-    list_order: store.items.map(i => `${i.typeName} (${i.width}x${i.height}, ${i.color}) - ${i.count}шт`).join('<br>'),
+    list_order: store.items.map(i => `${i.frameTypeName ? i.frameTypeName + ': ' : ''}${i.typeName} (${i.width}x${i.height}, ${i.color}) - ${i.count}шт`).join('<br>'),
     total_price_value: store.totalPrice,
     total_order_value: store.delivery
   }
@@ -163,7 +172,7 @@ const submitOrder = async () => {
           <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 bg-brand-dark"></div>
           
           <!-- Ручки для вставной (сверху и снизу) -->
-          <template v-if="store.config.type === 'vstavnye'">
+          <template v-if="store.config.frameType === 'vstavnaya'">
             <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5"></div>
             <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5"></div>
           </template>
@@ -198,11 +207,11 @@ const submitOrder = async () => {
           <h2 class="text-4xl font-black text-brand-dark uppercase tracking-tighter">Расчет стоимости</h2>
         </div>
         
-        <div class="space-y-10">
+        <div class="space-y-10 w-full min-w-0">
           <!-- Тип -->
-          <div>
+          <div class="w-full min-w-0">
             <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Тип полотна</label>
-            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full">
               <button v-for="t in types" :key="t.id"
                       @click="selectType(t.id, t.name)"
                       :class="[
@@ -266,101 +275,154 @@ const submitOrder = async () => {
             </div>
           </div>
 
-          <!-- Цвет -->
-          <div>
-            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Цвет рамки</label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <button v-for="color in colors" :key="color.id"
-                      @click="selectColor(color.id)"
-                      :class="[
-                        'py-4 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest whitespace-nowrap',
-                        store.config.color === color.id 
-                          ? 'bg-brand-blue text-white border-brand-blue shadow-xl shadow-brand-blue/20 transform -translate-y-0.5' 
-                          : 'bg-white text-gray-400 border-gray-100 hover:border-brand-blue/20'
-                      ]">
-                {{ color.name }}
-              </button>
-            </div>
+          <!-- Тип рамки: рендер на клиенте, чтобы сетка сразу была по ширине блока (SSR даёт неправильный layout) -->
+          <div class="w-full min-w-0">
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Тип рамки</label>
+            <ClientOnly>
+              <div class="grid grid-cols-2 gap-4" style="width: 100%">
+                <button v-for="ft in frameTypes" :key="ft.id"
+                        @click="selectFrameType(ft.id)"
+                        :class="[
+                          'py-4 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap w-full',
+                          store.config.frameType === ft.id 
+                            ? 'bg-brand-blue text-white border-brand-blue shadow-xl shadow-brand-blue/20 transform -translate-y-0.5' 
+                            : 'bg-white text-gray-400 border-gray-100 hover:border-brand-blue/20'
+                        ]">
+                  {{ ft.name }}
+                </button>
+              </div>
+              <template #fallback>
+                <div class="grid grid-cols-2 gap-4 h-[52px]" style="width: 100%" aria-hidden="true">
+                  <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse" />
+                  <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse" />
+                </div>
+              </template>
+            </ClientOnly>
           </div>
 
-          <!-- Новая панель параметров (Монтаж, Ручки, Количество) -->
-          <div class="pt-10 border-t border-gray-100 min-w-0">
-            <div class="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-8 md:gap-12 overflow-hidden">
-              
-              <!-- Тип ручек -->
-              <div class="flex-1 w-full sm:w-auto min-w-0 px-1">
-                <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Тип ручек</p>
-                <div class="flex items-center justify-center gap-2 sm:gap-3 min-h-[50px]">
-                  <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
-                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <div class="flex items-baseline justify-center min-w-[80px]">
-                    <span class="font-black text-2xl text-brand-blue leading-none transition-colors uppercase cursor-pointer select-none" @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })">
-                      {{ store.config.handleType === 'pvc' ? 'ПВХ' : 'МЕТАЛ' }}
-                    </span>
-                  </div>
-                  <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
-                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
+          <!-- Цвет: рендер на клиенте для стабильной ширины -->
+          <div class="w-full min-w-0">
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Цвет рамки</label>
+            <ClientOnly>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" style="width: 100%">
+                <button v-for="color in colors" :key="color.id"
+                        @click="selectColor(color.id)"
+                        :class="[
+                          'py-4 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest whitespace-nowrap w-full',
+                          store.config.color === color.id 
+                            ? 'bg-brand-blue text-white border-brand-blue shadow-xl shadow-brand-blue/20 transform -translate-y-0.5' 
+                            : 'bg-white text-gray-400 border-gray-100 hover:border-brand-blue/20'
+                        ]">
+                  {{ color.name }}
+                </button>
               </div>
-
-              <!-- Монтаж -->
-              <div class="flex-1 w-full sm:w-auto min-w-0">
-                <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Монтаж</p>
-                <div class="flex items-center justify-center gap-3 min-h-[50px]">
-                  <button @click="store.updateConfig({ installation: !store.config.installation })"
-                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <div class="flex items-baseline justify-center min-w-[60px]">
-                    <span class="font-black text-2xl text-brand-blue leading-none transition-colors uppercase cursor-pointer select-none" @click="store.updateConfig({ installation: !store.config.installation })">
-                      {{ store.config.installation ? 'ДА' : 'НЕТ' }}
-                    </span>
-                  </div>
-                  <button @click="store.updateConfig({ installation: !store.config.installation })"
-                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+              <template #fallback>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 h-[52px]" style="width: 100%" aria-hidden="true">
+                  <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse" />
+                  <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse" />
+                  <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse hidden sm:block" />
+                  <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse hidden sm:block" />
                 </div>
-              </div>
+              </template>
+            </ClientOnly>
+          </div>
 
-              <!-- Количество -->
-              <div class="flex-1 w-full sm:w-auto min-w-0">
-                <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Количество</p>
-                <div class="flex items-center justify-center gap-3 min-h-[50px]">
-                  <button @click="store.updateConfig({ count: Math.max(1, store.config.count - 1) })"
-                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <div class="flex items-baseline justify-center min-w-[40px]">
-                    <input type="text" 
-                           v-model.number="store.config.count"
-                           @input="store.config.count = Math.max(1, parseInt(String(store.config.count)) || 1)"
-                           class="w-12 text-center bg-transparent border-none focus:outline-none font-black text-2xl text-brand-blue leading-none transition-colors" />
+          <!-- Ручки, Монтаж, Количество: рендер на клиенте, чтобы три колонки сразу по ширине блока -->
+          <div class="pt-10 border-t border-gray-100 w-full min-w-0">
+            <ClientOnly>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12" style="width: 100%">
+                
+                <!-- Тип ручек -->
+                <div class="min-w-0">
+                  <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Тип ручек</p>
+                  <div class="flex items-center justify-center gap-2 sm:gap-3 min-h-[50px]">
+                    <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
+                            class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <div class="flex items-baseline justify-center min-w-[80px]">
+                      <span class="font-black text-2xl text-brand-blue leading-none transition-colors uppercase cursor-pointer select-none" @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })">
+                        {{ store.config.handleType === 'pvc' ? 'ПВХ' : 'МЕТАЛ' }}
+                      </span>
+                    </div>
+                    <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
+                            class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
                   </div>
-                  <button @click="store.updateConfig({ count: store.config.count + 1 })"
-                          class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
                 </div>
-              </div>
 
-            </div>
+                <!-- Монтаж -->
+                <div class="min-w-0">
+                  <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Монтаж</p>
+                  <div class="flex items-center justify-center gap-3 min-h-[50px]">
+                    <button @click="store.updateConfig({ installation: !store.config.installation })"
+                            class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <div class="flex items-baseline justify-center min-w-[60px]">
+                      <span class="font-black text-2xl text-brand-blue leading-none transition-colors uppercase cursor-pointer select-none" @click="store.updateConfig({ installation: !store.config.installation })">
+                        {{ store.config.installation ? 'ДА' : 'НЕТ' }}
+                      </span>
+                    </div>
+                    <button @click="store.updateConfig({ installation: !store.config.installation })"
+                            class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Количество -->
+                <div class="min-w-0">
+                  <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Количество</p>
+                  <div class="flex items-center justify-center gap-3 min-h-[50px]">
+                    <button @click="store.updateConfig({ count: Math.max(1, store.config.count - 1) })"
+                            class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <div class="flex items-baseline justify-center min-w-[40px]">
+                      <input type="text" 
+                             v-model.number="store.config.count"
+                             @input="store.config.count = Math.max(1, parseInt(String(store.config.count)) || 1)"
+                             class="w-12 text-center bg-transparent border-none focus:outline-none font-black text-2xl text-brand-blue leading-none transition-colors" />
+                    </div>
+                    <button @click="store.updateConfig({ count: store.config.count + 1 })"
+                            class="text-gray-200 hover:text-brand-blue transition-colors active:scale-90">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+              <template #fallback>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12 h-[120px]" style="width: 100%" aria-hidden="true">
+                  <div class="flex flex-col items-center gap-2">
+                    <div class="h-3 w-16 bg-gray-100 rounded animate-pulse" />
+                    <div class="h-10 w-24 bg-gray-50 rounded-lg animate-pulse" />
+                  </div>
+                  <div class="flex flex-col items-center gap-2">
+                    <div class="h-3 w-14 bg-gray-100 rounded animate-pulse" />
+                    <div class="h-10 w-20 bg-gray-50 rounded-lg animate-pulse" />
+                  </div>
+                  <div class="flex flex-col items-center gap-2">
+                    <div class="h-3 w-20 bg-gray-100 rounded animate-pulse" />
+                    <div class="h-10 w-16 bg-gray-50 rounded-lg animate-pulse" />
+                  </div>
+                </div>
+              </template>
+            </ClientOnly>
           </div>
 
           <!-- Цена и Кнопка -->
@@ -403,7 +465,8 @@ const submitOrder = async () => {
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
-                <th class="pb-8 pr-4">Тип полотна</th>
+                <th class="pb-8 pr-4">Тип рамки</th>
+                <th class="pb-8 px-4">Тип полотна</th>
                 <th class="pb-8 px-4">Габариты</th>
                 <th class="pb-8 px-4">Цвет рамки</th>
                 <th class="pb-8 px-4">Тип ручек</th>
@@ -415,7 +478,8 @@ const submitOrder = async () => {
             </thead>
             <tbody class="text-sm font-bold text-brand-dark">
               <tr v-for="item in store.items" :key="item.id" class="border-b border-gray-50 group hover:bg-gray-50/50 transition-colors">
-                <td class="py-8 pr-4 uppercase text-xs font-black">{{ item.typeName.split(' (')[0] }}</td>
+                <td class="py-8 pr-4 uppercase text-xs font-black text-gray-600">{{ item.frameTypeName ?? '—' }}</td>
+                <td class="py-8 px-4 uppercase text-xs font-black">{{ item.typeName.split(' (')[0] }}</td>
                 <td class="py-8 px-4 text-gray-500 font-medium">{{ item.width }} x {{ item.height }} мм</td>
                 <td class="py-8 px-4 text-gray-500 font-medium">{{ item.color }}</td>
                 <td class="py-8 px-4">

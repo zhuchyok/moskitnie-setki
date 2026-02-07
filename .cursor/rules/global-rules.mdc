@@ -1,0 +1,12 @@
+---
+alwaysApply: false
+description: Global workflow rules. Load with @global-rules.mdc when needed.
+---
+# Global Workflow
+
+1. **Follow Agent-Orchestrator Protocol** (`.cursor/rules/orchestrator.mdc`)
+2. Check `.cursor/plans/*.plan.md` before work
+3. Use existing components/architecture
+4. Update plans after completion
+5. Follow `.cursor/rules/essential.mdc` principles
+6. Auto-trigger agents via CursorAgentCoordinator

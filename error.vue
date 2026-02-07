@@ -3,6 +3,14 @@ const props = defineProps({
   error: Object
 })
 
+useHead({
+  title: 'Страница не найдена — Сетки 21',
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' },
+    { name: 'description', content: 'Страница не найдена. Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21.' }
+  ]
+})
+
 const handleError = () => clearError({ redirect: '/' })
 
 const categories = [
@@ -35,7 +43,11 @@ const categories = [
         >
           На главную
         </button>
-        <a href="tel:+78352381420" class="text-sm font-black text-brand-dark uppercase tracking-widest hover:text-brand-blue transition-colors">
+        <a
+          href="tel:+78352381420"
+          class="text-sm font-black text-brand-dark uppercase tracking-widest hover:text-brand-blue transition-colors"
+          @click="() => { try { (window as any).reachMetrikaGoal?.('CALL_CLICK') } catch (_) {} }"
+        >
           Связаться с нами <span aria-hidden="true">&rarr;</span>
         </a>
       </div>

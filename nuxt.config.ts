@@ -6,6 +6,12 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
   ],
+  css: [
+    '@fontsource/inter/cyrillic-400.css',
+    '@fontsource/inter/cyrillic-500.css',
+    '@fontsource/inter/cyrillic-700.css',
+    '@fontsource/inter/cyrillic-900.css',
+  ],
   app: {
     head: {
       htmlAttrs: {
@@ -16,20 +22,21 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'robots', content: 'index, follow' },
+        { name: 'theme-color', content: '#2A6AB2' },
         { name: 'format-detection', content: 'telephone=no' },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'Сетки 21' },
+        { property: 'og:image', content: 'https://www.setki21.ru/images/logo_final_v58.png' },
+        { property: 'og:locale', content: 'ru_RU' },
+        { property: 'og:image:width', content: '1200' },
+        { property: 'og:image:height', content: '630' },
         { name: 'twitter:card', content: 'summary_large_image' }
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'shortcut icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'manifest', href: '/manifest.json' },
-        // Font optimization
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'preload', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap', as: 'style' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap' }
+        { rel: 'dns-prefetch', href: 'https://mc.yandex.ru' }
       ]
     }
   },
@@ -47,7 +54,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      routes: ['/', '/antimoshka', '/antikoshka', '/antipyl', '/vstavnye', '/remont']
+      routes: ['/', '/antimoshka', '/ultravyu', '/antikoshka', '/antipyl', '/vstavnye', '/remont', '/contacts', '/delivery', '/privacy', '/karta-sajta']
     }
   }
 })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const store = useOrderStore()
 onMounted(() => {
-  store.updateConfig({ type: 'vstavnye', typeName: 'ВСТАВНАЯ VSN' })
+  store.updateConfig({ frameType: 'vstavnaya', type: 'standart', typeName: 'СТАНДАРТ' })
 })
 
 const title = 'Вставные москитные сетки VSN в Чебоксарах — цены от 1450 руб'
@@ -9,6 +9,34 @@ const description = 'Инновационные вставные сетки VSN 
 const keywords = 'вставная сетка, vsn, москитная сетка без сверления, чебоксары, новочебоксарск, внутренняя сетка'
 const url = 'https://www.setki21.ru/vstavnye/'
 const image = 'https://www.setki21.ru/images/logo_new.png'
+
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'Вставная москитная сетка VSN',
+  description: 'Москитная сетка внутреннего монтажа без сверления рамы',
+  image,
+  brand: { '@type': 'Brand', name: 'Сетки 21' },
+  offers: {
+    '@type': 'Offer',
+    url,
+    email: 'info@setki21.ru',
+    priceCurrency: 'RUB',
+    price: '1450',
+    availability: 'https://schema.org/InStock'
+  },
+  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '82' }
+}
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: 'Нужно ли сверлить раму для вставной сетки VSN?', acceptedAnswer: { '@type': 'Answer', text: 'Нет. Сетки VSN устанавливаются в световой проём изнутри помещения без сверления. Никаких отверстий в раме — идеальный вариант для тех, кто не хочет нарушать целостность окна.' } },
+    { '@type': 'Question', name: 'Можно ли ставить VSN на деревянные окна?', acceptedAnswer: { '@type': 'Answer', text: 'Да. Вставные сетки VSN подходят для пластиковых и деревянных окон. Монтаж изнутри, без сверления. Изготавливаем по размерам в Чебоксарах и Новочебоксарске.' } },
+    { '@type': 'Question', name: 'Чем крепится вставная сетка изнутри?', acceptedAnswer: { '@type': 'Answer', text: 'Сетка фиксируется в проёме рамы специальным крепежом изнутри помещения. Риск выпадения наружу отсутствует, прилегание плотное, вид аккуратный.' } }
+  ]
+}
 
 useHead({
   title,
@@ -25,27 +53,17 @@ useHead({
   ],
   link: [{ rel: 'canonical', href: url }],
   script: [
-    {
-      type: 'application/ld+json',
-      children: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Product",
-        "name": "Вставная москитная сетка VSN",
-        "description": "Москитная сетка внутреннего монтажа без сверления рамы",
-        "image": image,
-        "brand": { "@type": "Brand", "name": "Сетки 21" },
-        "offers": {
-          "@type": "Offer",
-          "url": url,
-          "email": "info@setki21.ru",
-          "priceCurrency": "RUB",
-          "price": "1450",
-          "availability": "https://schema.org/InStock"
-        }
-      })
-    }
+    { type: 'application/ld+json', children: JSON.stringify(productSchema) },
+    { type: 'application/ld+json', children: JSON.stringify(faqSchema) }
   ]
 })
+
+const openFaq = ref<number | null>(null)
+const faqItems = [
+  { q: 'Нужно ли сверлить раму для вставной сетки VSN?', a: 'Нет. Сетки VSN устанавливаются в световой проём изнутри помещения без сверления. Никаких отверстий в раме — идеальный вариант для тех, кто не хочет нарушать целостность окна.' },
+  { q: 'Можно ли ставить VSN на деревянные окна?', a: 'Да. Вставные сетки VSN подходят для пластиковых и деревянных окон. Монтаж изнутри, без сверления. Изготавливаем по размерам в Чебоксарах и Новочебоксарске.' },
+  { q: 'Чем крепится вставная сетка изнутри?', a: 'Сетка фиксируется в проёме рамы специальным крепежом изнутри помещения. Риск выпадения наружу отсутствует, прилегание плотное, вид аккуратный.' }
+]
 </script>
 
 <template>
@@ -58,7 +76,7 @@ useHead({
               Вставные сетки <span class="text-brand-blue">VSN</span> — без сверления
             </h1>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
-              Самый современный вид сеток. Устанавливаются в световой проем изнутри помещения. Никаких отверстий в раме и риска выпадения сетки наружу. Идеальное прилегание и эстетичный вид.
+              Вставные сетки VSN в Чебоксарах и Новочебоксарске от 1450 ₽, за 3 дня. Устанавливаются в световой проём изнутри, без сверления рамы. Никаких отверстий и риска выпадения — идеальное прилегание и эстетичный вид.
             </p>
             <div class="grid grid-cols-2 gap-4">
               <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
@@ -72,7 +90,7 @@ useHead({
             </div>
           </div>
           <div class="lg:w-1/2 relative">
-            <img src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png" alt="Вставная москитная сетка VSN" class="rounded-[3rem] shadow-2xl border-4 border-white" />
+            <HeroImage src="/upload/iblock/e09/hero-vstavnye.png" webp-src="/images/optimized/e09/hero-vstavnye.webp" alt="Простые замеры: ширина и высота проёма окна для вставной москитной сетки VSN" class="rounded-[3rem] shadow-2xl border-4 border-white" :width="600" :height="400" loading="lazy" />
             <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
               <p class="text-brand-blue font-black text-xl leading-none italic uppercase">Smart Fit</p>
               <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">Премиум выбор</p>
@@ -94,7 +112,7 @@ useHead({
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <video controls muted playsinline class="rounded-3xl shadow-lg w-full">
+              <video controls muted playsinline preload="metadata" class="rounded-3xl shadow-lg w-full" title="Как замерить окно для вставной москитной сетки VSN">
                 <source src="/zamer.mp4" type="video/mp4">
                 Ваш браузер не поддерживает видео.
               </video>
@@ -133,6 +151,40 @@ useHead({
             </div>
             <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
           </div>
+          <SeoTextBlock title="Вставные сетки VSN в Чебоксарах и Новочебоксарске" class="mt-20">
+            <p>
+              Вставные москитные сетки <strong>VSN</strong> в Чебоксарах и Новочебоксарске устанавливаются изнутри, без сверления рамы — идеально для тех, кто не хочет нарушать целостность окна. Заказ через <NuxtLink to="/" class="text-brand-blue underline font-bold">калькулятор на главной</NuxtLink>: выберите «Вставная VSN», укажите размеры и получите расчёт. Изготовление за 3 дня, доставка или самовывоз.
+            </p>
+            <p>
+              Также предлагаем <NuxtLink to="/" class="text-brand-blue underline font-bold">рамочные сетки</NuxtLink>, <NuxtLink to="/antimoshka" class="text-brand-blue underline font-bold">Антимошку</NuxtLink>, <NuxtLink to="/ultravyu" class="text-brand-blue underline font-bold">Ультравью</NuxtLink>, <NuxtLink to="/antikoshka" class="text-brand-blue underline font-bold">Антикошку</NuxtLink>, <NuxtLink to="/antipyl" class="text-brand-blue underline font-bold">Антипыль</NuxtLink> и <NuxtLink to="/remont" class="text-brand-blue underline font-bold">ремонт сеток</NuxtLink>. Работаем по Чебоксарам и Новочебоксарску.
+            </p>
+            <p>
+              Вставные сетки VSN монтируются в световой проём изнутри, без сверления рамы — подходят для пластиковых и деревянных окон. Риск выпадения сетки отсутствует, вид с улицы аккуратный. Цена от 1450 ₽ в Чебоксарах и Новочебоксарске, изготовление за 3 дня.
+            </p>
+          </SeoTextBlock>
+          <section class="mt-20 pt-16 border-t border-gray-200">
+            <h2 class="text-2xl font-black mb-8 uppercase tracking-tight text-brand-dark text-center">Часто задаваемые вопросы</h2>
+            <ul class="space-y-4">
+              <li v-for="(item, i) in faqItems" :key="i" class="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                <button
+                  type="button"
+                  class="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-gray-100/50 transition-colors"
+                  :aria-expanded="openFaq === i"
+                  @click="openFaq = openFaq === i ? null : i"
+                >
+                  <h3 class="font-black text-brand-blue uppercase tracking-wider text-base">{{ item.q }}</h3>
+                  <span class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue transition-transform duration-200" :class="{ 'rotate-180': openFaq === i }">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </button>
+                <div v-show="openFaq === i" class="px-6 pb-6 pt-0">
+                  <p class="text-gray-600 text-base font-medium leading-relaxed text-justify">{{ item.a }}</p>
+                </div>
+              </li>
+            </ul>
+          </section>
       </div>
     </section>
   </div>

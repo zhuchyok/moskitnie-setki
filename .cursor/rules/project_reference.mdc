@@ -1,0 +1,43 @@
+---
+alwaysApply: false
+description: Universal project component reference - key classes, patterns, and reusable utilities. Load with @project_reference.mdc when needed.
+---
+# Role: Project Reference (Post-Purge Architecture)
+
+## Domain Models (Python Bridge)
+- `Candle` - Primary market data unit (OHLCV).
+- `Position` - Active market exposure tracked by the bridge.
+- `OrderResult` - Standardized response from broker operations.
+- `OrderType`, `OrderStatus`, `PositionType` - Core enums for trading state.
+- Location: `src/jitro/infrastructure/broker/tinkoff/models.py`.
+
+## Python Infrastructure (Bridge)
+- `TinkoffBrokerAdapter` - Live trading operations via Tinkoff API.
+- `TinkoffDataSource` - Historical and real-time data fetching.
+- `TelegramNotifier` - Alerting service for signals and status updates.
+- `TinkoffTradingGateway` - Core logic of the bridge (`scripts/tinkoff_radar_bridge.py`).
+
+## Rust Core (High-Performance)
+- `jitro_rust` - Python module providing access to optimized Rust logic.
+- `indicators` - RSI, MACD, VWAP, Bollinger, Support/Resistance.
+- `features` - Volatility, Correlation, OBI Velocity, Depth Velocity, Panic Mode.
+- `calculations` - WelfordStats (Z-Score), Sharpe/Sortino, Drawdown, Forward Move.
+- `HFEngine` - High-frequency tick processing engine.
+- `PySniperPredictor` - CatBoost inference engine for Rust.
+
+## Entry Points
+- `scripts/tinkoff_radar_bridge.py` - Python шлюз между Tinkoff и Rust.
+- `rust/src/bin/radar_live.rs` - Основной Rust-бинарник (радар сигналов).
+- `start_bridge.sh` / `start_radar.sh` - Скрипты запуска системы.
+
+## Project Structure
+- `rust/` - Модульное ядро на Rust (Calculations, Indicators, ML).
+- `src/jitro/infrastructure/` - Минималистичный мост к Tinkoff API.
+- `scripts/` - Операционные скрипты и мост.
+- `docs/analytics/` - Исследования и гипотезы (Source of Truth для стратегий).
+
+## Essential Workflow
+1. **Rust First**: Все тяжелые вычисления и логика сигналов ТОЛЬКО в Rust.
+2. **Bridge Only**: Python используется исключительно как GRPC-клиент к Tinkoff и транспорт (ZMQ).
+3. **Stateless Rust**: Логика радара в Rust должна быть максимально независимой и тестируемой.
+4. **Data-Driven**: Стратегии реализуются на основе `docs/analytics/` после верификации данных.

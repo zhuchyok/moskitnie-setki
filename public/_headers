@@ -1,4 +1,4 @@
-# Headers for optimal performance
+# Headers for optimal performance (Netlify/similar)
 /*
   X-Frame-Options: DENY
   X-XSS-Protection: 1; mode=block

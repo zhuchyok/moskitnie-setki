@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const store = useOrderStore()
 onMounted(() => {
-  store.updateConfig({ type: 'antipyl', typeName: 'АНТИПЫЛЬ' })
+  store.updateConfig({ frameType: 'standart', type: 'antipyl', typeName: 'АНТИПЫЛЬ' })
 })
 
 const title = 'Москитная сетка Антипыль (Poll-Tex) в Чебоксарах — цены от 1400 руб'
@@ -9,6 +9,34 @@ const description = 'Сетки для аллергиков Poll-Tex в Чебо
 const keywords = 'антипыль, poll-tex, москитная сетка для аллергиков, чебоксары, новочебоксарск, чистый воздух'
 const url = 'https://www.setki21.ru/antipyl/'
 const image = 'https://www.setki21.ru/images/logo_new.png'
+
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'Москитная сетка Антипыль',
+  description: 'Специальная сетка-фильтр для защиты от пыли и пыльцы в Чебоксарах',
+  image,
+  brand: { '@type': 'Brand', name: 'Сетки 21' },
+  offers: {
+    '@type': 'Offer',
+    url,
+    email: 'info@setki21.ru',
+    priceCurrency: 'RUB',
+    price: '1400',
+    availability: 'https://schema.org/InStock'
+  },
+  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.8', reviewCount: '76' }
+}
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: 'Для кого подходит сетка Антипыль?', acceptedAnswer: { '@type': 'Answer', text: 'Для аллергиков, жителей домов у дорог и тех, кто хочет меньше пыли в квартире. Полотно Poll-Tex задерживает до 90% пыльцы и уличной пыли благодаря электростатическому эффекту.' } },
+    { '@type': 'Question', name: 'Как часто нужно мыть сетку Антипыль?', acceptedAnswer: { '@type': 'Answer', text: 'Рекомендуем промывать под душем 1–2 раза в сезон или по мере загрязнения. Нейлоновое полотно легко очищается, подоконники остаются чище в 3 раза дольше.' } },
+    { '@type': 'Question', name: 'Чем Антипыль отличается от обычной москитной сетки?', acceptedAnswer: { '@type': 'Answer', text: 'Обычная сетка задерживает насекомых и крупный мусор. Антипыль (Poll-Tex) дополнительно притягивает мелкую пыль и пыльцу за счёт электростатики — это фильтр для воздуха в окно.' } }
+  ]
+}
 
 useHead({
   title,
@@ -25,27 +53,17 @@ useHead({
   ],
   link: [{ rel: 'canonical', href: url }],
   script: [
-    {
-      type: 'application/ld+json',
-      children: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Product",
-        "name": "Москитная сетка Антипыль",
-        "description": "Специальная сетка-фильтр для защиты от пыли и пыльцы в Чебоксарах",
-        "image": image,
-        "brand": { "@type": "Brand", "name": "Сетки 21" },
-        "offers": {
-          "@type": "Offer",
-          "url": url,
-          "email": "info@setki21.ru",
-          "priceCurrency": "RUB",
-          "price": "1400",
-          "availability": "https://schema.org/InStock"
-        }
-      })
-    }
+    { type: 'application/ld+json', children: JSON.stringify(productSchema) },
+    { type: 'application/ld+json', children: JSON.stringify(faqSchema) }
   ]
 })
+
+const openFaq = ref<number | null>(null)
+const faqItems = [
+  { q: 'Для кого подходит сетка Антипыль?', a: 'Для аллергиков, жителей домов у дорог и тех, кто хочет меньше пыли в квартире. Полотно Poll-Tex задерживает до 90% пыльцы и уличной пыли благодаря электростатическому эффекту.' },
+  { q: 'Как часто нужно мыть сетку Антипыль?', a: 'Рекомендуем промывать под душем 1–2 раза в сезон или по мере загрязнения. Нейлоновое полотно легко очищается, подоконники остаются чище в 3 раза дольше.' },
+  { q: 'Чем Антипыль отличается от обычной москитной сетки?', a: 'Обычная сетка задерживает насекомых и крупный мусор. Антипыль (Poll-Tex) дополнительно притягивает мелкую пыль и пыльцу за счёт электростатики — это фильтр для воздуха в окно.' }
+]
 </script>
 
 <template>
@@ -58,7 +76,7 @@ useHead({
               Сетка <span class="text-brand-blue">Антипыль</span> — Poll-Tex
             </h1>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
-              Идеальное решение для аллергиков и жителей домов рядом с дорогами. Сетка работает как фильтр, задерживая пыль, копоть и пыльцу растений благодаря электростатическому эффекту.
+              Сетка Антипыль в Чебоксарах и Новочебоксарске от 1400 ₽, за 3 дня. Идеально для аллергиков и жителей домов у дорог — полотно Poll-Tex задерживает пыль, копоть и пыльцу благодаря электростатическому эффекту.
             </p>
             <div class="grid grid-cols-2 gap-4">
               <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
@@ -72,7 +90,7 @@ useHead({
             </div>
           </div>
           <div class="lg:w-1/2 relative">
-            <img src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png" alt="Москитная сетка Антипыль" class="rounded-[3rem] shadow-2xl border-4 border-white" />
+            <HeroImage src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png" webp-src="/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp" alt="Москитная сетка Антипыль Poll-Tex для аллергиков в Чебоксарах" class="rounded-[3rem] shadow-2xl border-4 border-white" :width="600" :height="400" loading="lazy" />
             <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
               <p class="text-brand-blue font-black text-xl leading-none italic uppercase">Pure Air</p>
               <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">Фильтрация 24/7</p>
@@ -94,7 +112,7 @@ useHead({
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <video controls muted playsinline class="rounded-3xl shadow-lg w-full">
+              <video controls muted playsinline preload="metadata" class="rounded-3xl shadow-lg w-full" title="Как замерить окно для москитной сетки Антипыль">
                 <source src="/zamer.mp4" type="video/mp4">
                 Ваш браузер не поддерживает видео.
               </video>
@@ -133,6 +151,40 @@ useHead({
             </div>
             <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
           </div>
+          <SeoTextBlock title="Сетка Антипыль в Чебоксарах и Новочебоксарске" class="mt-20">
+            <p>
+              Сетка <strong>Антипыль</strong> (Poll-Tex) в Чебоксарах и Новочебоксарске подойдёт аллергикам и жителям домов у дорог: нейлоновое полотно задерживает пыльцу и уличную пыль. Заказать расчёт можно на <NuxtLink to="/" class="text-brand-blue underline font-bold">главной странице</NuxtLink> — укажите размеры и выберите тип «Антипыль». Цена от 1400 ₽, металлический крепёж в комплекте, изготовление за 3 дня.
+            </p>
+            <p>
+              В каталоге Сетки 21: <NuxtLink to="/antimoshka" class="text-brand-blue underline font-bold">Антимошка</NuxtLink>, <NuxtLink to="/ultravyu" class="text-brand-blue underline font-bold">Ультравью</NuxtLink>, <NuxtLink to="/antikoshka" class="text-brand-blue underline font-bold">Антикошка</NuxtLink>, <NuxtLink to="/vstavnye" class="text-brand-blue underline font-bold">вставные VSN</NuxtLink> и <NuxtLink to="/remont" class="text-brand-blue underline font-bold">ремонт сеток</NuxtLink>. Доставка и самовывоз по Чебоксарам и Новочебоксарску.
+            </p>
+            <p>
+              Сетка Антипыль (Poll-Tex) снижает количество пыли и пыльцы в помещении за счёт электростатического эффекта нейлонового полотна. Рекомендуем аллергикам и жителям домов у дорог в Чебоксарах и Новочебоксарске. Промывка 1–2 раза в сезон — полотно легко чистится под душем.
+            </p>
+          </SeoTextBlock>
+          <section class="mt-20 pt-16 border-t border-gray-200">
+            <h2 class="text-2xl font-black mb-8 uppercase tracking-tight text-brand-dark text-center">Часто задаваемые вопросы</h2>
+            <ul class="space-y-4">
+              <li v-for="(item, i) in faqItems" :key="i" class="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                <button
+                  type="button"
+                  class="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-gray-100/50 transition-colors"
+                  :aria-expanded="openFaq === i"
+                  @click="openFaq = openFaq === i ? null : i"
+                >
+                  <h3 class="font-black text-brand-blue uppercase tracking-wider text-base">{{ item.q }}</h3>
+                  <span class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue transition-transform duration-200" :class="{ 'rotate-180': openFaq === i }">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </button>
+                <div v-show="openFaq === i" class="px-6 pb-6 pt-0">
+                  <p class="text-gray-600 text-base font-medium leading-relaxed text-justify">{{ item.a }}</p>
+                </div>
+              </li>
+            </ul>
+          </section>
       </div>
     </section>
   </div>

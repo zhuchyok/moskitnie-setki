@@ -5,6 +5,29 @@ const keywords = 'ремонт сеток, замена полотна, моск
 const url = 'https://www.setki21.ru/remont/'
 const image = 'https://www.setki21.ru/images/logo_new.png'
 
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: 'Ремонт москитных сеток',
+  description: 'Замена комплектующих и полотна москитных сеток в Чебоксарах',
+  provider: {
+    '@type': 'LocalBusiness',
+    name: 'Сетки 21',
+    email: 'info@setki21.ru'
+  },
+  areaServed: [{ '@type': 'City', name: 'Чебоксары' }, { '@type': 'City', name: 'Новочебоксарск' }]
+}
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: 'Что можно отремонтировать в москитной сетке?', acceptedAnswer: { '@type': 'Answer', text: 'Замена полотна (стандарт, Ультравью, Антикошка, Антипыль), замена ручек (металлических или силиконовых), замена уголков. Если рамка цела — ремонт дешевле новой сетки.' } },
+    { '@type': 'Question', name: 'Сколько занимает ремонт?', acceptedAnswer: { '@type': 'Answer', text: 'За 3 дня. Можно привезти сетку в офис в Чебоксарах или Новочебоксарске и забрать готовую в тот же день или на следующий.' } },
+    { '@type': 'Question', name: 'Нужно ли привозить сетку в офис?', acceptedAnswer: { '@type': 'Answer', text: 'Да. Ремонт делаем в офисе при вас. Адреса: Чебоксары, ул. Гражданская, 53, оф.1 и Новочебоксарск, ул. Винокурова, 109. Цена от 100 ₽ за замену ручек, от 400 ₽ за замену полотна.' } }
+  ]
+}
+
 useHead({
   title,
   meta: [
@@ -20,31 +43,22 @@ useHead({
   ],
   link: [{ rel: 'canonical', href: url }],
   script: [
-    {
-      type: 'application/ld+json',
-      children: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "Service",
-        "name": "Ремонт москитных сеток",
-        "description": "Замена комплектующих и полотна москитных сеток в Чебоксарах",
-        "provider": {
-          "@type": "LocalBusiness",
-          "name": "Сетки 21",
-          "email": "info@setki21.ru"
-        },
-        "areaServed": {
-          "@type": "City",
-          "name": "Чебоксары"
-        }
-      })
-    }
+    { type: 'application/ld+json', children: JSON.stringify(serviceSchema) },
+    { type: 'application/ld+json', children: JSON.stringify(faqSchema) }
   ]
 })
 
 const services = [
-  { name: 'Замена полотна', desc: 'Перетянем сетку новым полотном (Стандарт, Антикошка или Антипыль).', price: '400' },
+  { name: 'Замена полотна', desc: 'Перетянем сетку новым полотном (Стандарт, Ультравью, Антикошка или Антипыль).', price: '400' },
   { name: 'Замена ручек', desc: 'Установим новые металлические или силиконовые ручки вместо сломанных.', price: '100' },
   { name: 'Замена уголков', desc: 'Заменим треснувшие пластиковые уголки на новые усиленные.', price: '150' }
+]
+
+const openFaq = ref<number | null>(null)
+const faqItems = [
+  { q: 'Что можно отремонтировать в москитной сетке?', a: 'Замена полотна (стандарт, Ультравью, Антикошка, Антипыль), замена ручек (металлических или силиконовых), замена уголков. Если рамка цела — ремонт дешевле новой сетки.' },
+  { q: 'Сколько занимает ремонт?', a: 'За 3 дня. Можно привезти сетку в офис в Чебоксарах или Новочебоксарске и забрать готовую в тот же день или на следующий.' },
+  { q: 'Нужно ли привозить сетку в офис?', a: 'Да. Ремонт делаем в офисе при вас. Адреса: Чебоксары, ул. Гражданская, 53, оф.1 и Новочебоксарск, ул. Винокурова, 109. Цена от 100 ₽ за замену ручек, от 400 ₽ за замену полотна.' }
 ]
 </script>
 
@@ -58,11 +72,11 @@ const services = [
               Ремонт <span class="text-brand-blue">сеток</span> — быстро и надежно
             </h1>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
-              Если рамка вашей сетки цела, но полотно порвалось или сломались ручки — не обязательно покупать новую. Мы выполним качественный ремонт за 15 минут в вашем присутствии!
+              Ремонт москитных сеток в Чебоксарах и Новочебоксарске от 100 ₽, за 3 дня. Если рамка цела, а полотно порвалось или сломались ручки — не обязательно покупать новую. Замена полотна, ручек, уголков.
             </p>
             <div class="grid grid-cols-2 gap-4">
               <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                <p class="font-black text-brand-blue text-2xl mb-1">15 мин</p>
+                <p class="font-black text-brand-blue text-2xl mb-1">3 дня</p>
                 <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Срок ремонта</p>
               </div>
               <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
@@ -72,7 +86,7 @@ const services = [
             </div>
           </div>
           <div class="lg:w-1/2 relative">
-            <img src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png" alt="Ремонт москитных сеток" class="rounded-[3rem] shadow-2xl border-4 border-white" />
+            <HeroImage src="/upload/iblock/e09/hero-remont.png" webp-src="/images/optimized/e09/hero-remont.webp" alt="Простые замеры: ширина и высота сетки для ремонта москитных сеток" class="rounded-[3rem] shadow-2xl border-4 border-white" :width="600" :height="400" loading="lazy" />
             <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
               <p class="text-brand-blue font-black text-xl leading-none italic uppercase">Quick Fix</p>
               <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">Гарантия на работы</p>
@@ -114,14 +128,14 @@ const services = [
                   <div class="w-12 h-12 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black">01</div>
                   <div>
                     <h4 class="font-bold uppercase tracking-wider mb-2">Привезите к нам</h4>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium">В офис в Чебоксарах или Новочебоксарске. Сделаем при вас за 15-20 минут.</p>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium">В офис в Чебоксарах или Новочебоксарске. Сделаем за 3 дня.</p>
                   </div>
                 </div>
                 <div class="flex gap-6">
                   <div class="w-12 h-12 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black">02</div>
                   <div>
                     <h4 class="font-bold uppercase tracking-wider mb-2">Вызовите мастера</h4>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium">Мастер приедет в удобное время, заберет сетки и привезет отремонтированные на следующий день.</p>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium">Мастер приедет в удобное время, заберет сетки и привезет отремонтированные через 3 дня.</p>
                   </div>
                 </div>
               </div>
@@ -134,6 +148,40 @@ const services = [
           </div>
           <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
         </div>
+        <SeoTextBlock title="Ремонт москитных сеток в Чебоксарах и Новочебоксарске" class="mt-20">
+          <p>
+            <strong>Ремонт москитных сеток</strong> в Чебоксарах и Новочебоксарске: замена полотна (стандарт, Ультравью, Антикошка, Антипыль), ручек и уголков. Если рамка цела, ремонт выгоднее новой сетки. Привозите сетку в офис: Чебоксары, ул. Гражданская, 53 или Новочебоксарск, ул. Винокурова, 109 — готово за 3 дня.
+          </p>
+          <p>
+            Новые сетки заказывайте на <NuxtLink to="/" class="text-brand-blue underline font-bold">главной</NuxtLink>: <NuxtLink to="/antimoshka" class="text-brand-blue underline font-bold">Антимошка</NuxtLink>, <NuxtLink to="/ultravyu" class="text-brand-blue underline font-bold">Ультравью</NuxtLink>, <NuxtLink to="/antikoshka" class="text-brand-blue underline font-bold">Антикошка</NuxtLink>, <NuxtLink to="/antipyl" class="text-brand-blue underline font-bold">Антипыль</NuxtLink>, <NuxtLink to="/vstavnye" class="text-brand-blue underline font-bold">вставные VSN</NuxtLink>. Сетки 21 — производство и ремонт в одном месте.
+          </p>
+          <p>
+            Ремонт москитных сеток в Чебоксарах и Новочебоксарске выполняем за 3 дня: замена полотна от 400 ₽, ручек от 100 ₽, уголков от 150 ₽. Привозите сетку в офис на ул. Гражданская, 53 (Чебоксары) или ул. Винокурова, 109 (Новочебоксарск) — при необходимости подберём полотно Антимошка, Ультравью, Антикошка или Антипыль.
+          </p>
+        </SeoTextBlock>
+        <section class="mt-20 pt-16 border-t border-gray-200">
+          <h2 class="text-2xl font-black mb-8 uppercase tracking-tight text-brand-dark text-center">Часто задаваемые вопросы</h2>
+<ul class="space-y-4">
+          <li v-for="(item, i) in faqItems" :key="i" class="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+            <button
+              type="button"
+              class="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-gray-100/50 transition-colors"
+              :aria-expanded="openFaq === i"
+              @click="openFaq = openFaq === i ? null : i"
+            >
+              <h3 class="font-black text-brand-blue uppercase tracking-wider text-base">{{ item.q }}</h3>
+              <span class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue transition-transform duration-200" :class="{ 'rotate-180': openFaq === i }">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </button>
+            <div v-show="openFaq === i" class="px-6 pb-6 pt-0">
+              <p class="text-gray-600 text-base font-medium leading-relaxed text-justify">{{ item.a }}</p>
+            </div>
+          </li>
+        </ul>
+        </section>
       </div>
     </section>
   </div>

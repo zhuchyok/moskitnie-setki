@@ -3,6 +3,7 @@ const navLinks = [
   { name: 'МОСКИТНАЯ', path: '/' },
   { name: 'АНТИМОШКА', path: '/antimoshka' },
   { name: 'АНТИКОШКА', path: '/antikoshka' },
+  { name: 'УЛЬТРАВЬЮ', path: '/ultravyu' },
   { name: 'АНТИПЫЛЬ', path: '/antipyl' },
   { name: 'ВСТАВНАЯ VSN', path: '/vstavnye' },
   { name: 'РЕМОНТ', path: '/remont' },
@@ -41,6 +42,9 @@ const acceptAllCookies = () => {
   showCookieBanner.value = false
 }
 
+// Footer year — единое значение для сервера и клиента, чтобы не было рассинхрона при гидрации
+const footerYear = useState('footerYear', () => new Date().getFullYear())
+
 // Mobile Menu
 const mobileMenuOpen = ref(false)
 const toggleMobileMenu = () => {
@@ -49,20 +53,64 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
   mobileMenuOpen.value = false
 }
+
+// Хлебные крошки из текущего маршрута
+const BASE_URL = 'https://www.setki21.ru'
+const pathNames: Record<string, string> = {
+  '/': 'Главная',
+  '/antimoshka': 'Антимошка',
+  '/ultravyu': 'Ультравью',
+  '/antikoshka': 'Антикошка',
+  '/antipyl': 'Антипыль',
+  '/vstavnye': 'Вставная VSN',
+  '/remont': 'Ремонт',
+  '/contacts': 'Контакты',
+  '/delivery': 'Доставка и замер',
+  '/privacy': 'Политика конфиденциальности',
+  '/karta-sajta': 'Карта сайта'
+}
+const route = useRoute()
+const breadcrumbs = computed(() => {
+  const path = route.path.replace(/\/$/, '') || '/'
+  const items: { path: string; name: string }[] = []
+  if (path === '/') {
+    items.push({ path: '/', name: pathNames['/'] })
+  } else {
+    items.push({ path: '/', name: pathNames['/'] })
+    const name = pathNames[path] || path.slice(1)
+    items.push({ path, name })
+  }
+  return items
+})
+const breadcrumbSchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: breadcrumbs.value.map((item, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: item.name,
+    item: `${BASE_URL}${item.path === '/' ? '' : item.path}`
+  }))
+}))
+useHead({
+  script: computed(() => [
+    { type: 'application/ld+json', children: JSON.stringify(breadcrumbSchema.value) }
+  ])
+})
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col font-sans text-brand-dark selection:bg-brand-blue selection:text-white">
+  <div class="min-h-screen flex flex-col font-sans text-brand-dark selection:bg-brand-blue selection:text-white" style="color: #333333">
     <!-- Top Header -->
     <header class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
       <div class="container mx-auto px-4 py-3">
         <div class="flex flex-wrap justify-between items-center gap-4">
           <!-- Logo Section -->
-          <NuxtLink to="/" class="logo-link flex items-center gap-3 sm:gap-4 group">
-            <img src="/images/logo_clean.png?v=2" alt="Сетки 21" class="h-10 sm:h-12 transition-transform group-hover:scale-105" />
-            <div>
-              <h1 class="text-lg sm:text-xl font-black leading-none text-brand-blue tracking-tight uppercase">СЕТКИ 21</h1>
-              <p class="text-[8px] sm:text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+          <NuxtLink to="/" class="logo-link flex items-center gap-3 sm:gap-4 group min-w-0 flex-shrink-0" style="color: inherit; text-decoration: none">
+            <img src="/images/logo_clean.png?v=2" alt="Сетки 21" class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 object-contain transition-transform group-hover:scale-105" width="48" height="48" loading="eager" decoding="async" />
+            <div class="min-w-0" style="color: #333333">
+              <p class="text-base sm:text-lg md:text-xl font-black leading-none text-brand-blue tracking-tight uppercase m-0" style="color: #2A6AB2" aria-label="Сетки 21">СЕТКИ 21</p>
+              <p class="text-[9px] sm:text-[10px] uppercase tracking-widest font-bold mt-0.5" style="color: #9ca3af">
                 <span class="sm:hidden">Производство</span>
                 <span class="hidden sm:inline">Производство замер монтаж от 1 дня</span>
               </p>
@@ -70,16 +118,21 @@ const closeMobileMenu = () => {
           </NuxtLink>
 
           <!-- Contact Section -->
-          <div class="flex items-center gap-6">
+          <div class="flex items-center gap-6" style="color: #333333">
             <div class="hidden lg:block text-right">
-              <p class="text-[10px] text-gray-400 font-bold uppercase mb-1">Режим работы: 10:00 - 18:00</p>
+              <p class="text-[10px] font-bold uppercase mb-1" style="color: #9ca3af">Режим работы: Пн–Пт 10:00–18:00</p>
               <p class="text-sm font-bold">Чебоксары и Новочебоксарск</p>
             </div>
-            <a href="tel:+78352381420" class="flex flex-col items-end group">
-              <span class="text-xl font-black group-hover:text-brand-blue transition-colors leading-none">
+            <a
+              href="tel:+78352381420"
+              class="flex flex-col items-end group"
+              style="color: inherit; text-decoration: none"
+              @click="() => { try { (window as any).reachMetrikaGoal?.('CALL_CLICK') } catch (_) {} }"
+            >
+              <span class="text-xl font-black group-hover:text-brand-blue transition-colors leading-none" style="color: #333333">
                 +7 (8352) 38-14-20
               </span>
-              <span class="text-[10px] text-brand-blue font-bold border-b border-brand-blue/30 group-hover:border-brand-blue transition-all uppercase tracking-wider">Заказать обратный звонок</span>
+              <span class="text-[10px] font-bold border-b border-brand-blue/30 group-hover:border-brand-blue transition-all uppercase tracking-wider" style="color: #2A6AB2; border-color: rgba(42,106,178,0.3)">Заказать обратный звонок</span>
             </a>
           </div>
         </div>
@@ -143,6 +196,15 @@ const closeMobileMenu = () => {
 
     <!-- Main Content -->
     <main class="flex-grow">
+      <nav v-if="breadcrumbs.length" class="container mx-auto px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500" aria-label="Хлебные крошки">
+        <ol class="flex flex-wrap items-center gap-1.5">
+          <li v-for="(item, i) in breadcrumbs" :key="item.path" class="flex items-center gap-1.5">
+            <template v-if="i > 0"><span aria-hidden="true">/</span></template>
+            <NuxtLink v-if="i < breadcrumbs.length - 1" :to="item.path" class="hover:text-brand-blue transition-colors">{{ item.name }}</NuxtLink>
+            <span v-else class="text-brand-dark" aria-current="page">{{ item.name }}</span>
+          </li>
+        </ol>
+      </nav>
       <slot />
     </main>
 
@@ -176,16 +238,20 @@ const closeMobileMenu = () => {
             <div class="space-y-4 text-sm text-gray-400 font-medium">
               <p>📍 Чебоксары, ул. Гражданская, 53, оф.1</p>
               <p>📍 Новочебоксарск, ул. Винокурова, 109</p>
+              <p>🕐 Пн–Пт 10:00–18:00</p>
               <p>📞 +7 (8352) 38-14-20</p>
               <p>✉️ <a href="mailto:info@setki21.ru" class="hover:text-white transition-colors">info@setki21.ru</a></p>
+              <p class="text-gray-500 text-xs">Работаем по Чебоксарам и Новочебоксарску</p>
             </div>
           </div>
         </div>
         <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-          <p>© {{ new Date().getFullYear() }} Сетки 21. Все права защищены.</p>
-          <div class="flex gap-6">
+          <p>© {{ footerYear }} Сетки 21. Все права защищены.</p>
+          <div class="flex flex-wrap justify-center gap-6">
+            <NuxtLink to="/contacts" class="hover:text-white transition-colors">Контакты</NuxtLink>
+            <NuxtLink to="/delivery" class="hover:text-white transition-colors">Доставка и замер</NuxtLink>
             <NuxtLink to="/privacy" class="hover:text-white transition-colors">Политика конфиденциальности</NuxtLink>
-            <a href="#" class="hover:text-white transition-colors">Карта сайта</a>
+            <NuxtLink to="/karta-sajta" class="hover:text-white transition-colors">Карта сайта</NuxtLink>
           </div>
         </div>
       </div>

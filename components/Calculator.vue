@@ -16,8 +16,8 @@ const handleAddToOrder = () => {
 const types = [
   { id: 'standart', name: 'СТАНДАРТ' },
   { id: 'antimoshka', name: 'АНТИМОШКА' },
-  { id: 'ultravyu', name: 'УЛЬТРАВЬЮ' },
   { id: 'antikoshka', name: 'АНТИКОШКА' },
+  { id: 'ultravyu', name: 'УЛЬТРАВЬЮ' },
   { id: 'antipyl', name: 'АНТИПЫЛЬ' }
 ]
 
@@ -430,7 +430,7 @@ const submitOrder = async () => {
             <div class="text-center sm:text-left w-full sm:w-auto">
               <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-2">Итоговая цена</p>
               <div class="flex items-baseline gap-1 justify-center sm:justify-start">
-                <span class="text-6xl font-black text-brand-blue leading-none tracking-tighter">{{ store.currentPrice * store.config.count + (store.config.installation ? 300 * store.config.count : 0) + (store.config.handleType === 'metal' ? 100 * store.config.count : 0) }}</span>
+                <span class="text-6xl font-black text-brand-blue leading-none tracking-tighter">{{ store.currentPrice * store.config.count + (store.config.installation ? store.extrasInstallation * store.config.count : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal * store.config.count : 0) }}</span>
                 <span class="text-2xl font-black text-gray-200 uppercase leading-none self-baseline ml-1" style="font-size: 1.5rem; line-height: 1;">₽</span>
               </div>
             </div>

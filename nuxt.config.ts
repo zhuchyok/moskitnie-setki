@@ -41,6 +41,7 @@ export default defineNuxtConfig({
     }
   },
   tailwindcss: {
+    cssPath: '~/assets/css/main.css',
     config: {
       theme: {
         extend: {

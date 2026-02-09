@@ -130,7 +130,7 @@ const faqItems = [
 
           <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
             <div class="relative z-10">
-              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center">Преимущества Poll-Tex</h2>
+              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Преимущества Poll-Tex</h2>
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">01</div>

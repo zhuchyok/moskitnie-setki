@@ -77,6 +77,8 @@ export default defineEventHandler(async (event) => {
           <p style="margin: 0; color: #1565c0;">
             <strong>Доставка:</strong> ${body.total_order_value || 'Не указана'}
           </p>
+          ${body.measurement ? '<p style="margin: 8px 0 0 0; color: #1565c0;"><strong>Замер:</strong> Чебоксары и Новочебоксарск</p>' : ''}
+          ${body.discount_type === 'srochnyi' ? '<p style="margin: 8px 0 0 0; color: #1565c0;"><strong>Приоритетный срочный заказ:</strong> 400 ₽</p>' : ''}
         </div>
 
         <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">

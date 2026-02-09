@@ -122,7 +122,7 @@ const faqItems = [
         <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
           <div class="relative z-10 grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 class="text-3xl font-black mb-8 uppercase tracking-widest text-center md:text-left">Как заказать?</h2>
+              <h2 class="text-3xl font-black mb-8 uppercase tracking-widest text-center md:text-left text-white">Как заказать?</h2>
               <div class="space-y-10">
                 <div class="flex gap-6">
                   <div class="w-12 h-12 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black">01</div>

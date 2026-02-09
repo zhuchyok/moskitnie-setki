@@ -1,13 +1,47 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 const store = useOrderStore()
+
+// По умолчанию при открытии калькулятора всегда выбрана доставка
+onMounted(() => {
+  store.setDelivery('Доставка', 400)
+})
+
+// Способ получения: обязателен, если в заказе есть сетки без монтажа (все без монтажа или смешанный заказ)
+const deliveryOptionIds = ['Оф.Чебоксары', 'Оф.Новочебоксарск', 'Доставка']
+const deliveryRequired = computed(() => store.items.length > 0 && store.hasItemsWithoutInstallation)
+const deliverySelected = computed(() =>
+  deliveryRequired.value && (store.isMixedOrder || deliveryOptionIds.includes(store.delivery))
+)
+const canSubmitOrder = computed(() => !deliveryRequired.value || deliverySelected.value)
+
+// Количество выбранных дополнительных услуг (для бейджа у заголовка)
+const extrasCount = computed(() => {
+  let n = 0
+  if (store.hasItemsWithoutInstallation || store.isMixedOrder) n += 1 // способ получения
+  if (store.measurementSelected) n += 1
+  if (store.allItemsWithInstallation && !store.isMixedOrder && store.discountType === 'srochnyi') n += 1
+  return n
+})
+
+// При смешанном заказе (сетки с монтажом и без) — только доставка, отменить нельзя
+watch(
+  () => store.isMixedOrder,
+  (mixed) => {
+    if (mixed) store.setDelivery('Доставка', 400)
+  }
+)
 
 // Состояние кнопки "Добавить в заказ"
 const isAdded = ref(false)
+const orderBlockRef = ref<HTMLElement | null>(null)
 
 const handleAddToOrder = () => {
   store.addToOrder()
   isAdded.value = true
+  nextTick(() => {
+    orderBlockRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
   setTimeout(() => {
     isAdded.value = false
   }, 1000)
@@ -34,10 +68,14 @@ const colors = [
 ]
 
 const deliveries = [
-  { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0 },
-  { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0 },
-  { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: 400 }
+  { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' },
+  { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' },
+  { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: 400, icon: 'truck' }
 ]
+
+const urgentOrderOption = { id: 'srochnyi' as const, name: 'Приоритетный срочный заказ', price: 400 }
+
+const measurementOption = { id: 'measurement', name: 'Замер Чебоксары и Новочебоксарск', price: 400 }
 
 const selectType = (id: string, name: string) => {
   store.updateConfig({ type: id, typeName: name })
@@ -116,7 +154,9 @@ const submitOrder = async () => {
     formComment: form.comment,
     list_order: store.items.map(i => `${i.frameTypeName ? i.frameTypeName + ': ' : ''}${i.typeName} (${i.width}x${i.height}, ${i.color}) - ${i.count}шт`).join('<br>'),
     total_price_value: store.totalPrice,
-    total_order_value: store.delivery
+    total_order_value: store.allItemsWithInstallation ? 'Монтаж' : store.delivery,
+    measurement: store.measurementSelected,
+    discount_type: store.discountType || undefined
   }
   
   try {
@@ -449,7 +489,7 @@ const submitOrder = async () => {
     </div>
 
     <!-- Список заказа -->
-    <div v-if="store.items.length > 0" class="bg-white rounded-[3rem] shadow-2xl border border-gray-100 overflow-hidden transform animate-in fade-in slide-in-from-bottom-10 duration-700">
+    <div ref="orderBlockRef" v-if="store.items.length > 0" class="bg-white rounded-[3rem] shadow-2xl border border-gray-100 overflow-hidden transform animate-in fade-in slide-in-from-bottom-10 duration-700 scroll-mt-40">
       <div class="p-10 md:p-16">
         <div class="flex items-center justify-between mb-12">
           <div class="flex items-center gap-4">
@@ -510,22 +550,97 @@ const submitOrder = async () => {
         </div>
 
         <div class="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-          <!-- Доставка -->
-          <div class="bg-gray-50 p-10 rounded-[2.5rem] space-y-8 border border-gray-100">
-            <h4 class="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Дополнительные услуги</h4>
-            <div class="grid grid-cols-1 gap-4">
-              <button v-for="d in deliveries" :key="d.id"
-                      @click="store.setDelivery(d.id, d.price)"
+          <!-- Опции -->
+          <div class="bg-gray-50 p-5 sm:p-10 rounded-[2.5rem] space-y-8 min-w-0">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-black text-sm">
+                {{ extrasCount }}
+              </div>
+              <h4 class="text-3xl font-black text-brand-dark uppercase tracking-tighter">Опции</h4>
+            </div>
+
+            <!-- 1. Способ получения (один из трёх), обязательно при заказе без монтажа; при смешанном — только доставка -->
+            <div class="space-y-3">
+              <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Способ получения</p>
+              <div class="grid grid-cols-1 gap-4">
+                <template v-if="!store.allItemsWithInstallation || store.isMixedOrder">
+                  <button v-for="d in (store.isMixedOrder ? deliveries.filter(x => x.id === 'Доставка') : deliveries)" :key="d.id"
+                          type="button"
+                          @click="store.setDelivery(d.id, d.price)"
+                          :class="[
+                            'flex justify-between items-center gap-3 p-5 rounded-2xl border-2 transition-all text-xs font-black uppercase tracking-wider text-left min-w-0',
+                            store.delivery === d.id
+                              ? 'bg-white border-brand-blue text-brand-blue shadow-xl shadow-brand-blue/10 scale-[1.02]'
+                              : 'bg-transparent border-gray-200/50 text-gray-400 hover:border-gray-200'
+                          ]">
+                    <span class="flex items-center gap-3 min-w-0 flex-1 break-words">
+                      <!-- Иконка здания (самовывоз) -->
+                      <span v-if="d.icon === 'building'" class="flex-shrink-0 w-5 h-5 text-current opacity-70">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </span>
+                      <!-- Иконка грузовика (доставка) -->
+                      <span v-else-if="d.icon === 'truck'" class="flex-shrink-0 w-5 h-5 text-current opacity-70">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                        </svg>
+                      </span>
+                      <span class="min-w-0">{{ d.name }}</span>
+                    </span>
+                    <span class="text-brand-blue shrink-0 pl-2">{{ d.price > 0 ? `${d.price} ₽` : '0 ₽' }}</span>
+                  </button>
+                </template>
+                <template v-if="store.allItemsWithInstallation && !store.isMixedOrder">
+                  <button type="button"
+                          @click="store.setDiscount(store.discountType === urgentOrderOption.id ? '' : urgentOrderOption.id)"
+                          :class="[
+                            'flex justify-between items-center gap-3 p-5 rounded-2xl border-2 transition-all text-xs font-black uppercase tracking-wider text-left min-w-0 w-full',
+                            store.discountType === urgentOrderOption.id
+                              ? 'bg-white border-brand-blue text-brand-blue shadow-xl shadow-brand-blue/10 scale-[1.02]'
+                              : 'bg-transparent border-gray-200/50 text-gray-400 hover:border-gray-200'
+                          ]">
+                    <span class="flex items-center gap-3 min-w-0">
+                      <span class="flex-shrink-0 w-5 h-5 text-current opacity-70">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </span>
+                      <span class="min-w-0">{{ urgentOrderOption.name }}</span>
+                    </span>
+                    <span class="text-brand-blue shrink-0">{{ urgentOrderOption.price }} ₽</span>
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <!-- 2. Дополнительно: замер (можно добавить к способу получения), без чекбокса -->
+            <div class="space-y-3">
+              <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Дополнительно</p>
+              <button type="button"
+                      @click="store.setMeasurement(!store.measurementSelected, measurementOption.price)"
                       :class="[
-                        'flex justify-between items-center p-5 rounded-2xl border-2 transition-all text-xs font-black uppercase tracking-wider',
-                        store.delivery === d.id 
-                          ? 'bg-white border-brand-blue text-brand-blue shadow-xl shadow-brand-blue/10 scale-[1.02]' 
+                        'flex justify-between items-center gap-3 w-full p-5 rounded-2xl border-2 transition-all text-xs font-black uppercase tracking-wider text-left min-w-0',
+                        store.measurementSelected
+                          ? 'bg-white border-brand-blue text-brand-blue shadow-xl shadow-brand-blue/10 scale-[1.02]'
                           : 'bg-transparent border-gray-200/50 text-gray-400 hover:border-gray-200'
                       ]">
-                <span>{{ d.name }}</span>
-                <span class="text-brand-blue">{{ d.price > 0 ? `${d.price} ₽` : '0 ₽' }}</span>
+                <span class="flex items-center gap-3 min-w-0 flex-1 break-words">
+                  <!-- Иконка человечка (замер — приедет замерщик) -->
+                  <span class="flex-shrink-0 w-5 h-5 text-current opacity-70">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                  </span>
+                  <span class="min-w-0">{{ measurementOption.name }}</span>
+                </span>
+                <span class="text-brand-blue shrink-0 pl-2">{{ measurementOption.price }} ₽</span>
               </button>
             </div>
+
+            <p class="text-[10px] text-gray-400 leading-relaxed">
+              {{ store.allItemsWithInstallation ? 'При необходимости отметьте замер — его можно заказать вместе с монтажом.' : store.isMixedOrder ? 'При необходимости отметьте замер — его можно заказать вместе с доставкой и монтажом.' : 'При необходимости отметьте замер — его можно заказать вместе с доставкой или самовывозом.' }}
+            </p>
           </div>
 
           <!-- Итого -->
@@ -536,9 +651,15 @@ const submitOrder = async () => {
                 <span class="text-7xl font-black tracking-tighter">{{ store.totalPrice }}</span>
                 <span class="text-3xl font-black opacity-30">₽</span>
               </div>
-              <button @click="isModalOpen = true"
-                      class="w-full bg-white text-brand-blue hover:bg-blue-50 font-black py-6 rounded-[1.5rem] transition-all shadow-2xl active:scale-95 uppercase text-xs tracking-[0.3em]">
-                Оформить заказ
+              <button @click="canSubmitOrder && (isModalOpen = true)"
+                      :disabled="!canSubmitOrder"
+                      :class="[
+                        'w-full font-black py-6 rounded-[1.5rem] transition-all uppercase text-xs tracking-[0.3em]',
+                        canSubmitOrder
+                          ? 'bg-white text-brand-blue hover:bg-blue-50 shadow-2xl active:scale-95 cursor-pointer'
+                          : 'bg-white/50 text-gray-400 cursor-not-allowed shadow-none'
+                      ]">
+                {{ canSubmitOrder ? 'Оформить заказ' : 'Выберите способ получения' }}
               </button>
             </div>
             <!-- Декор -->

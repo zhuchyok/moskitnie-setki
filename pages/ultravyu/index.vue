@@ -138,7 +138,7 @@ const faqItems = [
 
           <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
             <div class="relative z-10">
-              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center">Плюсы Ультравью</h2>
+              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Плюсы Ультравью</h2>
               <div class="grid md:grid-cols-2 gap-12">
                 <div class="flex gap-6">
                   <div class="text-brand-blue text-5xl font-black opacity-50">01</div>

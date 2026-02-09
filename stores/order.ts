@@ -80,7 +80,7 @@ export const PRICING_CONFIG = {
   },
   /** Доп. услуги в калькуляторе (руб за 1 шт). Ручка ПВХ 2,4 в фиксе; металл +50 к базовой. */
   extras: {
-    installation: 300,
+    installation: 400,
     handleMetal: 50,
   },
   /** Потери при оплате (для расчёта прибыли). В админке — редактируемо. */
@@ -261,10 +261,41 @@ export const useOrderStore = defineStore('order', {
       installation: false,
       handleType: 'pvc',
     },
-    delivery: 'Оф.Чебоксары',
-    deliveryPrice: 0,
+    /** Способ получения: по умолчанию доставка (Чебоксары и Новочебоксарск) */
+    delivery: 'Доставка',
+    deliveryPrice: 400,
+    /** Замер Чебоксары и Новочебоксарск (вторая услуга, можно выбрать вместе с доставкой/скидкой) */
+    measurementSelected: false,
+    measurementPrice: 0,
+    /** Приоритетный срочный заказ +400 ₽ (только при заказе с монтажом) */
+    discountType: '' as '' | 'srochnyi',
   }),
   getters: {
+    /** В корзине все позиции без монтажа */
+    allItemsWithoutInstallation(state): boolean {
+      if (state.items.length === 0) return false
+      return state.items.every((item) => !item.typeName.includes(' + МОНТАЖ'))
+    },
+    /** В корзине все позиции с монтажом */
+    allItemsWithInstallation(state): boolean {
+      if (state.items.length === 0) return false
+      return state.items.every((item) => item.typeName.includes(' + МОНТАЖ'))
+    },
+    /** В корзине есть хотя бы одна позиция без монтажа */
+    hasItemsWithoutInstallation(state): boolean {
+      return state.items.some((item) => !item.typeName.includes(' + МОНТАЖ'))
+    },
+    /** В корзине есть хотя бы одна позиция с монтажом */
+    hasItemsWithInstallation(state): boolean {
+      return state.items.some((item) => item.typeName.includes(' + МОНТАЖ'))
+    },
+    /** Смешанный заказ: и сетки с монтажом, и без — тогда только доставка */
+    isMixedOrder(state): boolean {
+      if (state.items.length === 0) return false
+      const hasWithout = state.items.some((item) => !item.typeName.includes(' + МОНТАЖ'))
+      const hasWith = state.items.some((item) => item.typeName.includes(' + МОНТАЖ'))
+      return hasWithout && hasWith
+    },
     currentPrice(state): number {
       if (state.config.frameType === 'vstavnaya') {
         const cost = computeCostVstavnaya(
@@ -285,7 +316,12 @@ export const useOrderStore = defineStore('order', {
     },
     totalPrice(state): number {
       const itemsTotal = state.items.reduce((sum, item) => sum + item.price, 0)
-      return itemsTotal + state.deliveryPrice
+      const measurementAdd = state.measurementSelected ? state.measurementPrice : 0
+      const urgentAdd = state.discountType === 'srochnyi' ? 400 : 0
+      // Доставка в итог только если в заказе есть сетки без монтажа (когда способ получения показывается)
+      const needsDelivery = state.items.some((item) => !item.typeName.includes(' + МОНТАЖ'))
+      const deliveryAdd = needsDelivery ? state.deliveryPrice : 0
+      return itemsTotal + deliveryAdd + measurementAdd + urgentAdd
     },
     /** Доплата за монтаж за 1 шт (для отображения в калькуляторе) */
     extrasInstallation(): number {
@@ -334,6 +370,11 @@ export const useOrderStore = defineStore('order', {
     },
     clearOrder() {
       this.items = []
+      this.delivery = ''
+      this.deliveryPrice = 0
+      this.measurementSelected = false
+      this.measurementPrice = 0
+      this.discountType = ''
     },
     updateConfig(newConfig: Partial<typeof this.config>) {
       this.config = { ...this.config, ...newConfig }
@@ -341,6 +382,13 @@ export const useOrderStore = defineStore('order', {
     setDelivery(value: string, price: number) {
       this.delivery = value
       this.deliveryPrice = price
+    },
+    setMeasurement(selected: boolean, price: number = 0) {
+      this.measurementSelected = selected
+      this.measurementPrice = price
+    },
+    setDiscount(type: '' | 'srochnyi') {
+      this.discountType = type
     },
   },
 })

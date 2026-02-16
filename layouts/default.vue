@@ -1,4 +1,19 @@
 <script setup lang="ts">
+import { useTenantStore } from '~/stores/tenant'
+
+const tenant = useTenantStore()
+const config = computed(() => tenant.config)
+
+useHead({
+  title: computed(() => config.value.seo.title),
+  meta: computed(() => [
+    { name: 'description', content: config.value.seo.description },
+    { name: 'keywords', content: config.value.seo.keywords },
+    { property: 'og:title', content: config.value.seo.title },
+    { property: 'og:description', content: config.value.seo.description },
+  ])
+})
+
 const navLinks = [
   { name: 'МОСКИТНАЯ', path: '/' },
   { name: 'АНТИМОШКА', path: '/antimoshka' },
@@ -67,7 +82,8 @@ const pathNames: Record<string, string> = {
   '/contacts': 'Контакты',
   '/delivery': 'Доставка и замер',
   '/privacy': 'Политика конфиденциальности',
-  '/karta-sajta': 'Карта сайта'
+  '/karta-sajta': 'Карта сайта',
+  '/dealers': 'Дилерам'
 }
 const route = useRoute()
 const breadcrumbs = computed(() => {
@@ -107,12 +123,11 @@ useHead({
         <div class="flex flex-wrap justify-between items-center gap-4">
           <!-- Logo Section -->
           <NuxtLink to="/" class="logo-link flex items-center gap-3 sm:gap-4 group min-w-0 flex-shrink-0" style="color: inherit; text-decoration: none">
-            <img src="/images/logo_clean.png?v=2" alt="Сетки 21" class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 object-contain transition-transform group-hover:scale-105" width="48" height="48" loading="eager" decoding="async" />
+            <img :src="config.branding.logo_url || '/images/logo_clean.png'" :alt="config.dealer_name" class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 object-contain transition-transform group-hover:scale-105" width="48" height="48" loading="eager" decoding="async" />
             <div class="min-w-0" style="color: #333333">
-              <p class="text-base sm:text-lg md:text-xl font-black leading-none text-brand-blue tracking-tight uppercase m-0" style="color: #2A6AB2" aria-label="Сетки 21">СЕТКИ 21</p>
+              <p class="text-base sm:text-lg md:text-xl font-black leading-none text-brand-blue tracking-tight uppercase m-0" :style="{ color: config.branding.primary_color }" :aria-label="config.dealer_name">{{ config.dealer_name }}</p>
               <p class="text-[9px] sm:text-[10px] uppercase tracking-widest font-bold mt-0.5" style="color: #9ca3af">
-                <span class="sm:hidden">Производство</span>
-                <span class="hidden sm:inline">Производство замер монтаж от 1 дня</span>
+                <span>{{ config.branding.short_description }}</span>
               </p>
             </div>
           </NuxtLink>
@@ -120,19 +135,18 @@ useHead({
           <!-- Contact Section -->
           <div class="flex items-center gap-6" style="color: #333333">
             <div class="hidden lg:block text-right">
-              <p class="text-[10px] font-bold uppercase mb-1" style="color: #9ca3af">Режим работы: Пн–Пт 10:00–18:00</p>
-              <p class="text-sm font-bold">Чебоксары и Новочебоксарск</p>
+              <p class="text-[10px] font-bold uppercase mb-1" style="color: #9ca3af">Режим работы: {{ config.branding.working_hours }}</p>
+              <p class="text-sm font-bold">{{ config.city }}</p>
             </div>
             <a
-              href="tel:+78352381420"
+              :href="'tel:' + config.phone.replace(/[^0-9+]/g, '')"
               class="flex flex-col items-end group"
               style="color: inherit; text-decoration: none"
-              @click="() => { try { (window as any).reachMetrikaGoal?.('CALL_CLICK') } catch (_) {} }"
             >
               <span class="text-xl font-black group-hover:text-brand-blue transition-colors leading-none" style="color: #333333">
-                +7 (8352) 38-14-20
+                {{ config.phone }}
               </span>
-              <span class="text-[10px] font-bold border-b border-brand-blue/30 group-hover:border-brand-blue transition-all uppercase tracking-wider" style="color: #2A6AB2; border-color: rgba(42,106,178,0.3)">Заказать обратный звонок</span>
+              <span class="text-[10px] font-bold border-b border-brand-blue/30 group-hover:border-brand-blue transition-all uppercase tracking-wider" :style="{ color: config.branding.primary_color, borderColor: config.branding.primary_color + '4D' }">Заказать обратный звонок</span>
             </a>
           </div>
         </div>
@@ -214,19 +228,18 @@ useHead({
         <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div class="col-span-1 md:col-span-2">
             <div class="flex items-center gap-4 mb-6">
-              <img src="/images/logo_clean.png" alt="Сетки 21" class="h-10 brightness-0 invert" />
+              <img :src="config.branding.logo_url || '/images/logo_clean.png'" :alt="config.dealer_name" class="h-10 brightness-0 invert" />
               <div>
-                <h3 class="text-xl font-black text-white uppercase tracking-tight">СЕТКИ 21</h3>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest">Производство замер монтаж от 1 дня</p>
+                <h3 class="text-xl font-black text-white uppercase tracking-tight">{{ config.dealer_name }}</h3>
+                <p class="text-[10px] text-gray-500 uppercase tracking-widest">{{ config.branding.short_description }}</p>
               </div>
             </div>
             <p class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
-              Изготовим москитные сетки на окна в Чебоксарах и Новочебоксарске по индивидуальным размерам за 1 день. 
-              Используем только качественные комплектующие и металлический крепеж.
+              {{ config.branding.full_description || 'Изготовим москитные сетки на окна по индивидуальным размерам за 1 день. Используем только качественные комплектующие и металлический крепеж.' }}
             </p>
           </div>
           <div>
-            <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm">Продукция</h4>
+            <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm" :style="{ borderColor: config.branding.primary_color }">Продукция</h4>
             <ul class="space-y-3 text-sm text-gray-400">
               <li v-for="link in navLinks" :key="link.path">
                 <NuxtLink :to="link.path" class="footer-link hover:text-white transition-colors uppercase text-xs font-bold">{{ link.name }}</NuxtLink>
@@ -234,14 +247,15 @@ useHead({
             </ul>
           </div>
           <div>
-            <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm">Контакты</h4>
-            <div class="space-y-4 text-sm text-gray-400 font-medium">
-              <p>📍 Чебоксары, ул. Гражданская, 53, оф.1</p>
+            <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm" :style="{ borderColor: config.branding.primary_color }">Контакты</h4>
+            <div class="space-y-4 text-sm text-gray-400 font-medium text-left">
+              <p>📍 Чебоксары, ул. Гражданская, 53</p>
               <p>📍 Новочебоксарск, ул. Винокурова, 109</p>
-              <p>🕐 Пн–Пт 10:00–18:00</p>
-              <p>📞 +7 (8352) 38-14-20</p>
-              <p>✉️ <a href="mailto:info@setki21.ru" class="hover:text-white transition-colors">info@setki21.ru</a></p>
-              <p class="text-gray-500 text-xs">Работаем по Чебоксарам и Новочебоксарску</p>
+              <p>🕐 {{ config.branding.working_hours }}</p>
+              <p>📞 {{ config.phone }}</p>
+              <p v-for="p in config.contacts.phones" :key="p">📞 {{ p }}</p>
+              <p v-if="config.email">✉️ <a :href="'mailto:' + config.email" class="hover:text-white transition-colors">{{ config.email }}</a></p>
+              <p v-for="e in config.contacts.emails" :key="e">✉️ <a :href="'mailto:' + e" class="hover:text-white transition-colors">{{ e }}</a></p>
             </div>
           </div>
         </div>
@@ -252,6 +266,7 @@ useHead({
             <NuxtLink to="/delivery" class="hover:text-white transition-colors">Доставка и замер</NuxtLink>
             <NuxtLink to="/privacy" class="hover:text-white transition-colors">Политика конфиденциальности</NuxtLink>
             <NuxtLink to="/karta-sajta" class="hover:text-white transition-colors">Карта сайта</NuxtLink>
+            <NuxtLink to="/dealers" class="footer-link hover:text-white transition-colors">Дилерам</NuxtLink>
           </div>
         </div>
       </div>

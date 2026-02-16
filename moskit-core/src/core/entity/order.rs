@@ -3,10 +3,11 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use sqlx::{FromRow, Type};
 
 /// Статус заказа
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[sqlx(type_name = "TEXT")]
 pub enum OrderStatus {
     New,              // Новый (ожидает подтверждения)
     Confirmed,        // Подтверждён
@@ -32,8 +33,8 @@ impl OrderStatus {
 }
 
 /// Подстатус производства
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[sqlx(type_name = "TEXT")]
 pub enum ProductionSubStatus {
     Pending,      // В очереди
     Cutting,      // Раскрой
@@ -44,8 +45,8 @@ pub enum ProductionSubStatus {
 }
 
 /// Статус монтажа
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
+#[sqlx(type_name = "TEXT")]
 pub enum InstallationStatus {
     Scheduled,   // Запланирован
     InProgress,  // В процессе
@@ -54,19 +55,19 @@ pub enum InstallationStatus {
 }
 
 /// Позиция заказа
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct OrderItem {
     pub id: Uuid,
     pub product_id: Uuid,
     pub name: String,
     pub params: serde_json::Value,  // Параметры (размеры, цвет, тип)
-    pub quantity: u32,
+    pub quantity: i32,
     pub unit_price: f64,
     pub total_price: f64,
 }
 
 /// Заказ
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Order {
     pub id: Uuid,
     pub order_number: String,      // Человекочитаемый номер
@@ -74,6 +75,7 @@ pub struct Order {
     pub client_name: String,
     pub client_phone: String,
     pub client_address: Option<String>,
+    #[sqlx(skip)]
     pub items: Vec<OrderItem>,
     pub status: OrderStatus,
     pub production_sub_status: Option<ProductionSubStatus>,
@@ -81,6 +83,7 @@ pub struct Order {
     pub total_amount: f64,
     pub dealer_cost: f64,           // Себестоимость для дилера
     pub dealer_profit: f64,         // Прибыль дилера
+    pub department_id: Option<Uuid>, // Отдел дилера
     pub installation_price: Option<f64>,
     pub delivery_price: Option<f64>,
     pub measurement_price: Option<f64>,
@@ -113,12 +116,29 @@ impl Order {
             total_amount,
             dealer_cost: 0.0,
             dealer_profit: 0.0,
+            department_id: None,
             installation_price: None,
             delivery_price: None,
             measurement_price: None,
             comment: None,
             created_at: now,
             updated_at: now,
+        }
+    }
+
+    /// Проверка возможности перехода в новый статус
+    pub fn can_transition_to(&self, new_status: OrderStatus) -> bool {
+        match (self.status, new_status) {
+            (OrderStatus::New, OrderStatus::Confirmed) => true,
+            (OrderStatus::New, OrderStatus::Cancelled) => true,
+            (OrderStatus::Confirmed, OrderStatus::InProduction) => true,
+            (OrderStatus::Confirmed, OrderStatus::Cancelled) => true,
+            (OrderStatus::InProduction, OrderStatus::Ready) => true,
+            (OrderStatus::Ready, OrderStatus::InInstallation) => true,
+            (OrderStatus::Ready, OrderStatus::Completed) => true,
+            (OrderStatus::InInstallation, OrderStatus::Completed) => true,
+            (_, OrderStatus::Cancelled) => self.status != OrderStatus::Completed,
+            _ => false,
         }
     }
 }

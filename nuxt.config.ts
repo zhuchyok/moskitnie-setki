@@ -60,5 +60,10 @@ export default defineNuxtConfig({
     prerender: {
       routes: ['/', '/antimoshka', '/ultravyu', '/antikoshka', '/antipyl', '/vstavnye', '/remont', '/contacts', '/delivery', '/privacy', '/karta-sajta']
     }
+  },
+  runtimeConfig: {
+    public: {
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:8081'
+    }
   }
 })

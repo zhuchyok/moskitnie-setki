@@ -18,7 +18,7 @@ const contactSchema = {
     address: [
       {
         '@type': 'PostalAddress',
-        streetAddress: 'ул. Гражданская, 53, оф.1',
+        streetAddress: 'ул. Гражданская, 53',
         addressLocality: 'Чебоксары',
         postalCode: '428000',
         addressCountry: 'RU'
@@ -73,7 +73,7 @@ useHead({
           <div class="grid md:grid-cols-2 gap-12 max-w-4xl mx-auto">
             <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">
               <h2 class="text-xl font-black text-brand-blue uppercase tracking-wider mb-4">Чебоксары</h2>
-              <p class="text-gray-600 font-medium">ул. Гражданская, 53, оф.1</p>
+              <p class="text-gray-600 font-medium">ул. Гражданская, 53</p>
               <p class="text-gray-500 text-sm mt-2">Самовывоз и приём заказов</p>
             </div>
             <div class="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm">

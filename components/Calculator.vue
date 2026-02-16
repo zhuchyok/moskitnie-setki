@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
+import { roundTo } from '~/services/pricing'
 const store = useOrderStore()
+const pricingStore = usePricingStore()
 
 // По умолчанию при открытии калькулятора всегда выбрана доставка
-onMounted(() => {
-  store.setDelivery('Доставка', 400)
+onMounted(async () => {
+  await pricingStore.fetchPricing()
+  store.setDelivery('Доставка', store.deliveryPriceCalculated)
 })
 
 // Способ получения: обязателен, если в заказе есть сетки без монтажа (все без монтажа или смешанный заказ)
@@ -28,7 +31,9 @@ const extrasCount = computed(() => {
 watch(
   () => store.isMixedOrder,
   (mixed) => {
-    if (mixed) store.setDelivery('Доставка', 400)
+    if (mixed) {
+      store.setDelivery('Доставка', store.deliveryPriceCalculated)
+    }
   }
 )
 
@@ -67,15 +72,40 @@ const colors = [
   { id: 4, name: 'RAL' }
 ]
 
-const deliveries = [
-  { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' },
-  { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' },
-  { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: 400, icon: 'truck' }
-]
+const deliveries = computed(() => {
+  return [
+    { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' },
+    { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' },
+    { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: store.deliveryPriceCalculated, icon: 'truck' }
+  ]
+})
 
-const urgentOrderOption = { id: 'srochnyi' as const, name: 'Приоритетный срочный заказ', price: 400 }
+const urgentOrderOption = computed(() => {
+  const config = (store as any).activePricing
+  const itemsTotal = store.items.reduce((sum, i) => sum + i.price, 0)
+  
+  // Для отображения цены в калькуляторе считаем от текущего итога (сетки + доставка + замер)
+  const needsDelivery = store.items.some((item) => !item.typeName.includes(' + МОНТАЖ'))
+  const deliveryAdd = needsDelivery ? store.deliveryPrice : 0
+  const measurementAdd = store.measurementSelected ? store.measurementPriceCalculated : 0
+  
+  const baseTotal = itemsTotal + deliveryAdd + measurementAdd
+  const price = roundTo(baseTotal * (config.fixed.urgentProfitFactor ?? 0.1), 50)
+  
+  return { 
+    id: 'srochnyi' as const, 
+    name: 'Приоритетный срочный заказ', 
+    price 
+  }
+})
 
-const measurementOption = { id: 'measurement', name: 'Замер Чебоксары и Новочебоксарск', price: 400 }
+const measurementOption = computed(() => {
+  return { 
+    id: 'measurement', 
+    name: 'Замер Чебоксары и Новочебоксарск', 
+    price: store.measurementPriceCalculated 
+  }
+})
 
 const selectType = (id: string, name: string) => {
   store.updateConfig({ type: id, typeName: name })

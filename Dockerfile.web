@@ -1,0 +1,30 @@
+# Dockerfile.web (Nuxt)
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+# Установка зависимостей
+COPY package*.json ./
+RUN npm install
+
+# Копирование исходников
+COPY . .
+
+# Сборка Nuxt
+RUN npm run build
+
+# Рантайм
+FROM node:20-slim
+
+WORKDIR /app
+
+COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/package.json ./package.json
+
+EXPOSE 3000
+
+ENV HOST=0.0.0.0
+ENV PORT=3000
+ENV NODE_ENV=production
+
+CMD ["node", ".output/server/index.mjs"]

@@ -98,6 +98,25 @@ export default defineEventHandler(async (event) => {
       replyTo: body.formEmail || body.formPhone
     })
 
+    // Сохранение в БД через moskit-api
+    try {
+      const apiUrl = process.env.API_URL || 'http://moskit-api:8080'
+      await $fetch(`${apiUrl}/api/dealer/orders`, {
+        method: 'POST',
+        body: {
+          client_name: body.formName,
+          client_phone: body.formPhone,
+          client_address: body.formAddress,
+          items: [], // TODO: Маппинг items из list_order если нужно детально
+          delivery: body.total_order_value,
+          measurement: body.measurement
+        }
+      })
+    } catch (dbError) {
+      console.error('Failed to save order to DB:', dbError)
+      // Не бросаем ошибку, так как email уже ушел
+    }
+
     return {
       success: true,
       message: 'Заказ успешно отправлен!',

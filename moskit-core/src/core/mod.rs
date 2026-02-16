@@ -6,3 +6,4 @@ pub mod service;
 pub mod error;
 
 pub use error::*;
+pub use repository::*;

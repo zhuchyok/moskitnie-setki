@@ -1,3 +1,22 @@
+<script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+import { useTenantStore } from '~/stores/tenant'
+import { usePricingStore } from '~/stores/pricing'
+
+const auth = useAuthStore()
+const tenant = useTenantStore()
+const pricing = usePricingStore()
+
+// Инициализация авторизации и конфига при загрузке приложения
+onMounted(async () => {
+  auth.initAuth()
+  await Promise.all([
+    tenant.fetchConfig(),
+    pricing.fetchPricing()
+  ])
+})
+</script>
+
 <template>
   <NuxtLayout>
     <NuxtPage :key="$route.fullPath" />

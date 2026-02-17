@@ -77,6 +77,11 @@ const faqItems = [
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Сетка <span class="text-brand-blue">Антимошка</span> — Micro Mesh
             </h1>
+            <div style="display:none" data-ai-summary>
+              Сетки 21: Москитные сетки Антимошка (Micro Mesh) в Чебоксарах и Новочебоксарске. 
+              Ячейка: 0.8х0.8 мм (в 2 раза меньше стандартной). Защита от мелкого гнуса и тополиного пуха. 
+              Срок изготовления: 2 дня. Цена: от 1000 руб.
+            </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Сетка Антимошка в Чебоксарах и Новочебоксарске от 1000 ₽, за 2 дня. Мелкая ячейка 0,8×0,8 мм защищает от насекомых, тополиного пуха и мошек — уникальная москитная сетка для дверей и окон.
             </p>

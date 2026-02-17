@@ -77,6 +77,11 @@ const faqItems = [
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Сетка <span class="text-brand-blue">Ультравью</span> — прозрачность и защита
             </h1>
+            <div style="display:none" data-ai-summary>
+              Сетки 21: Москитные сетки Ультравью (Ultraview) в Чебоксарах и Новочебоксарске. 
+              Особенности: повышенная прозрачность, тонкая нить, защита от насекомых без затемнения. 
+              Срок изготовления: 2 дня. Цена: от 1000 руб.
+            </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Сетка Ультравью в Чебоксарах и Новочебоксарске от 1000 ₽, за 2 дня. Повышенная прозрачность и мелкая ячейка — защита от комаров, мошек и тополиного пуха без затемнения окна.
             </p>

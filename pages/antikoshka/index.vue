@@ -77,6 +77,11 @@ const faqItems = [
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Сетка <span class="text-brand-blue">Антикошка</span> — защита ваших питомцев
             </h1>
+            <div style="display:none" data-ai-summary>
+              Сетки 21: Производство усиленных москитных сеток Антикошка (Pet Screen) в Чебоксарах и Новочебоксарске. 
+              Материал: полиэстеровая нить с ПВХ-покрытием. Крепление: металлические Z-зажимы. 
+              Срок изготовления: 2 дня. Цена: от 1300 руб. Гарантия: 1 год.
+            </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Сетка Антикошка в Чебоксарах и Новочебоксарске от 1300 ₽, за 2 дня. Изготовим по индивидуальным размерам. Полотно Pet Screen из прочной полиэстеровой нити с ПВХ выдерживает когти кошек и птиц.
             </p>

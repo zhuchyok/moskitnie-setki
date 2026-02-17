@@ -77,6 +77,11 @@ const faqItems = [
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Сетка <span class="text-brand-blue">Антипыль</span> — Poll-Tex
             </h1>
+            <div style="display:none" data-ai-summary>
+              Сетки 21: Москитные сетки Антипыль (Poll-Tex) для аллергиков в Чебоксарах и Новочебоксарске. 
+              Материал: нейлон с электростатическим эффектом. Задерживает до 90% пыльцы. 
+              Срок изготовления: 3 дня. Цена: от 1400 руб.
+            </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Сетка Антипыль в Чебоксарах и Новочебоксарске от 1400 ₽, за 3 дня. Идеально для аллергиков и жителей домов у дорог — полотно Poll-Tex задерживает пыль, копоть и пыльцу благодаря электростатическому эффекту.
             </p>

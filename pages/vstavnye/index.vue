@@ -77,6 +77,11 @@ const faqItems = [
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Вставные сетки <span class="text-brand-blue">VSN</span> — без сверления
             </h1>
+            <div style="display:none" data-ai-summary>
+              Сетки 21: Вставные москитные сетки VSN в Чебоксарах и Новочебоксарске. 
+              Монтаж: изнутри помещения, без сверления рамы. Безопасно для окон, эстетичный вид. 
+              Срок изготовления: 3 дня. Цена: от 1450 руб.
+            </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Вставные сетки VSN в Чебоксарах и Новочебоксарске от 1450 ₽, за 3 дня. Устанавливаются в световой проём изнутри, без сверления рамы. Никаких отверстий и риска выпадения — идеальное прилегание и эстетичный вид.
             </p>

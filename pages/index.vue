@@ -12,100 +12,73 @@ const image = 'https://www.setki21.ru/images/logo_final_v58.png'
 
 const localBusinessSchema = {
   '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: 'Сетки 21',
-  image,
-  '@id': 'https://www.setki21.ru',
-  url,
-  sameAs: ['https://yandex.ru/maps?ol=biz&oid=53004331040'],
-  telephone: '+7 (8352) 38-14-20',
-  email: 'info@setki21.ru',
-  priceRange: 'RUB',
-  areaServed: [{ '@type': 'City', name: 'Чебоксары' }, { '@type': 'City', name: 'Новочебоксарск' }],
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: 'ул. Гражданская, 53',
-      addressLocality: 'Чебоксары',
-      postalCode: '428000',
-      addressCountry: 'RU'
-    },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 56.137451,
-    longitude: 47.244032
-  },
-  openingHoursSpecification: {
-    '@type': 'OpeningHoursSpecification',
-    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-    opens: '10:00',
-    closes: '18:00'
-  },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    reviewCount: '89'
-  },
-  review: [
+  '@graph': [
     {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Анна С.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5' },
-      reviewBody: 'Отличное качество сеток, замерщик приехал вовремя, установка заняла всего час.'
+      '@type': 'Organization',
+      '@id': 'https://www.setki21.ru/#organization',
+      name: 'Сетки 21',
+      url: 'https://www.setki21.ru',
+      logo: 'https://www.setki21.ru/images/logo_final_v58.png',
+      contactPoint: {
+        '@type': 'ContactPoint',
+        telephone: '+7 (8352) 38-14-20',
+        contactType: 'customer service',
+        areaServed: ['Чебоксары', 'Новочебоксарск'],
+        availableLanguage: 'Russian'
+      }
     },
     {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Дмитрий М.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5' },
-      reviewBody: 'Устанавливали сетки на балкон. Качество материалов на высоте, крепления надежные.'
+      '@type': 'LocalBusiness',
+      '@id': 'https://www.setki21.ru/#localbusiness-cheboksary',
+      parentOrganization: { '@id': 'https://www.setki21.ru/#organization' },
+      name: 'Сетки 21 Чебоксары',
+      image,
+      telephone: '+7 (8352) 38-14-20',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'ул. Гражданская, 53',
+        addressLocality: 'Чебоксары',
+        postalCode: '428000',
+        addressCountry: 'RU'
+      },
+      geo: {
+        '@type': 'GeoCoordinates',
+        latitude: 56.137451,
+        longitude: 47.244032
+      },
+      openingHoursSpecification: {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        opens: '10:00',
+        closes: '18:00'
+      }
     },
     {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Елена К.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5' },
-      reviewBody: 'Заказывали Антимошку на дачу в Чебоксарах. Сделали за день, привезли и установили. Рекомендую.'
+      '@type': 'LocalBusiness',
+      '@id': 'https://www.setki21.ru/#localbusiness-novocheboksary',
+      parentOrganization: { '@id': 'https://www.setki21.ru/#organization' },
+      name: 'Сетки 21 Новочебоксарск',
+      image,
+      telephone: '+7 (8352) 38-14-20',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'ул. Винокурова, 109',
+        addressLocality: 'Новочебоксарск',
+        postalCode: '429950',
+        addressCountry: 'RU'
+      }
     }
   ]
-}
-
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Сетки 21',
-  url: 'https://www.setki21.ru',
-  logo: 'https://www.setki21.ru/images/logo_final_v58.png',
-  contactPoint: {
-    '@type': 'ContactPoint',
-    telephone: '+7 (8352) 38-14-20',
-    email: 'info@setki21.ru',
-    contactType: 'customer service',
-    areaServed: ['Чебоксары', 'Новочебоксарск'],
-    availableLanguage: 'Russian',
-    openingHoursSpecification: {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-      opens: '10:00',
-      closes: '18:00'
-    }
-  },
-  sameAs: ['https://yandex.ru/maps?ol=biz&oid=53004331040']
 }
 
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': 'https://www.setki21.ru/#website',
   name: 'Сетки 21',
   url: 'https://www.setki21.ru',
-  description: 'Производство и установка москитных сеток в Чебоксарах и Новочебоксарске. Замер за 1 день.',
-  publisher: { '@type': 'Organization', name: 'Сетки 21', url: 'https://www.setki21.ru' },
-  inLanguage: 'ru-RU',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: 'https://www.setki21.ru/?q={search_term_string}'
-    },
-    'query-input': 'required name=search_term_string'
-  }
+  description: 'Производство и установка москитных сеток в Чебоксарах и Новочебоксарске.',
+  publisher: { '@id': 'https://www.setki21.ru/#organization' }
 }
 
 const videoSchema = {
@@ -150,7 +123,6 @@ useSeoMeta({
 useHead({
   link: [{ rel: 'canonical', href: url }],
   script: [
-    { type: 'application/ld+json', children: JSON.stringify(organizationSchema) },
     { type: 'application/ld+json', children: JSON.stringify(websiteSchema) },
     { type: 'application/ld+json', children: JSON.stringify(localBusinessSchema) },
     { type: 'application/ld+json', children: JSON.stringify(videoSchema) },

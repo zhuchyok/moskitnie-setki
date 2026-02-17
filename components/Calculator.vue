@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
-import { roundTo } from '~/services/pricing'
 const store = useOrderStore()
-const pricingStore = usePricingStore()
 
 // По умолчанию при открытии калькулятора всегда выбрана доставка
-onMounted(async () => {
-  await pricingStore.fetchPricing()
-  store.setDelivery('Доставка', store.deliveryPriceCalculated)
+onMounted(() => {
+  store.setDelivery('Доставка', 400)
 })
 
 // Способ получения: обязателен, если в заказе есть сетки без монтажа (все без монтажа или смешанный заказ)
@@ -31,9 +28,7 @@ const extrasCount = computed(() => {
 watch(
   () => store.isMixedOrder,
   (mixed) => {
-    if (mixed) {
-      store.setDelivery('Доставка', store.deliveryPriceCalculated)
-    }
+    if (mixed) store.setDelivery('Доставка', 400)
   }
 )
 
@@ -66,45 +61,46 @@ const frameTypes = [
 ]
 
 const colors = [
-  { id: 1, name: 'БЕЛАЯ' },
-  { id: 2, name: 'КОРИЧНЕВАЯ' },
-  { id: 3, name: 'АНТРАЦИТ' },
-  { id: 4, name: 'RAL' }
+  { id: 1, name: 'БЕЛАЯ', hex: '#FFFFFF' },
+  { id: 2, name: 'КОРИЧНЕВАЯ', hex: '#6F4E37' },
+  { id: 3, name: 'АНТРАЦИТ', hex: '#555D61' },
+  { id: 4, name: 'RAL', hex: '#2A6AB2' }
 ]
 
-const deliveries = computed(() => {
-  return [
-    { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' },
-    { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' },
-    { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: store.deliveryPriceCalculated, icon: 'truck' }
-  ]
+// Популярные цвета RAL для анимации кнопки
+const ralAnimationColors = [
+  '#2D572C', // RAL 6005 (Зеленый мох)
+  '#1B3045', // RAL 5011 (Стальной синий)
+  '#59191F', // RAL 3005 (Винно-красный)
+  '#3E3C32', // RAL 8019 (Серо-коричневый)
+  '#0A0A0A', // RAL 9005 (Черный)
+  '#939176', // RAL 7034 (Желто-серый)
+  '#5A6D76', // RAL 7031 (Сине-серый)
+  '#D7D7D7', // RAL 7035 (Светло-серый)
+  '#7096BB', // RAL 5024 (Пастельно-синий)
+  '#493328', // RAL 8014 (Сепия)
+  '#A5A8A6', // RAL 9006 (Серебристый)
+  '#204A87', // RAL 5002 (Ультрамарин)
+  '#F1753F'  // RAL 2004 (Оранжевый)
+]
+
+const currentRalIndex = ref(0)
+const animatedRalColor = computed(() => ralAnimationColors[currentRalIndex.value])
+
+onMounted(() => {
+  store.setDelivery('Доставка', 400)
+  
+  // Анимация смены цветов только для рамки, если выбран RAL
+  setInterval(() => {
+    currentRalIndex.value = (currentRalIndex.value + 1) % ralAnimationColors.length
+  }, 500)
 })
 
-const urgentOrderOption = computed(() => {
-  const config = (store as any).activePricing
-  const itemsTotal = store.items.reduce((sum, i) => sum + i.price, 0)
-  
-  // Для отображения цены в калькуляторе считаем от текущего итога (сетки + доставка + замер)
-  const needsDelivery = store.items.some((item) => !item.typeName.includes(' + МОНТАЖ'))
-  const deliveryAdd = needsDelivery ? store.deliveryPrice : 0
-  const measurementAdd = store.measurementSelected ? store.measurementPriceCalculated : 0
-  
-  const baseTotal = itemsTotal + deliveryAdd + measurementAdd
-  const price = roundTo(baseTotal * (config.fixed.urgentProfitFactor ?? 0.1), 50)
-  
-  return { 
-    id: 'srochnyi' as const, 
-    name: 'Приоритетный срочный заказ', 
-    price 
-  }
-})
-
-const measurementOption = computed(() => {
-  return { 
-    id: 'measurement', 
-    name: 'Замер Чебоксары и Новочебоксарск', 
-    price: store.measurementPriceCalculated 
-  }
+// Цвет рамки в визуализации
+const frameColor = computed(() => {
+  if (store.config.color === 4) return animatedRalColor.value
+  const found = colors.find(c => c.id === store.config.color)
+  return found ? found.hex : '#333333'
 })
 
 const selectType = (id: string, name: string) => {
@@ -118,6 +114,16 @@ const selectFrameType = (id: string) => {
 const selectColor = (id: number) => {
   store.updateConfig({ color: id })
 }
+
+const deliveries = [
+  { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' },
+  { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' },
+  { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: 400, icon: 'truck' }
+]
+
+const urgentOrderOption = { id: 'srochnyi' as const, name: 'Приоритетный срочный заказ', price: 400 }
+
+const measurementOption = { id: 'measurement', name: 'Замер Чебоксары и Новочебоксарск', price: 400 }
 
 // Размер ячейки сетки в зависимости от типа полотна
 const meshSize = computed(() => {
@@ -229,8 +235,12 @@ const submitOrder = async () => {
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 min-h-[650px]">
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-4/12 bg-gray-50/50 p-12 flex flex-col items-center justify-center relative border-r border-gray-100">
-        <div class="relative border-[8px] border-brand-dark bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
-             :style="{ width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px' }">
+        <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
+             :style="{ 
+               width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', 
+               height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px',
+               borderColor: frameColor
+             }">
           <!-- Сетка с разным размером ячейки -->
           <div class="absolute inset-0 opacity-20 transition-all"
                :style="{ 
@@ -239,7 +249,8 @@ const submitOrder = async () => {
                }"></div>
           
           <!-- Перегородка посередине -->
-          <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 bg-brand-dark"></div>
+          <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 transition-colors duration-500"
+               :style="{ backgroundColor: frameColor }"></div>
           
           <!-- Ручки для вставной (сверху и снизу) -->
           <template v-if="store.config.frameType === 'vstavnaya'">

@@ -74,6 +74,7 @@ export const useOrderStore = defineStore('order', {
       return hasWithout && hasWith
     },
     currentPrice(state): number {
+      const isMetal = state.config.handleType === 'metal'
       if (state.config.frameType === 'vstavnaya') {
         const cost = computeCostVstavnaya(
           state.config.width,
@@ -81,7 +82,8 @@ export const useOrderStore = defineStore('order', {
           state.config.color,
           state.config.type
         )
-        return costToClientPrice(cost)
+        const base = costToClientPrice(cost)
+        return isMetal ? (base - costToClientPrice(PRICING_CONFIG.fixed.handles)) : base
       }
       const cost = computeCost(
         state.config.width,
@@ -89,7 +91,8 @@ export const useOrderStore = defineStore('order', {
         state.config.color,
         state.config.type
       )
-      return costToClientPrice(cost)
+      const base = costToClientPrice(cost)
+      return isMetal ? (base - costToClientPrice(PRICING_CONFIG.fixed.handles)) : base
     },
     totalPrice(state): number {
       const itemsTotal = state.items.reduce((sum, item) => sum + item.price, 0)

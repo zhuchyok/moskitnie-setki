@@ -23,7 +23,8 @@ function getFixedTotal(colorId: number, meshType: string): number {
   const cornersTotal = 4 * cornerPerPiece
   const impostMountTotal = (fr.impostMountCount ?? 2) * (fr.impostMountPrice ?? 1.8)
   const work = getWork(colorId, meshType, 'standart')
-  return cornersTotal + f.handles + fr.mounts + impostMountTotal + f.stretch + work
+  const handlesTotal = f.handles // Default PVC
+  return cornersTotal + handlesTotal + fr.mounts + impostMountTotal + f.stretch + work
 }
 
 /** Фикса вставной VSN: 4×уголок + ручки + 4×крепление (+клепка) + 2×крепление поперечины + стрейч + работа. */
@@ -35,7 +36,8 @@ function getFixedTotalVstavnaya(colorId: number, meshType: string): number {
   const mountsTotal = (fv.mountCount ?? 4) * (fv.mountPerPiece ?? 30)
   const impostMountTotal = (fv.impostMountCount ?? 2) * (fv.impostMountPrice ?? 1.8)
   const work = getWork(colorId, meshType, 'vstavnaya')
-  return cornersTotal + f.handles + mountsTotal + impostMountTotal + f.stretch + work
+  const handlesTotal = f.handles // Default PVC
+  return cornersTotal + handlesTotal + mountsTotal + impostMountTotal + f.stretch + work
 }
 
 /** Цена профиля за м.п. по цвету (RAL = база + наценка покраски). */
@@ -192,5 +194,8 @@ export function calculateItemPrice(
   const installation = hasInstallation ? PRICING_CONFIG.extras.installation : 0
   const metal = handleType === 'metal' ? PRICING_CONFIG.extras.handleMetal : 0
 
-  return (base + installation + metal) * count
+  // Если ручки металлические, вычитаем стоимость ПВХ ручек из базы, так как они уже в фиксе
+  const finalBase = handleType === 'metal' ? (base - costToClientPrice(PRICING_CONFIG.fixed.handles)) : base
+
+  return (finalBase + installation + metal) * count
 }

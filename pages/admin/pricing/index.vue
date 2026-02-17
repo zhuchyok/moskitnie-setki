@@ -188,7 +188,7 @@ onMounted(fetchPricing)
               <span class="font-bold text-gray-600 truncate">{{ item.name }}</span>
               <div class="flex items-center gap-3 shrink-0 min-w-[140px] justify-end">
                 <input v-model.number="item.price" type="number" class="w-24 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-xl px-4 py-2 text-right font-black text-brand-blue outline-none transition-all" />
-                <span class="text-[10px] font-black text-gray-300 uppercase w-8">₽</span>
+                <span class="text-[10px] font-black text-gray-300 uppercase w-10">₽/м²</span>
               </div>
             </div>
           </div>

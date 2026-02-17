@@ -3,62 +3,223 @@
 
 import { PRICING_CONFIG } from '~/constants/pricing'
 import type { ColorId, MeshType, FrameType } from '~/types/mesh'
+import type { GlobalPricing } from '~/stores/pricing'
 
-/** Работа: база + (входная полотно ₽/м² + входная профиль ₽/м.п.) × 10%. */
-function getWork(colorId: number, meshType: string, frameType: 'standart' | 'vstavnaya'): number {
-  const f = PRICING_CONFIG.fixed
-  const meshBase = PRICING_CONFIG.meshPerM2[meshType as keyof typeof PRICING_CONFIG.meshPerM2] ?? PRICING_CONFIG.meshPerM2.standart
-  const v = PRICING_CONFIG.variable
-  const profileInput = frameType === 'vstavnaya'
-    ? ((v.profilePerMeterVstavnaya as Record<number, number>)[colorId] ?? 151)
-    : (getProfilePerMeter(colorId))
-  return f.workBase + (meshBase + profileInput) * (f.workPercent ?? 0.1)
+function comp(pricing: GlobalPricing, id: string, fallback: number): number {
+  return pricing.components.find(c => c.id === id)?.price ?? fallback
 }
 
-/** Фикса рамочной: 4×уголок + 2×ручки + 4×крепление + 2×крепление поперечины (1,8) + стрейч + работа. */
-function getFixedTotal(colorId: number, meshType: string): number {
-  const f = PRICING_CONFIG.fixed
-  const fr = PRICING_CONFIG.fixedRamochnaya
-  const cornerPerPiece = (fr.cornersByColor as Record<number, number>)[colorId] ?? 3.75
-  const cornersTotal = 4 * cornerPerPiece
+/** Получить актуальный конфиг (из стора или дефолтный). Все цены из админки. */
+function getConfig(pricing?: GlobalPricing) {
+  if (!pricing) return PRICING_CONFIG
+
+  const handlePlastic = comp(pricing, 'handle_plastic', 2.2)
+  const handleMetalPerPiece = comp(pricing, 'handle_metal', 8)
+  const mountFrame = comp(pricing, 'mount_frame', 8)
+  const mountVsn = comp(pricing, 'mount_vsn', 30)
+  const mountImpost = comp(pricing, 'mount_impost', 1.8)
+  const screwPrice = comp(pricing, 'screw', 1)
+  const rivetPrice = comp(pricing, 'rivet', 5)
+  const stretchPrice = comp(pricing, 'stretch', 24)
+
+  return {
+    ...PRICING_CONFIG,
+    fixed: {
+      ...PRICING_CONFIG.fixed,
+      handles: handlePlastic * 2, /* 2,2₽ × 2 шт */
+      handlesMetalCost: handleMetalPerPiece * 2, /* 8₽ × 2 шт */
+      stretch: stretchPrice,
+      workBase: pricing.markup.manufacturing_base,
+      workPercent: pricing.markup.manufacturing_percent / 100,
+    },
+    variable: {
+      ...PRICING_CONFIG.variable,
+      meshPerM2: {
+        standart: pricing.mesh.find(m => m.id === 'standart')?.price ?? 63,
+        antimoshka: pricing.mesh.find(m => m.id === 'antimoshka')?.price ?? 265,
+        ultravyu: pricing.mesh.find(m => m.id === 'ultravyu')?.price ?? 295,
+        antikoshka: pricing.mesh.find(m => m.id === 'antikoshka')?.price ?? 414,
+        antipyl: pricing.mesh.find(m => m.id === 'antipyl')?.price ?? 645,
+      },
+      profilePerMeter: {
+        1: pricing.profiles.find(p => p.id === 'white')?.price ?? 60,
+        2: pricing.profiles.find(p => p.id === 'brown')?.price ?? 64.8,
+        3: pricing.profiles.find(p => p.id === 'anthracite')?.price ?? 70,
+        4: pricing.profiles.find(p => p.id === 'ral')?.price ?? 60,
+      },
+      profilePerMeterVstavnaya: {
+        1: pricing.profiles.find(p => p.id === 'white_vsn')?.price ?? 151,
+        2: pricing.profiles.find(p => p.id === 'brown_vsn')?.price ?? 153,
+        3: pricing.profiles.find(p => p.id === 'anthracite_vsn')?.price ?? 163,
+        4: pricing.profiles.find(p => p.id === 'ral_vsn')?.price ?? 251,
+      },
+      impostPerMeter: {
+        1: pricing.profiles.find(p => p.id === 'impost_white')?.price ?? 62,
+        2: pricing.profiles.find(p => p.id === 'impost_brown')?.price ?? 67.2,
+        3: pricing.profiles.find(p => p.id === 'impost_anthracite')?.price ?? 75,
+        4: pricing.profiles.find(p => p.id === 'impost_white')?.price ?? 62,
+      },
+      ralPaintingPerMeter: pricing.profiles.find(p => p.id === 'ral_painting')?.price ?? 100,
+      cordPerMeter: pricing.components.find(c => c.id === 'cord')?.price ?? 4.6,
+    },
+    markup: {
+      ...PRICING_CONFIG.markup,
+      dealerFactor: pricing.markup.dealer,
+      clientFactorFromCost: pricing.markup.client,
+      measurementBase: pricing.markup.measurement_base,
+      measurementPercent: pricing.markup.measurement_percent / 100,
+      measurementProfitFactor: pricing.markup.measurement_profit_factor / 100,
+      urgentProfitFactor: pricing.markup.urgent_profit_factor / 100,
+      installationProfitFactor: pricing.markup.installation_profit_factor / 100,
+      deliveryProfitFactor: pricing.markup.delivery_profit_factor / 100,
+    },
+    fixedRamochnaya: {
+      ...PRICING_CONFIG.fixedRamochnaya,
+      cornersByColor: {
+        1: comp(pricing, 'corner_white', 3.75),
+        2: comp(pricing, 'corner_brown', 6),
+        3: comp(pricing, 'corner_anthracite', 7),
+        4: comp(pricing, 'corner_anthracite', 7),
+      },
+      mountPerPiece: mountFrame,
+      screwCount: 12,
+      screwPrice,
+    },
+    fixedVstavnaya: {
+      ...PRICING_CONFIG.fixedVstavnaya,
+      cornersByColor: {
+        1: comp(pricing, 'corner_vsn_white', 14.8),
+        2: comp(pricing, 'corner_vsn_brown', 4.85),
+        3: comp(pricing, 'corner_vsn_anthracite', 7.15),
+        4: comp(pricing, 'corner_vsn_anthracite', 7.15),
+      },
+      mountPerPiece: mountVsn,
+      screwCount: 2,
+      rivetCount: 2,
+      screwPrice,
+      rivetPrice,
+      impostMountPrice: mountImpost,
+    },
+    extras: {
+      installation: pricing.services.find(s => s.id === 'installation')?.price ?? 400,
+      installationVsn: pricing.services.find(s => s.id === 'installation_vsn')?.price ?? 100,
+      delivery: pricing.services.find(s => s.id === 'delivery')?.price ?? 300,
+      deliveryMixed: pricing.services.find(s => s.id === 'delivery_mixed')?.price ?? 100,
+      handleMetalCost: handleMetalPerPiece * 2,
+      handleMetal: roundTo(handleMetalPerPiece * 2 * pricing.markup.client, 50), /* клиент: округление 50 */
+    }
+  }
+}
+
+/** Работа: база + 5% от всех материалов (себестоимость без учета работы). */
+export function getWork(widthMm: number, heightMm: number, colorId: ColorId, meshType: MeshType, frameType: FrameType, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const f = config.fixed
+  
+  // Рассчитываем себестоимость материалов (без учета самой работы)
+  let materialCost = 0
+  
+  const w = widthMm / 1000
+  const h = heightMm / 1000
+  const perimeterM = 2 * (w + h)
+  const areaM2 = w * h
+  const areaCalc = Math.max(areaM2, config.variable.minAreaM2)
+  const v = config.variable
+  
+  // 1. Полотно
+  const meshBase = v.meshPerM2[meshType] ?? v.meshPerM2.standart
+  materialCost += areaCalc * meshBase * v.marginMesh
+  
+  // 2. Профиль
+  const profileLengthM = Math.max(0, perimeterM - 0.24)
+  if (frameType === 'vstavnaya') {
+    materialCost += profileLengthM * getProfilePerMeterVstavnaya(colorId, pricing)
+  } else {
+    materialCost += profileLengthM * getProfilePerMeter(colorId, pricing) * v.marginProfile
+  }
+  
+  // 3. Шнур
+  materialCost += perimeterM * v.cordPerMeter * v.marginCord
+  
+  // 4. Импост
+  const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
+  materialCost += impostLengthM * getImpostPerMeter(colorId, pricing) * v.marginProfile
+  
+    // 5. Фиксированные комплектующие: уголки 4 шт, ручки ПВХ 2×2,2, крепления, импост 1,8×2, саморезы/клепки, стрейч
+    if (frameType === 'vstavnaya') {
+      const fv = config.fixedVstavnaya
+      const cornerPerPiece = (fv.cornersByColor as Record<number, number>)[colorId] ?? 14.8
+      materialCost += 4 * cornerPerPiece
+      materialCost += (fv.mountCount ?? 4) * (fv.mountPerPiece ?? 30) // 30₽×4
+      materialCost += (fv.impostMountCount ?? 2) * (fv.impostMountPrice ?? 1.8)
+      materialCost += (fv.screwCount ?? 2) * (fv.screwPrice ?? 1)
+      materialCost += (fv.rivetCount ?? 2) * (fv.rivetPrice ?? 5)
+      materialCost += config.fixed.handles
+      materialCost += f.stretch
+    } else {
+      const fr = config.fixedRamochnaya
+      const cornerPerPiece = (fr.cornersByColor as Record<number, number>)[colorId] ?? 3.75
+      materialCost += 4 * cornerPerPiece
+      materialCost += (fr.mountCount ?? 4) * (fr.mountPerPiece ?? 8) // 8₽×4
+      materialCost += (fr.screwCount ?? 12) * (fr.screwPrice ?? 1)
+      materialCost += (fr.impostMountCount ?? 2) * (fr.impostMountPrice ?? 1.8)
+      materialCost += config.fixed.handles
+      materialCost += f.stretch
+    }
+
+  // Формула: база + % от всех материалов
+  return f.workBase + materialCost * f.workPercent
+}
+
+/** Фикса рамочной: 4×уголок + ручки 2×2,2 + крепления 8₽×4 + саморезы 12 шт + импост 1,8₽×2 + стрейч + работа. */
+function getFixedTotal(widthMm: number, heightMm: number, colorId: number, meshType: string, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const f = config.fixed
+  const fr = config.fixedRamochnaya
+  const cornersTotal = 4 * ((fr.cornersByColor as Record<number, number>)[colorId] ?? 3.75)
+  const mountsTotal = (fr.mountCount ?? 4) * (fr.mountPerPiece ?? 8)
+  const screwsTotal = (fr.screwCount ?? 12) * (fr.screwPrice ?? 1)
   const impostMountTotal = (fr.impostMountCount ?? 2) * (fr.impostMountPrice ?? 1.8)
-  const work = getWork(colorId, meshType, 'standart')
-  const handlesTotal = f.handles // Default PVC
-  return cornersTotal + handlesTotal + fr.mounts + impostMountTotal + f.stretch + work
+  const work = getWork(widthMm, heightMm, colorId as ColorId, meshType as MeshType, 'standart', pricing)
+  return cornersTotal + f.handles + mountsTotal + screwsTotal + impostMountTotal + f.stretch + work
 }
 
-/** Фикса вставной VSN: 4×уголок + ручки + 4×крепление (+клепка) + 2×крепление поперечины + стрейч + работа. */
-function getFixedTotalVstavnaya(colorId: number, meshType: string): number {
-  const f = PRICING_CONFIG.fixed
-  const fv = PRICING_CONFIG.fixedVstavnaya
-  const cornerPerPiece = (fv.cornersByColor as Record<number, number>)[colorId] ?? 14.8
-  const cornersTotal = 4 * cornerPerPiece
+/** Фикса вставной VSN: 4×уголок + ручки 2×2,2 + крепления 30₽×4 + саморезы 2 шт + клепки 2 шт + импост 1,8₽×2 + стрейч + работа. */
+function getFixedTotalVstavnaya(widthMm: number, heightMm: number, colorId: number, meshType: string, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const f = config.fixed
+  const fv = config.fixedVstavnaya
+  const cornersTotal = 4 * ((fv.cornersByColor as Record<number, number>)[colorId] ?? 14.8)
   const mountsTotal = (fv.mountCount ?? 4) * (fv.mountPerPiece ?? 30)
+  const screwsTotal = (fv.screwCount ?? 2) * (fv.screwPrice ?? 1)
+  const rivetsTotal = (fv.rivetCount ?? 2) * (fv.rivetPrice ?? 5)
   const impostMountTotal = (fv.impostMountCount ?? 2) * (fv.impostMountPrice ?? 1.8)
-  const work = getWork(colorId, meshType, 'vstavnaya')
-  const handlesTotal = f.handles // Default PVC
-  return cornersTotal + handlesTotal + mountsTotal + impostMountTotal + f.stretch + work
+  const work = getWork(widthMm, heightMm, colorId as ColorId, meshType as MeshType, 'vstavnaya', pricing)
+  return cornersTotal + f.handles + mountsTotal + screwsTotal + rivetsTotal + impostMountTotal + f.stretch + work
 }
 
 /** Цена профиля за м.п. по цвету (RAL = база + наценка покраски). */
-function getProfilePerMeter(colorId: number): number {
-  const v = PRICING_CONFIG.variable
+function getProfilePerMeter(colorId: number, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const v = config.variable
   const base = (v.profilePerMeter as Record<number, number>)[colorId] ?? 60
   if (colorId === 4) return base + v.ralPaintingPerMeter
   return base
 }
 
 /** Цена поперечины (импост) за м.п. по цвету (RAL = база + наценка покраски). */
-function getImpostPerMeter(colorId: number): number {
-  const v = PRICING_CONFIG.variable
+function getImpostPerMeter(colorId: number, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const v = config.variable
   const base = (v.impostPerMeter as Record<number, number>)[colorId] ?? 62
   if (colorId === 4) return base + v.ralPaintingPerMeter
   return base
 }
 
 /** Профиль вставной VSN за м.п. по цвету (151/153/163/401), с запасом 10%. */
-function getProfilePerMeterVstavnaya(colorId: number): number {
-  const v = PRICING_CONFIG.variable
+function getProfilePerMeterVstavnaya(colorId: number, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const v = config.variable
   const pv = (v.profilePerMeterVstavnaya as Record<number, number>) ?? { 1: 151, 2: 153, 3: 163, 4: 251 }
   const profile = pv[colorId] ?? pv[1]
   return profile * v.marginProfile
@@ -68,23 +229,24 @@ function getProfilePerMeterVstavnaya(colorId: number): number {
  * Себестоимость S для рамочной сетки (без доп. монтажа/металл).
  * Профиль: (периметр − 240 мм) × цена/м.п. × 1,1. Шнур: периметр × 4,6 × 1,01. Импост: (ширина − 48 мм) × цена/м.п. × 1,1. Полотно: площадь × цена/м² × 1,26.
  */
-export function computeCost(widthMm: number, heightMm: number, colorId: ColorId, meshType: MeshType): number {
+export function computeCost(widthMm: number, heightMm: number, colorId: ColorId, meshType: MeshType, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
   const w = widthMm / 1000
   const h = heightMm / 1000
   const perimeterM = 2 * (w + h)
   const areaM2 = w * h
-  const areaCalc = Math.max(areaM2, PRICING_CONFIG.variable.minAreaM2)
+  const areaCalc = Math.max(areaM2, config.variable.minAreaM2)
 
-  const v = PRICING_CONFIG.variable
-  const meshBase = PRICING_CONFIG.meshPerM2[meshType] ?? PRICING_CONFIG.meshPerM2.standart
+  const v = config.variable
+  const meshBase = v.meshPerM2[meshType] ?? v.meshPerM2.standart
   const meshCost = areaCalc * meshBase * v.marginMesh
 
-  const fixedTotal = getFixedTotal(colorId, meshType)
+  const fixedTotal = getFixedTotal(widthMm, heightMm, colorId, meshType, pricing)
   const profileLengthM = Math.max(0, perimeterM - 0.24)
-  const profileCost = profileLengthM * getProfilePerMeter(colorId) * v.marginProfile
+  const profileCost = profileLengthM * getProfilePerMeter(colorId, pricing) * v.marginProfile
   const cordCost = perimeterM * v.cordPerMeter * v.marginCord
   const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
-  const impostCost = impostLengthM * getImpostPerMeter(colorId) * v.marginProfile
+  const impostCost = impostLengthM * getImpostPerMeter(colorId, pricing) * v.marginProfile
 
   return fixedTotal + profileCost + cordCost + impostCost + meshCost
 }
@@ -92,23 +254,24 @@ export function computeCost(widthMm: number, heightMm: number, colorId: ColorId,
 /**
  * Себестоимость S для вставной VSN: та же схема — профиль (периметр−240), шнур, импост (ширина−48), полотно (площадь×1,26).
  */
-export function computeCostVstavnaya(widthMm: number, heightMm: number, colorId: ColorId, meshType: MeshType): number {
+export function computeCostVstavnaya(widthMm: number, heightMm: number, colorId: ColorId, meshType: MeshType, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
   const w = widthMm / 1000
   const h = heightMm / 1000
   const perimeterM = 2 * (w + h)
   const areaM2 = w * h
-  const areaCalc = Math.max(areaM2, PRICING_CONFIG.variable.minAreaM2)
+  const areaCalc = Math.max(areaM2, config.variable.minAreaM2)
 
-  const v = PRICING_CONFIG.variable
-  const meshBase = PRICING_CONFIG.meshPerM2[meshType] ?? PRICING_CONFIG.meshPerM2.standart
+  const v = config.variable
+  const meshBase = v.meshPerM2[meshType] ?? v.meshPerM2.standart
   const meshCost = areaCalc * meshBase * v.marginMesh
 
-  const fixedTotal = getFixedTotalVstavnaya(colorId, meshType)
+  const fixedTotal = getFixedTotalVstavnaya(widthMm, heightMm, colorId, meshType, pricing)
   const profileLengthM = Math.max(0, perimeterM - 0.24)
-  const profileCost = profileLengthM * getProfilePerMeterVstavnaya(colorId)
+  const profileCost = profileLengthM * getProfilePerMeterVstavnaya(colorId, pricing)
   const cordCost = perimeterM * v.cordPerMeter * v.marginCord
   const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
-  const impostCost = impostLengthM * getImpostPerMeter(colorId) * v.marginProfile
+  const impostCost = impostLengthM * getImpostPerMeter(colorId, pricing) * v.marginProfile
 
   return fixedTotal + profileCost + cordCost + impostCost + meshCost
 }
@@ -119,44 +282,49 @@ export function roundTo(value: number, step: number): number {
 }
 
 /** Цена для клиента: считается отдельно от себестоимости (не от дилера). */
-export function costToClientPrice(cost: number): number {
-  const { clientFactorFromCost, clientOffsetFromCost, clientRound } = PRICING_CONFIG.markup
+export function costToClientPrice(cost: number, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const { clientFactorFromCost, clientOffsetFromCost, clientRound } = config.markup
   const clientPrice = cost * clientFactorFromCost + clientOffsetFromCost
   return Math.max(0, roundTo(clientPrice, clientRound))
 }
 
 /** Цена для дилера */
-export function costToDealerPrice(cost: number): number {
-  const { dealerFactor, dealerOffset, dealerRound } = PRICING_CONFIG.markup
+export function costToDealerPrice(cost: number, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const { dealerFactor, dealerOffset, dealerRound } = config.markup
   const dealerPrice = cost * dealerFactor + dealerOffset
   return Math.max(0, roundTo(dealerPrice, dealerRound))
 }
 
 /** Потеря на оплату картой от суммы заказа (руб). */
-export function getCardFee(revenue: number): number {
-  const p = PRICING_CONFIG.fees?.cardPercent ?? 0.025
+export function getCardFee(revenue: number, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const p = config.fees?.cardPercent ?? 0.025
   return revenue * p
 }
 
 /** Выручка после вычета комиссии карты (руб). */
-export function getNetRevenueAfterCard(revenue: number): number {
-  const p = PRICING_CONFIG.fees?.cardPercent ?? 0.025
+export function getNetRevenueAfterCard(revenue: number, pricing?: GlobalPricing): number {
+  const config = getConfig(pricing)
+  const p = config.fees?.cardPercent ?? 0.025
   return revenue * (1 - p)
 }
 
 /** Сумма покраски по RAL (100 ₽/м.п.): профиль + импост. Только для colorId === 4 (RAL). Выводится отдельно и вычитается из прибыли. */
-export function getRalPaintingAmount(widthMm: number, heightMm: number, colorId: ColorId): number {
+export function getRalPaintingAmount(widthMm: number, heightMm: number, colorId: ColorId, pricing?: GlobalPricing): number {
   if (colorId !== 4) return 0
+  const config = getConfig(pricing)
   const perimeterM = 2 * (widthMm / 1000 + heightMm / 1000)
   const profileLengthM = Math.max(0, perimeterM - 0.24)
   const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
-  const ralPerMeter = PRICING_CONFIG.variable.ralPaintingPerMeter ?? 100
+  const ralPerMeter = config.variable.ralPaintingPerMeter ?? 100
   return (profileLengthM + impostLengthM) * ralPerMeter
 }
 
 /** Прибыль от заказа: выручка после карты − себестоимость − покраска RAL (если есть). */
-export function getOrderProfit(revenue: number, cost: number, ralAmount: number = 0): number {
-  return getNetRevenueAfterCard(revenue) - cost - ralAmount
+export function getOrderProfit(revenue: number, cost: number, ralAmount: number = 0, pricing?: GlobalPricing): number {
+  return getNetRevenueAfterCard(revenue, pricing) - cost - ralAmount
 }
 
 /** Размер ячейки сетки в зависимости от типа полотна */
@@ -184,18 +352,20 @@ export function calculateItemPrice(
   frameType: FrameType,
   count: number = 1,
   hasInstallation: boolean = false,
-  handleType: 'pvc' | 'metal' = 'pvc'
+  handleType: 'pvc' | 'metal' = 'pvc',
+  pricing?: GlobalPricing
 ): number {
+  const config = getConfig(pricing)
   const cost = frameType === 'vstavnaya'
-    ? computeCostVstavnaya(widthMm, heightMm, colorId, meshType)
-    : computeCost(widthMm, heightMm, colorId, meshType)
+    ? computeCostVstavnaya(widthMm, heightMm, colorId, meshType, pricing)
+    : computeCost(widthMm, heightMm, colorId, meshType, pricing)
 
-  const base = costToClientPrice(cost)
-  const installation = hasInstallation ? PRICING_CONFIG.extras.installation : 0
-  const metal = handleType === 'metal' ? PRICING_CONFIG.extras.handleMetal : 0
+  const base = costToClientPrice(cost, pricing)
+  const installation = hasInstallation ? config.extras.installation : 0
+  const metal = handleType === 'metal' ? config.extras.handleMetal : 0
 
   // Если ручки металлические, вычитаем стоимость ПВХ ручек из базы, так как они уже в фиксе
-  const finalBase = handleType === 'metal' ? (base - costToClientPrice(PRICING_CONFIG.fixed.handles)) : base
+  const finalBase = handleType === 'metal' ? (base - costToClientPrice(config.fixed.handles, pricing)) : base
 
   return (finalBase + installation + metal) * count
 }

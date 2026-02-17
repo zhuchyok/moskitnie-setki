@@ -65,13 +65,12 @@ const handleAuth = async () => {
       console.log('Login success:', response)
       
       // Используем auth store для сохранения данных
-      auth.setToken(response.token)
-      auth.setUser({
+      auth.setAuth({
         id: response.user_id,
         email: form.email.trim(),
         role: response.role,
         name: response.name || (response.role === 'admin' ? 'Администратор' : 'Дилер')
-      })
+      }, response.token)
       
       // Сохраняем роль отдельно для совместимости
       const userRole = useCookie('user_role', { maxAge: 60 * 60 * 24 * 7 })

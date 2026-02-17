@@ -1,74 +1,69 @@
 version: '3.8'
 
 services:
-  # API Gateway (Rust)
-  moskit-api:
+  # API Gateway
+  api:
     build:
       context: .
       dockerfile: moskit-api/Dockerfile
     ports:
-      - "8081:8080"
+      - "8083:8080"
     environment:
       - RUST_LOG=info
-      - DATABASE_URL=postgres://moskit:password@moskit-db:5432/moskit
-      - DB_PASSWORD=password
-      - JWT_SECRET=your_super_secret_key_123
-      - REDIS_URL=redis://moskit-redis:6379
-      - VICTORIA_URL=http://victoria-agent:8010
-      - VERONICA_URL=http://veronica-agent:8011
+      - DATABASE_URL=postgres://moskit:password@postgres:5432/moskit
+      - POSTGRES_PASSWORD=password
+      - REDIS_URL=redis://redis:6379
     depends_on:
-      - moskit-db
-      - moskit-redis
-    networks:
-      - atra-network
-      - moskit-internal
+      - postgres
+      - redis
     restart: unless-stopped
 
   # Frontend (Nuxt)
-  moskit-web:
+  web:
     build:
       context: .
       dockerfile: Dockerfile.web
     ports:
       - "3003:3000"
     environment:
-      - API_URL=http://moskit-api:8080
-      - NUXT_PUBLIC_API_URL=http://localhost:8081 # Для клиентских запросов
+      - API_URL=http://api:8080
+      - NUXT_PUBLIC_API_URL=http://localhost:8083
     depends_on:
-      - moskit-api
-    networks:
-      - atra-network
-      - moskit-internal
+      - api
     restart: unless-stopped
 
   # PostgreSQL
-  moskit-db:
+  postgres:
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: moskit
       POSTGRES_PASSWORD: password
       POSTGRES_DB: moskit
     volumes:
-      - moskit-pgdata:/var/lib/postgresql/data
-    networks:
-      - moskit-internal
+      - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
 
   # Redis
-  moskit-redis:
+  redis:
     image: redis:7-alpine
     volumes:
-      - moskit-redisdata:/data
-    networks:
-      - moskit-internal
+      - redisdata:/data
     restart: unless-stopped
 
-networks:
-  atra-network:
-    external: true
-  moskit-internal:
-    driver: bridge
+  # Nginx
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/letsencrypt:ro
+    depends_on:
+      - web
+      - api
+    restart: unless-stopped
 
 volumes:
-  moskit-pgdata:
-  moskit-redisdata:
+  pgdata:
+  redisdata:

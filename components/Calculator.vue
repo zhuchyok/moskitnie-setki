@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 const store = useOrderStore()
+const pricingStore = usePricingStore()
 
 // По умолчанию при открытии калькулятора всегда выбрана доставка
 onMounted(() => {
-  store.setDelivery('Доставка', 400)
+  store.setDelivery('Доставка', store.deliveryPriceCalculated)
 })
+
+// Обновляем цену доставки в сторе, когда загрузятся глобальные цены
+watch(() => pricingStore.pricing, (newPricing) => {
+  if (newPricing && store.delivery === 'Доставка') {
+    store.setDelivery('Доставка', store.deliveryPriceCalculated)
+  }
+}, { immediate: true })
 
 // Способ получения: обязателен, если в заказе есть сетки без монтажа (все без монтажа или смешанный заказ)
 const deliveryOptionIds = ['Оф.Чебоксары', 'Оф.Новочебоксарск', 'Доставка']
@@ -24,11 +32,13 @@ const extrasCount = computed(() => {
   return n
 })
 
-// При смешанном заказе (сетки с монтажом и без) — только доставка, отменить нельзя
+// При смешанном заказе (сетки с монтажом и без) — только доставка (смешанная), отменить нельзя
 watch(
   () => store.isMixedOrder,
   (mixed) => {
-    if (mixed) store.setDelivery('Доставка', 400)
+    if (mixed) {
+      store.setDelivery('Доставка', store.deliveryPriceCalculated)
+    }
   }
 )
 
@@ -88,8 +98,7 @@ const currentRalIndex = ref(0)
 const animatedRalColor = computed(() => ralAnimationColors[currentRalIndex.value])
 
 onMounted(() => {
-  store.setDelivery('Доставка', 400)
-  
+  store.setDelivery('Доставка', store.deliveryPriceCalculated)
   // Анимация смены цветов только для рамки, если выбран RAL
   setInterval(() => {
     currentRalIndex.value = (currentRalIndex.value + 1) % ralAnimationColors.length
@@ -115,15 +124,30 @@ const selectColor = (id: number) => {
   store.updateConfig({ color: id })
 }
 
-const deliveries = [
+const deliveries = computed(() => [
   { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' },
   { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' },
-  { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: 400, icon: 'truck' }
-]
+  { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: store.deliveryPriceCalculated, icon: 'truck' }
+])
 
-const urgentOrderOption = { id: 'srochnyi' as const, name: 'Приоритетный срочный заказ', price: 400 }
+const urgentOrderOption = computed(() => {
+  // Рассчитываем цену срочности для отображения в кнопке
+  // В сторе она считается от итога, здесь для превью покажем примерную от текущей суммы
+  const baseTotal = store.items.reduce((sum, item) => sum + item.price, 0) + (store.delivery === 'Доставка' ? store.deliveryPriceCalculated : 0) + (store.measurementSelected ? store.measurementPriceCalculated : 0)
+  const factor = (pricingStore.pricing?.markup.urgent_profit_factor ?? 10) / 100
+  const urgentPrice = Math.round((baseTotal * factor) / 50) * 50
+  return { 
+    id: 'srochnyi' as const, 
+    name: 'Приоритетный срочный заказ', 
+    price: Math.max(urgentPrice, 400)
+  }
+})
 
-const measurementOption = { id: 'measurement', name: 'Замер Чебоксары и Новочебоксарск', price: 400 }
+const measurementOption = computed(() => ({ 
+  id: 'measurement', 
+  name: 'Замер Чебоксары и Новочебоксарск', 
+  price: store.measurementPriceCalculated 
+}))
 
 // Размер ячейки сетки в зависимости от типа полотна
 const meshSize = computed(() => {
@@ -511,7 +535,7 @@ const submitOrder = async () => {
             <div class="text-center sm:text-left w-full sm:w-auto">
               <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-2">Итоговая цена</p>
               <div class="flex items-baseline gap-1 justify-center sm:justify-start">
-                <span class="text-6xl font-black text-brand-blue leading-none tracking-tighter">{{ store.currentPrice * store.config.count + (store.config.installation ? store.extrasInstallation * store.config.count : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal * store.config.count : 0) }}</span>
+                <span class="text-6xl font-black text-brand-blue leading-none tracking-tighter">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
                 <span class="text-2xl font-black text-gray-200 uppercase leading-none self-baseline ml-1" style="font-size: 1.5rem; line-height: 1;">₽</span>
               </div>
             </div>

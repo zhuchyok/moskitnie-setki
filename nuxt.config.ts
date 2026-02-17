@@ -58,7 +58,8 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      routes: ['/', '/antimoshka', '/ultravyu', '/antikoshka', '/antipyl', '/vstavnye', '/remont', '/contacts', '/delivery', '/privacy', '/karta-sajta']
+      routes: ['/', '/antimoshka', '/ultravyu', '/antikoshka', '/antipyl', '/vstavnye', '/remont', '/contacts', '/delivery', '/privacy', '/karta-sajta'],
+      failOnError: false
     }
   },
   runtimeConfig: {

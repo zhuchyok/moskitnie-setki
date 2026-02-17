@@ -22,13 +22,13 @@ const localBusinessSchema = {
   email: 'info@setki21.ru',
   priceRange: 'RUB',
   areaServed: [{ '@type': 'City', name: 'Чебоксары' }, { '@type': 'City', name: 'Новочебоксарск' }],
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'ул. Гражданская, 53, оф.1',
-    addressLocality: 'Чебоксары',
-    postalCode: '428000',
-    addressCountry: 'RU'
-  },
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'ул. Гражданская, 53',
+      addressLocality: 'Чебоксары',
+      postalCode: '428000',
+      addressCountry: 'RU'
+    },
   geo: {
     '@type': 'GeoCoordinates',
     latitude: 56.137451,
@@ -133,19 +133,21 @@ const faqSchema = {
   ]
 }
 
-useHead({
+useSeoMeta({
   title,
-  meta: [
-    { name: 'description', content: description },
-    { name: 'keywords', content: keywords },
-    { property: 'og:title', content: title },
-    { property: 'og:description', content: description },
-    { property: 'og:url', content: url },
-    { property: 'og:image', content: image },
-    { name: 'twitter:title', content: title },
-    { name: 'twitter:description', content: description },
-    { name: 'twitter:image', content: image },
-  ],
+  description,
+  keywords,
+  ogTitle: title,
+  ogDescription: description,
+  ogUrl: url,
+  ogImage: image,
+  twitterTitle: title,
+  twitterDescription: description,
+  twitterImage: image,
+  twitterCard: 'summary_large_image',
+})
+
+useHead({
   link: [{ rel: 'canonical', href: url }],
   script: [
     { type: 'application/ld+json', children: JSON.stringify(organizationSchema) },

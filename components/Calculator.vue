@@ -644,7 +644,7 @@ const submitOrder = async () => {
           </div>
 
           <!-- Итого -->
-          <div class="bg-brand-blue p-12 rounded-[3rem] text-white shadow-[0_30px_100px_-10px_rgba(42,106,178,0.5)] relative overflow-hidden group">
+          <div class="bg-brand-blue p-12 pb-20 sm:pb-12 rounded-[3rem] text-white shadow-[0_30px_100px_-10px_rgba(42,106,178,0.5)] relative overflow-hidden group">
             <div class="relative z-10">
               <p class="text-[10px] font-black uppercase tracking-[0.4em] opacity-50 mb-4">Итого к оплате</p>
               <div class="flex items-baseline gap-4 mb-12">

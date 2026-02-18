@@ -134,14 +134,14 @@ const faqItems = [
                 <div class="flex gap-6">
                   <div class="w-12 h-12 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black">01</div>
                   <div>
-                    <h4 class="font-bold uppercase tracking-wider mb-2">Привезите к нам</h4>
+                    <h3 class="font-bold uppercase tracking-wider mb-2">Привезите к нам</h3>
                     <p class="text-gray-400 text-sm leading-relaxed font-medium">В офис в Чебоксарах или Новочебоксарске. Сделаем за 3 дня.</p>
                   </div>
                 </div>
                 <div class="flex gap-6">
                   <div class="w-12 h-12 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black">02</div>
                   <div>
-                    <h4 class="font-bold uppercase tracking-wider mb-2">Вызовите мастера</h4>
+                    <h3 class="font-bold uppercase tracking-wider mb-2">Вызовите мастера</h3>
                     <p class="text-gray-400 text-sm leading-relaxed font-medium">Мастер приедет в удобное время, заберет сетки и привезет отремонтированные через 3 дня.</p>
                   </div>
                 </div>

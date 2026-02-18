@@ -13,12 +13,14 @@ Allow: /vstavnye/
 Allow: /remont/
 Allow: /privacy/
 
+# Разрешить индексацию изображений (SEO 2026: SGE, Image Search)
+Allow: /images/
+Allow: /upload/
+Allow: /images/optimized/
+
 # Запретить индексацию служебных директорий
 Disallow: /bitrix/
-Disallow: /css/
-Disallow: /js/
-Disallow: /images/
-Disallow: /upload/
+Disallow: /_nuxt/
 Disallow: /ajax/
 Disallow: /*.php$
 Disallow: /*?*

@@ -140,17 +140,17 @@ const faqItems = [
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">01</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Эстетика</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Эстетика</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Сетка практически незаметна на окне, так как рамка находится внутри светового проема.</p>
                 </div>
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">02</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Надежность</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Надежность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Специальные зацепы намертво фиксируют сетку в раме без единого шурупа.</p>
                 </div>
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">03</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Алюминиевый профиль VSN имеет повышенную жесткость и не деформируется со временем.</p>
                 </div>
               </div>

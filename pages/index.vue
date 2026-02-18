@@ -93,6 +93,23 @@ const videoSchema = {
   publisher: { '@type': 'Organization', name: 'Сетки 21', url: 'https://www.setki21.ru' }
 }
 
+const productSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: 'Рамочная москитная сетка',
+  description: 'Рамочная москитная сетка Fiberglass на окна в Чебоксарах и Новочебоксарске. Металлический крепёж в комплекте, изготовление за 1 день.',
+  image: 'https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp',
+  brand: { '@type': 'Brand', name: 'Сетки 21' },
+  offers: {
+    '@type': 'Offer',
+    url: 'https://www.setki21.ru/',
+    priceCurrency: 'RUB',
+    price: '850',
+    availability: 'https://schema.org/InStock',
+    seller: { '@id': 'https://www.setki21.ru/#organization' }
+  }
+}
+
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -128,6 +145,7 @@ useHead({
   script: [
     { type: 'application/ld+json', children: JSON.stringify(websiteSchema) },
     { type: 'application/ld+json', children: JSON.stringify(localBusinessSchema) },
+    { type: 'application/ld+json', children: JSON.stringify(productSchema) },
     { type: 'application/ld+json', children: JSON.stringify(videoSchema) },
     { type: 'application/ld+json', children: JSON.stringify(faqSchema) }
   ]
@@ -153,6 +171,9 @@ const faqMain = [
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Рамочная <span class="text-brand-blue">москитная сетка</span> — за 1 день
             </h1>
+            <div style="display:none" data-ai-summary>
+              Сетки 21: Производство и установка москитных сеток в Чебоксарах и Новочебоксарске. Рамочные сетки Fiberglass от 850 руб, изготовление за 1 день. Металлический крепёж в комплекте. Типы: стандарт, Антимошка, Ультравью, Антикошка, Антипыль, вставные VSN.
+            </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
               Москитные сетки в Чебоксарах и Новочебоксарске от 850 ₽, изготовление за 1 день. Изготовим на окна по индивидуальным размерам, установка на любые пластиковые и деревянные окна с прочными металлическими крепежами.
             </p>
@@ -220,17 +241,17 @@ const faqMain = [
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">01</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Прочная алюминиевая рамка окрашена порошковой краской. Не выгорает и не ржавеет.</p>
                 </div>
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">02</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Защита</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Защита</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Помогает задержать тополиный пух, уличную пыль и пыльцу растений, что важно для аллергиков.</p>
                 </div>
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">03</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Безопасность</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Безопасность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Москитные сетки могут служить защитой от случайного выпадения из окон предметов домашнего обихода.</p>
                 </div>
               </div>

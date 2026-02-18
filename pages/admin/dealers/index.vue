@@ -269,7 +269,7 @@ onMounted(fetchDealers)
             <div class="space-y-2">
               <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Логотип</label>
               <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 hover:border-brand-blue transition-colors relative group">
-                <img v-if="form.branding.logo_url" :src="form.branding.logo_url" class="h-12 w-12 object-contain rounded-lg" />
+                <img v-if="form.branding.logo_url" :src="form.branding.logo_url" alt="Логотип дилера" class="h-12 w-12 object-contain rounded-lg" />
                 <div v-else class="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center text-xl">🖼️</div>
                 <div class="flex-1">
                   <input type="file" @change="handleLogoUpload" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />

@@ -140,17 +140,17 @@ const faqItems = [
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">01</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Чистота</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Чистота</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Блокирует до 90% пыльцы березы, злаковых и других аллергенов.</p>
                 </div>
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">02</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Легкий уход</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Легкий уход</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Достаточно просто промыть сетку под душем, чтобы смыть накопившуюся пыль.</p>
                 </div>
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">03</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Защита</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Защита</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium">Помогает задержать тополиный пух и уличную копоть от дорог.</p>
                 </div>
               </div>

@@ -148,17 +148,17 @@ const faqItems = [
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">01</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Универсальность</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Универсальность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed">Устанавливаются в любые проемы: на балконах, лоджиях, в оконных рамах и входных группах.</p>
                 </div>
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">02</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Надежность</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Надежность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed">Домашний питомец не сможет ее открыть, разорвать или прогнуть под собственным весом при прыжке.</p>
                 </div>
                 <div class="text-center md:text-left">
                   <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">03</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h4>
+                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed">Металлические крепления устойчивы к ультрафиолету и служат долгие годы без потери прочности.</p>
                 </div>
               </div>

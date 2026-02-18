@@ -1,6 +1,10 @@
 User-agent: *
 Allow: /
+Allow: /images/
+Allow: /upload/
+Allow: /images/optimized/
 Sitemap: https://www.setki21.ru/sitemap.xml
+Sitemap: https://www.setki21.ru/sitemap-images.xml
 
 # AI Crawler Settings
 User-agent: GPTBot

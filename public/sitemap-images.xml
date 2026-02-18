@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+    
+    <url>
+        <loc>https://www.setki21.ru/</loc>
+        <image:image>
+            <image:loc>https://www.setki21.ru/images/logo_clean.png</image:loc>
+            <image:title>Москитные сетки в Чебоксарах и Новочебоксарске</image:title>
+            <image:caption>Производство и установка москитных сеток — Сетки 21</image:caption>
+        </image:image>
+        <image:image>
+            <image:loc>https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp</image:loc>
+            <image:title>Рамочная москитная сетка на окне</image:title>
+            <image:caption>Рамочная москитная сетка Fiberglass в Чебоксарах и Новочебоксарске</image:caption>
+        </image:image>
+    </url>
+    
+    <url>
+        <loc>https://www.setki21.ru/antikoshka/</loc>
+        <image:image>
+            <image:loc>https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp</image:loc>
+            <image:title>Сетка Антикошка Pet Screen</image:title>
+            <image:caption>Усиленная москитная сетка Антикошка для защиты от кошек</image:caption>
+        </image:image>
+    </url>
+    
+    <url>
+        <loc>https://www.setki21.ru/antipyl/</loc>
+        <image:image>
+            <image:loc>https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp</image:loc>
+            <image:title>Сетка Антипыль Poll-Tex</image:title>
+            <image:caption>Москитная сетка Антипыль для аллергиков</image:caption>
+        </image:image>
+    </url>
+    
+    <url>
+        <loc>https://www.setki21.ru/antimoshka/</loc>
+        <image:image>
+            <image:loc>https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp</image:loc>
+            <image:title>Сетка Антимошка Micro Mesh</image:title>
+            <image:caption>Москитная сетка Антимошка с мелкой ячейкой</image:caption>
+        </image:image>
+    </url>
+    
+    <url>
+        <loc>https://www.setki21.ru/vstavnye/</loc>
+        <image:image>
+            <image:loc>https://www.setki21.ru/images/optimized/e09/hero-vstavnye.webp</image:loc>
+            <image:title>Вставные москитные сетки VSN</image:title>
+            <image:caption>Вставные сетки VSN без сверления рамы</image:caption>
+        </image:image>
+    </url>
+    
+    <url>
+        <loc>https://www.setki21.ru/remont/</loc>
+        <image:image>
+            <image:loc>https://www.setki21.ru/images/optimized/e09/hero-remont.webp</image:loc>
+            <image:title>Ремонт москитных сеток</image:title>
+            <image:caption>Профессиональный ремонт москитных сеток в Чебоксарах</image:caption>
+        </image:image>
+    </url>
+</urlset>

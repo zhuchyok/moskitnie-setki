@@ -149,14 +149,14 @@ const faqItems = [
                 <div class="flex gap-6">
                   <div class="text-brand-blue text-5xl font-black opacity-50">01</div>
                   <div>
-                    <h4 class="font-bold text-lg mb-2 uppercase tracking-wider">Прозрачность</h4>
+                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wider">Прозрачность</h3>
                     <p class="text-gray-400 text-sm leading-relaxed font-medium">Меньше затемнения окна при сохранении защиты от мошек и пуха.</p>
                   </div>
                 </div>
                 <div class="flex gap-6">
                   <div class="text-brand-blue text-5xl font-black opacity-50">02</div>
                   <div>
-                    <h4 class="font-bold text-lg mb-2 uppercase tracking-wider">Защита</h4>
+                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wider">Защита</h3>
                     <p class="text-gray-400 text-sm leading-relaxed font-medium">Мелкая ячейка задерживает комаров, мошек, тополиный пух и мелкий гнус.</p>
                   </div>
                 </div>

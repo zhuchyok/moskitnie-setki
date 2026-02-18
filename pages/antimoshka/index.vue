@@ -129,10 +129,7 @@ const faqItems = [
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <video controls muted playsinline preload="metadata" class="rounded-3xl shadow-lg w-full" title="Как замерить окно для москитной сетки Антимошка">
-                <source src="/zamer.mp4" type="video/mp4">
-                Ваш браузер не поддерживает видео.
-              </video>
+              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки Антимошка" />
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Технология Micro Mesh</h2>

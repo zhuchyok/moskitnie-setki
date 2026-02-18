@@ -121,7 +121,10 @@ useSeoMeta({
 })
 
 useHead({
-  link: [{ rel: 'canonical', href: url }],
+  link: [
+    { rel: 'canonical', href: url },
+    { rel: 'preload', href: '/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp', as: 'image', type: 'image/webp' }
+  ],
   script: [
     { type: 'application/ld+json', children: JSON.stringify(websiteSchema) },
     { type: 'application/ld+json', children: JSON.stringify(localBusinessSchema) },
@@ -198,10 +201,7 @@ const faqMain = [
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <video controls muted playsinline preload="metadata" class="rounded-3xl shadow-lg w-full" title="Как замерить окно для москитной сетки">
-                <source src="/zamer.mp4" type="video/mp4">
-                Ваш браузер не поддерживает видео.
-              </video>
+              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки" />
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Как замерить?</h2>

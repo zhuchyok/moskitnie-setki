@@ -19,6 +19,8 @@ interface Props {
   description?: string
   /** Изображение (URL или путь) */
   image?: string
+  /** WebP-версия изображения (для оптимизации) */
+  webpSrc?: string
   /** Альтернативный текст изображения */
   imageAlt?: string
   /** Кнопки */
@@ -96,7 +98,15 @@ const contentAlign = computed(() => {
 
         <!-- Изображение -->
         <div v-if="image" class="flex-1 flex justify-center">
-          <img :src="image" :alt="imageAlt || title" class="max-w-full h-auto rounded-3xl shadow-2xl" />
+          <HeroImage
+            v-if="webpSrc"
+            :src="image"
+            :webp-src="webpSrc"
+            :alt="imageAlt || title"
+            class="max-w-full h-auto rounded-3xl shadow-2xl"
+            loading="lazy"
+          />
+          <img v-else :src="image" :alt="imageAlt || title" class="max-w-full h-auto rounded-3xl shadow-2xl" loading="lazy" decoding="async" />
         </div>
       </div>
     </div>

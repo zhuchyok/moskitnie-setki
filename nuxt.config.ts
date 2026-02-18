@@ -39,7 +39,8 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'shortcut icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'manifest', href: '/manifest.json' },
-        { rel: 'dns-prefetch', href: 'https://mc.yandex.ru' }
+        { rel: 'dns-prefetch', href: 'https://mc.yandex.ru' },
+        { rel: 'preconnect', href: 'https://mc.yandex.ru', crossorigin: 'anonymous' }
       ]
     }
   },

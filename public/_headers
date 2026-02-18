@@ -11,13 +11,20 @@
 
 # Cache images
 /*.webp
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, max-age=31536000, immutable
 
 /*.png
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, max-age=31536000, immutable
 
 /*.jpg
-  Cache-Control: public, max-age=86400
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache video (zamer.mp4 — 21 MB, долгоживущий контент)
+/*.mp4
+  Cache-Control: public, max-age=31536000, immutable
 
 # Fonts
 /*.woff2

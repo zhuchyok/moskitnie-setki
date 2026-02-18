@@ -205,6 +205,34 @@ const form = reactive({
   agree: false
 })
 
+/** Ошибки валидации по полям (отображаются под полем) */
+const formErrors = reactive<Record<string, string>>({ name: '', phone: '', address: '', comment: '' })
+
+/** Российские форматы: +7 (XXX) XX-XX-XX, +7 (XXXX) XX-XX-XX, +79XXXXXXXXX */
+const PHONE_REGEX = /^\+7\s?\(\d{3,4}\)\s?\d{2,3}-\d{2}-\d{2}$|^\+7\d{10}$/
+
+function validateOrderForm(): boolean {
+  formErrors.name = ''
+  formErrors.phone = ''
+  formErrors.address = ''
+  formErrors.comment = ''
+  let valid = true
+  const name = form.name.trim()
+  const phone = form.phone.trim()
+  if (!name) {
+    formErrors.name = 'Введите имя'
+    valid = false
+  }
+  if (!phone) {
+    formErrors.phone = 'Введите телефон'
+    valid = false
+  } else if (!PHONE_REGEX.test(phone.replace(/\s/g, ''))) {
+    formErrors.phone = 'Формат: +7 (XXX) XXX-XX-XX'
+    valid = false
+  }
+  return valid
+}
+
 const notification = reactive({
   show: false,
   message: '',
@@ -230,12 +258,13 @@ const openOrderForm = () => {
 
 const submitOrder = async () => {
   if (!form.agree) return
-  
+  if (!validateOrderForm()) return
+
   const orderData = {
-    formName: form.name,
-    formPhone: form.phone,
-    formAddress: form.address,
-    formComment: form.comment,
+    formName: form.name.trim(),
+    formPhone: form.phone.trim(),
+    formAddress: form.address.trim(),
+    formComment: form.comment.trim(),
     list_order: store.items.map(i => `${i.frameTypeName ? i.frameTypeName + ': ' : ''}${i.typeName} (${i.width}x${i.height}, ${i.color}) - ${i.count}шт`).join('<br>'),
     total_price_value: store.totalPrice,
     total_order_value: store.allItemsWithInstallation ? 'Монтаж' : store.delivery,
@@ -787,23 +816,39 @@ const submitOrder = async () => {
             <div class="space-y-3">
               <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Ваше имя</label>
               <input v-model="form.name" type="text" required placeholder="Иван Иванов"
-                     class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner" />
+                     :class="[
+                       'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner',
+                       formErrors.name ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'
+                     ]" />
+              <p v-if="formErrors.name" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.name }}</p>
             </div>
             <div class="space-y-3">
               <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Телефон</label>
               <input v-model="form.phone" type="tel" required placeholder="+7 (___) ___-__-__"
-                     class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner" />
+                     :class="[
+                       'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner',
+                       formErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'
+                     ]" />
+              <p v-if="formErrors.phone" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.phone }}</p>
             </div>
           </div>
           <div class="space-y-3">
             <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Адрес (если доставка/монтаж)</label>
             <input v-model="form.address" type="text" placeholder="Город, улица, дом, кв"
-                   class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner" />
+                   :class="[
+                     'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner',
+                     formErrors.address ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'
+                   ]" />
+            <p v-if="formErrors.address" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.address }}</p>
           </div>
           <div class="space-y-3">
             <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Комментарий</label>
             <textarea v-model="form.comment" rows="3" placeholder="Любые пожелания"
-                      class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner resize-none"></textarea>
+                      :class="[
+                        'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner resize-none',
+                        formErrors.comment ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'
+                      ]"></textarea>
+            <p v-if="formErrors.comment" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.comment }}</p>
           </div>
           <label class="flex items-center gap-4 cursor-pointer group p-2">
             <div class="relative flex items-center">

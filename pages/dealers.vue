@@ -60,11 +60,37 @@ const form = reactive({
   phone: ''
 })
 
+/** Ошибки валидации по полям (форма входа) */
+const formErrors = reactive<Record<string, string>>({ email: '', password: '' })
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function validateAuthForm(): boolean {
+  formErrors.email = ''
+  formErrors.password = ''
+  let valid = true
+  const email = form.email.trim()
+  const password = form.password.trim()
+  if (!email) {
+    formErrors.email = 'Введите email'
+    valid = false
+  } else if (!EMAIL_REGEX.test(email)) {
+    formErrors.email = 'Неверный формат email'
+    valid = false
+  }
+  if (!password) {
+    formErrors.password = 'Введите пароль'
+    valid = false
+  }
+  return valid
+}
+
 const isLoading = ref(false)
 const error = ref('')
 
 const handleAuth = async () => {
   error.value = ''
+  if (!validateAuthForm()) return
   isLoading.value = true
   
   try {
@@ -77,7 +103,7 @@ const handleAuth = async () => {
       const response = await $fetch('/api/v1/auth/login', {
         method: 'POST',
         body: {
-          email: form.email.trim(),
+          email: form.email.trim().toLowerCase(),
           password: form.password.trim()
         },
         baseURL: apiBase,
@@ -104,9 +130,8 @@ const handleAuth = async () => {
       // Перенаправляем в админку
       window.location.href = '/admin'
     } else {
-      // Регистрация (пока просто уведомление или заглушка)
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      showNotification('Заявка на регистрацию отправлена. Мы свяжемся с вами для подтверждения данных.')
+      // Регистрация: форма не отображается, этот блок недостижим
+      showNotification('Свяжитесь с менеджером для регистрации.', 'error')
     }
   } catch (e: any) {
     console.error('Auth error full:', e)
@@ -219,29 +244,37 @@ const handleAuth = async () => {
                   {{ isLoginMode ? 'Личный кабинет' : 'Стать дилером' }}
                 </h3>
 
-                <form @submit.prevent="handleAuth" class="space-y-5">
-                  <div v-if="!isLoginMode" class="space-y-2">
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Имя / Компания</label>
-                    <input v-model="form.name" type="text" required placeholder="ООО Окна"
-                           class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner" />
+                <!-- Регистрация: только уведомление (онлайн-регистрация временно недоступна) -->
+                <div v-if="!isLoginMode" class="space-y-6">
+                  <div class="p-5 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-800 text-sm font-bold leading-relaxed">
+                    Регистрация дилеров временно доступна только через менеджера. Свяжитесь с нами по телефону или <a href="mailto:info@setki21.ru" class="underline hover:text-amber-900">info@setki21.ru</a> для оформления партнёрства.
                   </div>
-                  
+                  <button type="button" @click="isLoginMode = true"
+                          class="w-full bg-brand-blue text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-brand-blue/30 active:scale-95 uppercase text-[10px] tracking-[0.2em] hover:bg-[#1e5a9a]">
+                    Уже есть доступ? Войти в кабинет
+                  </button>
+                </div>
+
+                <!-- Вход: форма логина -->
+                <form v-else @submit.prevent="handleAuth" class="space-y-5">
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Email</label>
                     <input v-model="form.email" type="email" required placeholder="info@example.ru"
-                           class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner" />
-                  </div>
-
-                  <div v-if="!isLoginMode" class="space-y-2">
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Телефон</label>
-                    <input v-model="form.phone" type="tel" required placeholder="+7 (___) ___-__-__"
-                           class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner" />
+                           :class="[
+                             'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner',
+                             formErrors.email ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'
+                           ]" />
+                    <p v-if="formErrors.email" class="text-red-500 text-[10px] font-bold ml-4">{{ formErrors.email }}</p>
                   </div>
 
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Пароль</label>
                     <input v-model="form.password" type="password" required placeholder="••••••••"
-                           class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner" />
+                           :class="[
+                             'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner',
+                             formErrors.password ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'
+                           ]" />
+                    <p v-if="formErrors.password" class="text-red-500 text-[10px] font-bold ml-4">{{ formErrors.password }}</p>
                   </div>
 
                   <div v-if="error" class="text-red-500 text-[10px] font-bold uppercase text-center bg-red-50 p-3 rounded-xl">
@@ -251,7 +284,7 @@ const handleAuth = async () => {
                   <button type="submit" 
                           :disabled="isLoading"
                           class="w-full bg-brand-blue text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-brand-blue/30 active:scale-95 uppercase text-[10px] tracking-[0.2em] mt-4 disabled:opacity-50">
-                    {{ isLoading ? 'Загрузка...' : (isLoginMode ? 'Войти в кабинет' : 'Отправить заявку') }}
+                    {{ isLoading ? 'Загрузка...' : 'Войти в кабинет' }}
                   </button>
                 </form>
 

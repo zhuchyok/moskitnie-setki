@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer'
 import { validateContactBody } from '../utils/contact-validation'
+import { escapeHtml } from '../utils/escape-html'
 
 export default defineEventHandler(async (event) => {
   setHeader(event, 'Access-Control-Allow-Origin', '*')
@@ -11,7 +12,12 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    const body = await readBody(event)
+    const raw = await readBody(event)
+    const body = {
+      name: raw?.name ? String(raw.name).trim() : '',
+      phone: raw?.phone ? String(raw.phone).trim() : '',
+      message: raw?.message ? String(raw.message).trim() : ''
+    }
     const validation = validateContactBody(body)
     if (!validation.ok) {
       throw createError({
@@ -36,16 +42,16 @@ export default defineEventHandler(async (event) => {
             }
           })
 
-    // Создание HTML письма для контактов
+    // Создание HTML письма для контактов (все пользовательские данные экранированы)
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2A6AB2;">Заявка на обратный звонок</h2>
 
         <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3>Контактные данные:</h3>
-          <p><strong>Имя:</strong> ${body.name}</p>
-          <p><strong>Телефон:</strong> ${body.phone}</p>
-          ${body.message ? `<p><strong>Сообщение:</strong> ${body.message}</p>` : ''}
+          <p><strong>Имя:</strong> ${escapeHtml(body.name)}</p>
+          <p><strong>Телефон:</strong> ${escapeHtml(body.phone)}</p>
+          ${body.message ? `<p><strong>Сообщение:</strong> ${escapeHtml(body.message)}</p>` : ''}
         </div>
 
         <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
@@ -60,7 +66,7 @@ export default defineEventHandler(async (event) => {
     await transporter.sendMail({
       from: process.env.SMTP_USER,
       to: process.env.CONTACT_EMAIL || 'info@setki21.ru',
-      subject: `Заявка на звонок - ${body.name}`,
+      subject: `Заявка на звонок - ${escapeHtml(body.name)}`,
       html: htmlContent,
       replyTo: body.phone
     })

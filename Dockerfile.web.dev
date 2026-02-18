@@ -1,0 +1,15 @@
+# Dev: только зависимости, исходники монтируются volume. Запуск npm run dev для HMR.
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+ENV NUXT_PUBLIC_API_URL=http://localhost:8083
+ENV HOST=0.0.0.0
+ENV PORT=3000
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

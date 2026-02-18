@@ -123,11 +123,12 @@ export function getWork(widthMm: number, heightMm: number, colorId: ColorId, mes
   const h = heightMm / 1000
   const perimeterM = 2 * (w + h)
   const areaM2 = w * h
-  const areaCalc = Math.max(areaM2, config.variable.minAreaM2)
-  const v = config.variable
-  
+  const v = config.variable ?? PRICING_CONFIG.variable
+  const areaCalc = Math.max(areaM2, v.minAreaM2)
+  const meshPerM2 = v.meshPerM2 ?? PRICING_CONFIG.variable.meshPerM2
+
   // 1. Полотно
-  const meshBase = v.meshPerM2[meshType] ?? v.meshPerM2.standart
+  const meshBase = meshPerM2[meshType] ?? meshPerM2.standart
   materialCost += areaCalc * meshBase * v.marginMesh
   
   // 2. Профиль
@@ -237,8 +238,9 @@ export function computeCost(widthMm: number, heightMm: number, colorId: ColorId,
   const areaM2 = w * h
   const areaCalc = Math.max(areaM2, config.variable.minAreaM2)
 
-  const v = config.variable
-  const meshBase = v.meshPerM2[meshType] ?? v.meshPerM2.standart
+  const v = config.variable ?? PRICING_CONFIG.variable
+  const meshPerM2 = v.meshPerM2 ?? PRICING_CONFIG.variable.meshPerM2
+  const meshBase = meshPerM2[meshType] ?? meshPerM2.standart
   const meshCost = areaCalc * meshBase * v.marginMesh
 
   const fixedTotal = getFixedTotal(widthMm, heightMm, colorId, meshType, pricing)
@@ -262,8 +264,9 @@ export function computeCostVstavnaya(widthMm: number, heightMm: number, colorId:
   const areaM2 = w * h
   const areaCalc = Math.max(areaM2, config.variable.minAreaM2)
 
-  const v = config.variable
-  const meshBase = v.meshPerM2[meshType] ?? v.meshPerM2.standart
+  const v = config.variable ?? PRICING_CONFIG.variable
+  const meshPerM2 = v.meshPerM2 ?? PRICING_CONFIG.variable.meshPerM2
+  const meshBase = meshPerM2[meshType] ?? meshPerM2.standart
   const meshCost = areaCalc * meshBase * v.marginMesh
 
   const fixedTotal = getFixedTotalVstavnaya(widthMm, heightMm, colorId, meshType, pricing)

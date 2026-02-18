@@ -45,6 +45,7 @@ watch(
 // Состояние кнопки "Добавить в заказ"
 const isAdded = ref(false)
 const orderBlockRef = ref<HTMLElement | null>(null)
+const orderFormBlockRef = ref<HTMLElement | null>(null)
 
 const handleAddToOrder = () => {
   store.addToOrder()
@@ -195,7 +196,7 @@ const saveHeight = () => {
   editingHeight.value = false
 }
 
-const isModalOpen = ref(false)
+const showOrderForm = ref(false)
 const form = reactive({
   name: '',
   phone: '',
@@ -203,6 +204,29 @@ const form = reactive({
   comment: '',
   agree: false
 })
+
+const notification = reactive({
+  show: false,
+  message: '',
+  type: 'success' as 'success' | 'error'
+})
+
+const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+  notification.message = message
+  notification.type = type
+  notification.show = true
+  setTimeout(() => {
+    notification.show = false
+  }, 5000)
+}
+
+const openOrderForm = () => {
+  if (!canSubmitOrder.value) return
+  showOrderForm.value = true
+  nextTick(() => {
+    orderFormBlockRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+}
 
 const submitOrder = async () => {
   if (!form.agree) return
@@ -236,9 +260,9 @@ const submitOrder = async () => {
         (window as any).reachMetrikaGoal('ORDER_SUBMITTED', { price: store.totalPrice })
       }
 
-      alert('Спасибо за заказ! Мы свяжемся с вами в ближайшее время.')
+      showNotification('Спасибо за заказ! Мы свяжемся с вами в ближайшее время.')
       store.clearOrder()
-      isModalOpen.value = false
+      showOrderForm.value = false
       form.name = ''
       form.phone = ''
       form.address = ''
@@ -248,7 +272,7 @@ const submitOrder = async () => {
   } catch (e: any) {
     console.error('Ошибка отправки:', e)
     const errorMessage = e.data?.message || e.message || 'Произошла ошибка при отправке. Пожалуйста, позвоните нам по телефону.'
-    alert(errorMessage)
+    showNotification(errorMessage, 'error')
   }
 }
 </script>
@@ -558,12 +582,16 @@ const submitOrder = async () => {
       <div class="p-10 md:p-16">
         <div class="flex items-center justify-between mb-12">
           <div class="flex items-center gap-4">
-            <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-black text-sm">
-              {{ store.items.length }}
+            <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-black/10">
+              1
             </div>
             <h3 class="text-3xl font-black text-brand-dark uppercase tracking-tighter">Ваш заказ</h3>
           </div>
-          <button @click="store.clearOrder()" class="text-[10px] font-black text-red-400 hover:text-red-600 uppercase tracking-[0.2em] transition-colors">Очистить всё</button>
+          <button type="button" @click="store.clearOrder(); showOrderForm = false" class="text-gray-400 hover:text-brand-dark transition-colors p-2" aria-label="Закрыть заказ">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         <div class="overflow-x-auto">
@@ -716,7 +744,7 @@ const submitOrder = async () => {
                 <span class="text-7xl font-black tracking-tighter">{{ store.totalPrice }}</span>
                 <span class="text-3xl font-black opacity-30">₽</span>
               </div>
-              <button @click="canSubmitOrder && (isModalOpen = true)"
+              <button @click="openOrderForm()"
                       :disabled="!canSubmitOrder"
                       :class="[
                         'w-full font-black py-6 rounded-[1.5rem] transition-all uppercase text-xs tracking-[0.3em]',
@@ -735,74 +763,98 @@ const submitOrder = async () => {
       </div>
     </div>
 
-    <!-- Модальное окно заказа -->
-    <Teleport to="body">
-      <div v-if="isModalOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-        <!-- Scrollable wrapper -->
-        <div class="absolute inset-0 overflow-y-auto flex items-center justify-center p-4">
-          <div class="bg-white rounded-[2rem] md:rounded-[4rem] shadow-2xl w-full max-w-2xl relative transform animate-in zoom-in-95 duration-500 my-auto">
-            <button @click="isModalOpen = false" class="absolute top-6 right-6 md:top-10 md:right-10 text-gray-300 hover:text-brand-dark transition-all hover:rotate-90 z-10">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <!-- Блок оформления заказа (под «Ваш заказ»): те же стили, скролл сюда по кнопке «Оформить заказ» -->
+    <div ref="orderFormBlockRef" v-if="showOrderForm" class="bg-white rounded-[3rem] shadow-2xl border border-gray-100 overflow-hidden transform animate-in fade-in slide-in-from-bottom-10 duration-500 scroll-mt-40 mt-8 md:mt-12">
+      <div class="p-10 md:p-16">
+        <div class="flex items-center justify-between mb-12">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white shadow-lg shadow-black/10">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
               </svg>
-            </button>
-
-            <div class="p-8 md:p-20">
-              <div class="mb-8 md:mb-12">
-                <h3 class="text-3xl md:text-4xl font-black text-brand-dark mb-3 uppercase tracking-tighter">Оформление</h3>
-                <p class="text-gray-400 font-medium text-sm md:text-base">Заполните данные, и мы перезвоним для уточнения деталей</p>
-              </div>
-
-              <form @submit.prevent="submitOrder" class="space-y-6 md:space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                  <div class="space-y-2 md:space-y-3">
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-4 md:ml-6">Ваше имя</label>
-                    <input v-model="form.name" type="text" required placeholder="Иван Иванов"
-                           class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-5 outline-none transition-all font-bold text-sm md:text-base shadow-inner" />
-                  </div>
-                  <div class="space-y-2 md:space-y-3">
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-4 md:ml-6">Телефон</label>
-                    <input v-model="form.phone" type="tel" required placeholder="+7 (___) ___-__-__"
-                           class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-5 outline-none transition-all font-bold text-sm md:text-base shadow-inner" />
-                  </div>
-                </div>
-            <div class="space-y-2 md:space-y-3">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-4 md:ml-6">Адрес (если доставка/монтаж)</label>
-              <input v-model="form.address" type="text" placeholder="Город, улица, дом, кв"
-                     class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-5 outline-none transition-all font-bold text-sm md:text-base shadow-inner" />
             </div>
-                <div class="space-y-2 md:space-y-3">
-                  <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-4 md:ml-6">Комментарий</label>
-                  <textarea v-model="form.comment" rows="2" md:rows="3" placeholder="Любые пожелания"
-                            class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-5 outline-none transition-all font-bold text-sm md:text-base shadow-inner resize-none"></textarea>
-                </div>
-
-                <label class="flex items-start gap-4 md:gap-5 cursor-pointer group p-1 md:p-2">
-                  <div class="relative flex items-center mt-1">
-                    <input type="checkbox" v-model="form.agree" required class="peer appearance-none w-6 h-6 md:w-7 md:h-7 border-2 border-gray-100 rounded-lg md:rounded-xl checked:bg-brand-blue checked:border-brand-blue transition-all shadow-sm" />
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 md:h-5 md:w-5 absolute left-1 text-white opacity-0 peer-checked:opacity-100 transition-all scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                  <span class="text-[9px] md:text-[10px] text-gray-400 font-black leading-relaxed uppercase tracking-widest group-hover:text-gray-600 transition-colors">
-                    Я даю согласие ООО "Бикос" на обработку моих персональных данных в соответствии с <NuxtLink to="/privacy" class="text-brand-blue underline decoration-2 underline-offset-4">Политикой обработки данных</NuxtLink>
-                  </span>
-                </label>
-
-                <button type="submit"
-                        :disabled="!form.agree"
-                        :class="[
-                          'w-full font-black py-5 md:py-6 rounded-2xl md:rounded-[2rem] transition-all shadow-2xl active:scale-95 uppercase text-[10px] md:text-xs tracking-[0.3em] mt-4 md:mt-6',
-                          form.agree ? 'bg-brand-blue hover:bg-[#1e5a9a] text-white shadow-brand-blue/40' : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
-                        ]">
-                  Заказать
-                </button>
-              </form>
+            <h3 class="text-3xl font-black text-brand-dark uppercase tracking-tighter">Оформление</h3>
+          </div>
+          <button type="button" @click="showOrderForm = false" class="text-gray-400 hover:text-brand-dark transition-colors p-2" aria-label="Свернуть">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <p class="text-gray-400 font-medium text-xs md:text-sm mb-10 ml-2">Заполните данные, и мы перезвоним для уточнения деталей</p>
+        <form @submit.prevent="submitOrder" class="space-y-6 md:space-y-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <div class="space-y-3">
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Ваше имя</label>
+              <input v-model="form.name" type="text" required placeholder="Иван Иванов"
+                     class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner" />
+            </div>
+            <div class="space-y-3">
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Телефон</label>
+              <input v-model="form.phone" type="tel" required placeholder="+7 (___) ___-__-__"
+                     class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner" />
             </div>
           </div>
+          <div class="space-y-3">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Адрес (если доставка/монтаж)</label>
+            <input v-model="form.address" type="text" placeholder="Город, улица, дом, кв"
+                   class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner" />
+          </div>
+          <div class="space-y-3">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Комментарий</label>
+            <textarea v-model="form.comment" rows="3" placeholder="Любые пожелания"
+                      class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner resize-none"></textarea>
+          </div>
+          <label class="flex items-center gap-4 cursor-pointer group p-2">
+            <div class="relative flex items-center">
+              <input type="checkbox" v-model="form.agree" required class="peer appearance-none w-7 h-7 border-2 border-gray-100 rounded-xl checked:bg-brand-blue checked:border-brand-blue transition-all shadow-sm" />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-1 text-white opacity-0 peer-checked:opacity-100 transition-all scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span class="text-[10px] md:text-xs text-gray-400 font-black leading-none uppercase tracking-widest group-hover:text-gray-600 transition-colors">
+              Я даю согласие ООО "Бикос" на обработку моих персональных данных в соответствии с <NuxtLink to="/privacy" class="text-brand-blue underline decoration-2 underline-offset-4">Политикой обработки данных</NuxtLink>
+            </span>
+          </label>
+          <div class="flex flex-col sm:flex-row gap-4 pt-4">
+            <button type="submit"
+                    :disabled="!form.agree"
+                    :class="[
+                      'flex-[2] font-black py-6 rounded-[1.5rem] transition-all shadow-2xl active:scale-95 uppercase text-xs tracking-[0.3em]',
+                      form.agree 
+                        ? 'bg-brand-blue hover:bg-[#1e5a9a] text-white shadow-brand-blue/40 hover:shadow-brand-blue/60 hover:-translate-y-0.5' 
+                        : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
+                    ]">
+              Заказать
+            </button>
+            <button type="button" @click="showOrderForm = false"
+                    class="flex-1 font-black py-6 rounded-[1.5rem] border-2 border-gray-100 text-gray-400 hover:border-gray-200 hover:text-gray-600 uppercase text-xs tracking-[0.3em] transition-all">
+              Отмена
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Уведомление -->
+    <Teleport to="body">
+      <div v-if="notification.show" 
+           class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] transform animate-in fade-in slide-in-from-bottom-10 duration-500">
+        <div :class="[
+          'px-8 py-4 rounded-2xl shadow-2xl font-black text-sm uppercase tracking-widest flex items-center gap-4 border-2',
+          notification.type === 'success' ? 'bg-white border-brand-blue text-brand-blue' : 'bg-red-50 border-red-500 text-red-500'
+        ]">
+          <svg v-if="notification.type === 'success'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ notification.message }}
         </div>
       </div>
     </Teleport>
+
   </div>
 </template>
 

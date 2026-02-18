@@ -189,7 +189,9 @@ const faqMain = [
         <h2 class="text-3xl font-black mb-2 uppercase tracking-tight text-brand-dark">Расчет стоимости</h2>
         <p class="text-gray-500 font-bold uppercase text-[10px] tracking-[0.2em]">Металлические крепления в комплекте!</p>
       </div>
-      <Calculator />
+      <ClientOnly>
+        <Calculator />
+      </ClientOnly>
     </section>
 
     <section class="py-20 bg-white">

@@ -1,7 +1,23 @@
 <script setup lang="ts">
+import { reactive } from 'vue'
 import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
+
+const notification = reactive({
+  show: false,
+  message: '',
+  type: 'success' as 'success' | 'error'
+})
+
+const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+  notification.message = message
+  notification.type = type
+  notification.show = true
+  setTimeout(() => {
+    notification.show = false
+  }, 5000)
+}
 
 definePageMeta({
   layout: 'default',
@@ -82,10 +98,10 @@ const handleSave = async () => {
       headers: { 'Authorization': `Bearer ${auth.token}` }
     })
     
-    alert('Настройки успешно сохранены')
+    showNotification('Настройки успешно сохранены')
   } catch (e) {
     console.error('Failed to save settings', e)
-    alert('Ошибка при сохранении настроек')
+    showNotification('Ошибка при сохранении настроек', 'error')
   } finally {
     isSaving.value = false
   }
@@ -114,7 +130,7 @@ const handleLogoUpload = async (event: any) => {
     }
   } catch (e) {
     console.error('Upload failed', e)
-    alert('Ошибка при загрузке логотипа')
+    showNotification('Ошибка при загрузке логотипа', 'error')
   }
 }
 
@@ -234,5 +250,24 @@ onMounted(fetchSettings)
         </div>
       </div>
     </div>
+
+    <!-- Уведомление -->
+    <Teleport to="body">
+      <div v-if="notification.show"
+           class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] transform animate-in fade-in slide-in-from-bottom-10 duration-500">
+        <div :class="[
+          'px-8 py-4 rounded-2xl shadow-2xl font-black text-sm uppercase tracking-widest flex items-center gap-4 border-2',
+          notification.type === 'success' ? 'bg-white border-brand-blue text-brand-blue' : 'bg-red-50 border-red-500 text-red-500'
+        ]">
+          <svg v-if="notification.type === 'success'" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+          </svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ notification.message }}
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

@@ -33,7 +33,7 @@ const fullTitle = computed(() => props.title ? `${props.title} | Москитн�
 
 const canonicalUrl = computed(() => {
   if (props.canonical) return props.canonical
-  const baseUrl = 'https://moskitnie-setki.ru'
+  const baseUrl = 'https://www.setki21.ru'
   return `${baseUrl}${route.path}`
 })
 

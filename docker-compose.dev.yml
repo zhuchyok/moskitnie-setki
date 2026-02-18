@@ -1,0 +1,22 @@
+# Переопределение для разработки: фронт с hot reload (обновление на лету).
+# Запуск: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# Или только web: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up api web
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web.dev
+    ports:
+      - "3003:3000"
+    environment:
+      - NUXT_PUBLIC_API_URL=http://localhost:8083
+      - HOST=0.0.0.0
+      - PORT=3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    restart: unless-stopped

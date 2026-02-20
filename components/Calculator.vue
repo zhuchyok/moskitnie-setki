@@ -211,9 +211,9 @@ const saveHeight = () => {
 }
 
 const measurementMethods = [
-  { id: 'stvorka', name: 'По створке окна', desc: 'Измерили внешнюю часть открывающейся части окна. Мы уменьшим размер на 5 мм.' },
-  { id: 'proem', name: 'По световому проему', desc: 'Измерили открытый проем от края до края резинки. Мы увеличим размер на 50мм.' },
-  { id: 'old_mesh', name: 'По старой сетке', desc: 'Точные размеры изделия, которое у вас уже стояло. Изготовим без изменений.' }
+  { id: 'stvorka', name: 'По створке окна', desc: 'Измерили внутреннюю сторону закрытой створки. Мы автоматически уменьшили размер на 5 мм для получения точных габаритов готового изделия.' },
+  { id: 'proem', name: 'По проему', desc: 'Измерили открытый проем от края до края резинки. Мы автоматически увеличили размер на 50 мм для получения габаритов готовой сетки.' },
+  { id: 'old_mesh', name: 'По старой сетке', desc: 'Вы указали точные размеры готового изделия. Изготовим сетку строго по этим параметрам без дополнительных корректировок.' }
 ]
 
 const selectMeasurementMethod = (id: 'stvorka' | 'proem' | 'old_mesh') => {
@@ -381,8 +381,8 @@ const submitOrder = async () => {
       <!-- Управление (Правая часть) -->
       <div class="lg:w-8/12 p-10 lg:p-20 flex flex-col justify-center min-w-0 overflow-hidden">
         <div class="flex items-center gap-5 mb-12">
-          <div class="w-14 h-14 bg-brand-blue rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-brand-blue/30 transform -rotate-3">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center text-white shadow-2xl shadow-brand-blue/30 transform -rotate-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
           </div>
@@ -397,7 +397,7 @@ const submitOrder = async () => {
               <button v-for="t in types" :key="t.id"
                       @click="selectType(t.id, t.name)"
                       :class="[
-                        'py-4 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap',
+                        'h-12 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center',
                         store.config.type === t.id 
                           ? 'bg-brand-blue text-white border-brand-blue shadow-2xl shadow-brand-blue/30 transform -translate-y-1' 
                           : 'bg-white text-gray-400 border-gray-100 hover:border-brand-blue/20 hover:text-brand-blue'
@@ -415,7 +415,7 @@ const submitOrder = async () => {
                 <button v-for="ft in frameTypes" :key="ft.id"
                         @click="selectFrameType(ft.id)"
                         :class="[
-                          'py-4 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap w-full',
+                          'h-12 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap w-full flex items-center justify-center',
                           store.config.frameType === ft.id 
                             ? 'bg-brand-blue text-white border-brand-blue shadow-xl shadow-brand-blue/20 transform -translate-y-0.5' 
                             : 'bg-white text-gray-400 border-gray-100 hover:border-brand-blue/20'
@@ -440,7 +440,7 @@ const submitOrder = async () => {
                 <button v-for="color in colors" :key="color.id"
                         @click="selectColor(color.id)"
                         :class="[
-                          'py-4 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest whitespace-nowrap w-full',
+                          'h-12 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest whitespace-nowrap w-full flex items-center justify-center',
                           store.config.color === color.id 
                             ? 'bg-brand-blue text-white border-brand-blue shadow-xl shadow-brand-blue/20 transform -translate-y-0.5' 
                             : 'bg-white text-gray-400 border-gray-100 hover:border-brand-blue/20'
@@ -524,30 +524,40 @@ const submitOrder = async () => {
             <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Как вы измеряли?</label>
             <div :class="[
               'grid gap-4 w-full',
-              store.config.frameType === 'vstavnaya' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'
+              store.config.frameType === 'vstavnaya' ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'
             ]">
               <template v-for="m in measurementMethods" :key="m.id">
-                <button v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
-                        @click="selectMeasurementMethod(m.id as any)"
-                        :class="[
-                          'p-4 rounded-2xl text-left transition-all border-2 flex flex-col gap-2',
-                          store.config.measurementMethod === m.id 
-                            ? 'bg-blue-50 border-brand-blue shadow-lg' 
-                            : 'bg-white border-gray-100 hover:border-brand-blue/20'
-                        ]">
-                  <span :class="['text-[10px] font-black uppercase tracking-wider', store.config.measurementMethod === m.id ? 'text-brand-blue' : 'text-gray-400']">
-                    {{ m.name }}
-                  </span>
-                  <span class="text-[9px] font-bold text-gray-400 leading-tight">
-                    <template v-if="store.config.frameType === 'vstavnaya' && m.id === 'proem'">
-                      Измерили открытый проем от края до края резинки. Мы увеличим размер на 17/12мм.
-                    </template>
-                    <template v-else>
-                      {{ m.desc }}
-                    </template>
-                  </span>
-                </button>
+                    <button v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
+                            @click="selectMeasurementMethod(m.id as any)"
+                            :class="[
+                              'h-12 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center',
+                              store.config.measurementMethod === m.id
+                                ? 'bg-brand-blue text-white border-brand-blue shadow-xl shadow-brand-blue/20 transform -translate-y-0.5'
+                                : 'bg-white text-gray-400 border-gray-100 hover:border-brand-blue/20 hover:text-brand-blue'
+                            ]">
+                      {{ m.name }}
+                    </button>
               </template>
+            </div>
+            
+            <!-- Динамическая подсказка под кнопками -->
+            <div v-if="store.config.measurementMethod" 
+                 class="mt-5 p-5 bg-blue-50/50 rounded-2xl border border-brand-blue/10 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div class="flex gap-4 items-start">
+                <div class="w-6 h-6 rounded-full bg-brand-blue/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-brand-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p class="text-[11px] font-bold text-brand-blue leading-tight uppercase tracking-wider">
+                  <template v-if="store.config.frameType === 'vstavnaya' && store.config.measurementMethod === 'proem'">
+                    Измерили открытый проем от края до края резинки. Мы автоматически увеличили размер на 17 мм по ширине и 12 мм по высоте.
+                  </template>
+                  <template v-else>
+                    {{ measurementMethods.find(m => m.id === store.config.measurementMethod)?.desc }}
+                  </template>
+                </p>
+              </div>
             </div>
           </div>
 
@@ -661,7 +671,7 @@ const submitOrder = async () => {
             <button @click="handleAddToOrder()"
                     :disabled="!store.config.measurementMethod"
                     :class="[
-                      'w-full sm:w-auto font-black py-5 px-14 rounded-[1.5rem] transition-all shadow-[0_20px_50px_-10px_rgba(0,0,0,0.3)] active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap',
+                      'w-full sm:w-auto font-black py-4 px-14 rounded-2xl transition-all shadow-[0_20px_50px_-10px_rgba(0,0,0,0.3)] active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap',
                       !store.config.measurementMethod
                         ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
                         : (isAdded 
@@ -879,7 +889,7 @@ const submitOrder = async () => {
               <button @click="openOrderForm()"
                       :disabled="!canSubmitOrder"
                       :class="[
-                        'w-full font-black py-6 rounded-[1.5rem] transition-all uppercase text-xs tracking-[0.3em]',
+                        'w-full font-black py-6 rounded-2xl transition-all uppercase text-xs tracking-[0.3em]',
                         canSubmitOrder
                           ? 'bg-white text-brand-blue hover:bg-blue-50 shadow-2xl active:scale-95 cursor-pointer'
                           : 'bg-white/50 text-gray-400 cursor-not-allowed shadow-none'
@@ -969,7 +979,7 @@ const submitOrder = async () => {
             <button type="submit"
                     :disabled="!form.agree"
                     :class="[
-                      'flex-[2] font-black py-6 rounded-[1.5rem] transition-all shadow-2xl active:scale-95 uppercase text-xs tracking-[0.3em]',
+                      'flex-[2] font-black py-6 rounded-2xl transition-all shadow-2xl active:scale-95 uppercase text-xs tracking-[0.3em]',
                       form.agree 
                         ? 'bg-brand-blue hover:bg-[#1e5a9a] text-white shadow-brand-blue/40 hover:shadow-brand-blue/60 hover:-translate-y-0.5' 
                         : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
@@ -977,7 +987,7 @@ const submitOrder = async () => {
               Заказать
             </button>
             <button type="button" @click="showOrderForm = false"
-                    class="flex-1 font-black py-6 rounded-[1.5rem] border-2 border-gray-100 text-gray-400 hover:border-gray-200 hover:text-gray-600 uppercase text-xs tracking-[0.3em] transition-all">
+                    class="flex-1 font-black py-6 rounded-2xl border-2 border-gray-100 text-gray-400 hover:border-gray-200 hover:text-gray-600 uppercase text-xs tracking-[0.3em] transition-all">
               Отмена
             </button>
           </div>

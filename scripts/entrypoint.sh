@@ -19,7 +19,4 @@ for f in /app/migrations/*.sql; do
 done
 
 >&2 echo "Migrations completed - starting API"
-
-# Запуск основного процесса
-echo "Starting API with DATABASE_URL=$DATABASE_URL"
 exec /app/moskit-api 2>&1

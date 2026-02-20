@@ -21,7 +21,10 @@ const deliveryRequired = computed(() => store.items.length > 0 && store.hasItems
 const deliverySelected = computed(() =>
   deliveryRequired.value && (store.isMixedOrder || deliveryOptionIds.includes(store.delivery))
 )
-const canSubmitOrder = computed(() => !deliveryRequired.value || deliverySelected.value)
+const canSubmitOrder = computed(() => 
+  (!deliveryRequired.value || deliverySelected.value) && 
+  store.config.measurementMethod !== ''
+)
 
 // Количество выбранных дополнительных услуг (для бейджа у заголовка)
 const extrasCount = computed(() => {
@@ -45,7 +48,12 @@ watch(
 // Состояние кнопки "Добавить в заказ"
 const isAdded = ref(false)
 const orderBlockRef = ref<HTMLElement | null>(null)
+const calculatorRef = ref<HTMLElement | null>(null)
 const orderFormBlockRef = ref<HTMLElement | null>(null)
+
+const scrollToCalculator = () => {
+  calculatorRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
 
 const handleAddToOrder = () => {
   store.addToOrder()
@@ -119,6 +127,10 @@ const selectType = (id: string, name: string) => {
 
 const selectFrameType = (id: string) => {
   store.updateConfig({ frameType: id })
+  // Если выбрана вставная VSN и текущий метод замера "По створке", сбрасываем его
+  if (id === 'vstavnaya' && store.config.measurementMethod === 'stvorka') {
+    store.setMeasurementMethod('')
+  }
 }
 
 const selectColor = (id: number) => {
@@ -186,6 +198,7 @@ const saveWidth = () => {
   let val = parseInt(tempWidth.value) || 350
   val = Math.max(200, Math.min(9999, val))
   store.updateConfig({ width: val })
+  store.setMeasurementMethod('') // Сбрасываем метод замера при ручном изменении
   editingWidth.value = false
 }
 
@@ -193,7 +206,18 @@ const saveHeight = () => {
   let val = parseInt(tempHeight.value) || 1000
   val = Math.max(200, Math.min(9999, val))
   store.updateConfig({ height: val })
+  store.setMeasurementMethod('') // Сбрасываем метод замера при ручном изменении
   editingHeight.value = false
+}
+
+const measurementMethods = [
+  { id: 'stvorka', name: 'По створке окна', desc: 'Измерили внешнюю часть открывающейся части окна. Мы уменьшим размер на 5 мм.' },
+  { id: 'proem', name: 'По световому проему', desc: 'Измерили открытый проем от края до края резинки. Мы увеличим размер на 50мм.' },
+  { id: 'old_mesh', name: 'По старой сетке', desc: 'Точные размеры изделия, которое у вас уже стояло. Изготовим без изменений.' }
+]
+
+const selectMeasurementMethod = (id: 'stvorka' | 'proem' | 'old_mesh') => {
+  store.setMeasurementMethod(id)
 }
 
 const showOrderForm = ref(false)
@@ -307,7 +331,7 @@ const submitOrder = async () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 space-y-12">
+  <div ref="calculatorRef" class="container mx-auto px-4 space-y-12">
     <!-- Калькулятор -->
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 min-h-[650px]">
       <!-- Визуализация (Левая часть) -->
@@ -366,7 +390,7 @@ const submitOrder = async () => {
         </div>
         
         <div class="space-y-10 w-full min-w-0">
-          <!-- Тип -->
+          <!-- Тип полотна -->
           <div class="w-full min-w-0">
             <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Тип полотна</label>
             <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full">
@@ -383,57 +407,7 @@ const submitOrder = async () => {
             </div>
           </div>
 
-          <!-- Размеры -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div class="space-y-5">
-              <div class="flex justify-between items-end">
-                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Ширина</label>
-                <div class="flex items-baseline gap-1">
-                  <input v-if="editingWidth" 
-                         type="text" 
-                         v-model="tempWidth" 
-                         @blur="saveWidth" 
-                         @keyup.enter="saveWidth"
-                         @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
-                         maxlength="4"
-                         class="w-28 text-2xl font-black text-brand-blue text-center bg-blue-50 border-2 border-brand-blue rounded-xl px-3 py-2 focus:outline-none" 
-                         autofocus />
-                  <span v-else 
-                        @click="startEditWidth" 
-                        class="text-2xl font-black text-brand-blue cursor-pointer hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors" 
-                        title="Нажмите для ввода">{{ store.config.width }}</span>
-                  <small class="text-[10px] text-gray-300 ml-1">ММ</small>
-                </div>
-              </div>
-              <input type="range" min="200" max="1500" step="5" v-model.number="store.config.width"
-                     class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer accent-brand-blue shadow-inner" />
-            </div>
-            <div class="space-y-5">
-              <div class="flex justify-between items-end">
-                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Высота</label>
-                <div class="flex items-baseline gap-1">
-                  <input v-if="editingHeight" 
-                         type="text" 
-                         v-model="tempHeight" 
-                         @blur="saveHeight" 
-                         @keyup.enter="saveHeight"
-                         @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
-                         maxlength="4"
-                         class="w-28 text-2xl font-black text-brand-blue text-center bg-blue-50 border-2 border-brand-blue rounded-xl px-3 py-2 focus:outline-none" 
-                         autofocus />
-                  <span v-else 
-                        @click="startEditHeight" 
-                        class="text-2xl font-black text-brand-blue cursor-pointer hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors" 
-                        title="Нажмите для ввода">{{ store.config.height }}</span>
-                  <small class="text-[10px] text-gray-300 ml-1">ММ</small>
-                </div>
-              </div>
-              <input type="range" min="200" max="2000" step="5" v-model.number="store.config.height"
-                     class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer accent-brand-blue shadow-inner" />
-            </div>
-          </div>
-
-          <!-- Тип рамки: рендер на клиенте, чтобы сетка сразу была по ширине блока (SSR даёт неправильный layout) -->
+          <!-- Тип рамки -->
           <div class="w-full min-w-0">
             <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Тип рамки</label>
             <ClientOnly>
@@ -458,7 +432,7 @@ const submitOrder = async () => {
             </ClientOnly>
           </div>
 
-          <!-- Цвет: рендер на клиенте для стабильной ширины -->
+          <!-- Цвет рамки -->
           <div class="w-full min-w-0">
             <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Цвет рамки</label>
             <ClientOnly>
@@ -483,6 +457,98 @@ const submitOrder = async () => {
                 </div>
               </template>
             </ClientOnly>
+          </div>
+
+          <!-- Размеры -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="space-y-5">
+              <div class="flex justify-between items-end">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Ширина</label>
+                <div class="flex items-baseline gap-1">
+                  <input v-if="editingWidth" 
+                         type="text" 
+                         v-model="tempWidth" 
+                         @blur="saveWidth" 
+                         @keyup.enter="saveWidth"
+                         @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
+                         maxlength="4"
+                         class="w-28 text-2xl font-black text-brand-blue text-center bg-blue-50 border-2 border-brand-blue rounded-xl px-3 py-2 focus:outline-none" 
+                         autofocus />
+                  <span v-else 
+                        @click="startEditWidth" 
+                        class="text-2xl font-black text-brand-blue cursor-pointer hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors" 
+                        title="Нажмите для ввода">{{ store.config.width }}</span>
+                  <small class="text-[10px] text-gray-300 ml-1">ММ</small>
+                </div>
+              </div>
+              <input type="range" min="200" max="1500" step="5" 
+                     :value="store.config.width"
+                     @input="(e) => { 
+                       store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
+                       store.setMeasurementMethod('');
+                     }"
+                     class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer accent-brand-blue shadow-inner" />
+            </div>
+            <div class="space-y-5">
+              <div class="flex justify-between items-end">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Высота</label>
+                <div class="flex items-baseline gap-1">
+                  <input v-if="editingHeight" 
+                         type="text" 
+                         v-model="tempHeight" 
+                         @blur="saveHeight" 
+                         @keyup.enter="saveHeight"
+                         @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
+                         maxlength="4"
+                         class="w-28 text-2xl font-black text-brand-blue text-center bg-blue-50 border-2 border-brand-blue rounded-xl px-3 py-2 focus:outline-none" 
+                         autofocus />
+                  <span v-else 
+                        @click="startEditHeight" 
+                        class="text-2xl font-black text-brand-blue cursor-pointer hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors" 
+                        title="Нажмите для ввода">{{ store.config.height }}</span>
+                  <small class="text-[10px] text-gray-300 ml-1">ММ</small>
+                </div>
+              </div>
+              <input type="range" min="200" max="2000" step="5" 
+                     :value="store.config.height"
+                     @input="(e) => { 
+                       store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
+                       store.setMeasurementMethod('');
+                     }"
+                     class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer accent-brand-blue shadow-inner" />
+            </div>
+          </div>
+
+          <!-- Метод замера -->
+          <div class="w-full min-w-0">
+            <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Как вы измеряли?</label>
+            <div :class="[
+              'grid gap-4 w-full',
+              store.config.frameType === 'vstavnaya' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'
+            ]">
+              <template v-for="m in measurementMethods" :key="m.id">
+                <button v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
+                        @click="selectMeasurementMethod(m.id as any)"
+                        :class="[
+                          'p-4 rounded-2xl text-left transition-all border-2 flex flex-col gap-2',
+                          store.config.measurementMethod === m.id 
+                            ? 'bg-blue-50 border-brand-blue shadow-lg' 
+                            : 'bg-white border-gray-100 hover:border-brand-blue/20'
+                        ]">
+                  <span :class="['text-[10px] font-black uppercase tracking-wider', store.config.measurementMethod === m.id ? 'text-brand-blue' : 'text-gray-400']">
+                    {{ m.name }}
+                  </span>
+                  <span class="text-[9px] font-bold text-gray-400 leading-tight">
+                    <template v-if="store.config.frameType === 'vstavnaya' && m.id === 'proem'">
+                      Измерили открытый проем от края до края резинки. Мы увеличим размер на 17/12мм.
+                    </template>
+                    <template v-else>
+                      {{ m.desc }}
+                    </template>
+                  </span>
+                </button>
+              </template>
+            </div>
           </div>
 
           <!-- Ручки, Монтаж, Количество: рендер на клиенте, чтобы три колонки сразу по ширине блока -->
@@ -593,13 +659,16 @@ const submitOrder = async () => {
               </div>
             </div>
             <button @click="handleAddToOrder()"
+                    :disabled="!store.config.measurementMethod"
                     :class="[
                       'w-full sm:w-auto font-black py-5 px-14 rounded-[1.5rem] transition-all shadow-[0_20px_50px_-10px_rgba(0,0,0,0.3)] active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap',
-                      isAdded 
-                        ? 'bg-brand-blue text-white hover:bg-brand-blue' 
-                        : 'bg-brand-dark hover:bg-black text-white hover:shadow-brand-dark/40'
+                      !store.config.measurementMethod
+                        ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
+                        : (isAdded 
+                            ? 'bg-brand-blue text-white hover:bg-brand-blue' 
+                            : 'bg-brand-dark hover:bg-black text-white hover:shadow-brand-dark/40')
                     ]">
-              {{ isAdded ? 'Добавлено' : 'Добавить в заказ' }}
+              {{ !store.config.measurementMethod ? 'Выберите метод замера' : (isAdded ? 'Добавлено' : 'Добавить в заказ') }}
             </button>
           </div>
         </div>
@@ -614,7 +683,15 @@ const submitOrder = async () => {
             <div class="w-10 h-10 bg-brand-dark rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-black/10">
               1
             </div>
-            <h3 class="text-3xl font-black text-brand-dark uppercase tracking-tighter">Ваш заказ</h3>
+            <div class="flex flex-col">
+              <h3 class="text-3xl font-black text-brand-dark uppercase tracking-tighter leading-none">Ваш заказ</h3>
+              <button @click="scrollToCalculator" class="text-[10px] font-black text-brand-blue uppercase tracking-widest mt-2 flex items-center gap-2 hover:opacity-70 transition-all group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 transform rotate-180 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+                </svg>
+                Добавить еще сетку
+              </button>
+            </div>
           </div>
           <button type="button" @click="store.clearOrder(); showOrderForm = false" class="text-gray-400 hover:text-brand-dark transition-colors p-2" aria-label="Закрыть заказ">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 md:h-8 md:w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -628,37 +705,34 @@ const submitOrder = async () => {
             <thead>
               <tr class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] border-b border-gray-100">
                 <th class="pb-8 pr-4">Тип рамки</th>
-                <th class="pb-8 px-4">Тип полотна</th>
-                <th class="pb-8 px-4">Габариты</th>
                 <th class="pb-8 px-4">Цвет рамки</th>
+                <th class="pb-8 px-4">Тип полотна</th>
+                <th class="pb-8 px-4">Тип замера</th>
+                <th class="pb-8 px-4">Габариты</th>
                 <th class="pb-8 px-4">Тип ручек</th>
                 <th class="pb-8 px-4">Монтаж</th>
                 <th class="pb-8 px-4">Кол-во</th>
-                <th class="pb-8 px-4 text-right">Стоимость</th>
+                <th class="pb-8 px-4">Стоимость</th>
                 <th class="pb-8 pl-4"></th>
               </tr>
             </thead>
             <tbody class="text-sm font-bold text-brand-dark">
               <tr v-for="item in store.items" :key="item.id" class="border-b border-gray-50 group hover:bg-gray-50/50 transition-colors">
                 <td class="py-8 pr-4 uppercase text-xs font-black text-gray-600">{{ item.frameTypeName ?? '—' }}</td>
-                <td class="py-8 px-4 uppercase text-xs font-black">{{ item.typeName.split(' (')[0] }}</td>
-                <td class="py-8 px-4 text-gray-500 font-medium">{{ item.width }} x {{ item.height }} мм</td>
-                <td class="py-8 px-4 text-gray-500 font-medium">{{ item.color }}</td>
-                <td class="py-8 px-4">
-                  <span class="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider bg-gray-50 text-gray-500">
-                    {{ item.typeName.includes('(МЕТАЛЛ)') ? 'МЕТАЛЛ' : 'ПВХ' }}
-                  </span>
+                <td class="py-8 px-4 uppercase text-xs font-black text-gray-600">{{ item.color }}</td>
+                <td class="py-8 px-4 uppercase text-xs font-black text-brand-dark">{{ item.typeName.split(' (')[0] }}</td>
+                <td class="py-8 px-4 text-xs font-medium text-gray-500 whitespace-nowrap">
+                  {{ item.measurementMethod.replace(' ММ', ' мм') }}
                 </td>
-                <td class="py-8 px-4">
-                  <span :class="[
-                    'text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider',
-                    item.typeName.includes(' + МОНТАЖ') ? 'bg-blue-50 text-brand-blue' : 'bg-gray-50 text-gray-400'
-                  ]">
-                    {{ item.typeName.includes(' + МОНТАЖ') ? 'ДА' : 'НЕТ' }}
-                  </span>
+                <td class="py-8 px-4 text-xs text-gray-500 font-medium whitespace-nowrap">{{ item.width }} x {{ item.height }} мм</td>
+                <td class="py-8 px-4 text-xs text-gray-500 font-medium whitespace-nowrap">
+                  {{ item.typeName.includes('(МЕТАЛЛ)') ? 'МЕТАЛЛ' : 'ПВХ' }}
                 </td>
-                <td class="py-8 px-4 font-black">{{ item.count }} шт</td>
-                <td class="py-8 px-4 text-right text-brand-blue text-lg font-black">{{ item.price }} ₽</td>
+                <td class="py-8 px-4 text-xs text-gray-500 font-medium whitespace-nowrap">
+                  {{ item.typeName.includes(' + МОНТАЖ') ? 'ДА' : 'НЕТ' }}
+                </td>
+                <td class="py-8 px-4 text-xs text-gray-600 font-black whitespace-nowrap">{{ item.count }} шт</td>
+                <td class="py-8 px-4 text-brand-blue text-lg font-black">{{ item.price }} ₽</td>
                 <td class="py-8 pl-4 text-right">
                   <button @click="store.removeItem(item.id)" class="text-gray-200 hover:text-red-500 transition-all transform hover:scale-110">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -669,6 +743,15 @@ const submitOrder = async () => {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <button @click="scrollToCalculator" class="text-[10px] font-black text-brand-blue uppercase tracking-widest flex items-center gap-2 hover:opacity-70 transition-all group">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 transform rotate-180 group-hover:-translate-y-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+            </svg>
+            Добавить еще сетку
+          </button>
         </div>
 
         <div class="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
@@ -769,10 +852,30 @@ const submitOrder = async () => {
           <div class="bg-brand-blue p-12 pb-20 sm:pb-12 rounded-[3rem] text-white shadow-[0_30px_100px_-10px_rgba(42,106,178,0.5)] relative overflow-hidden group">
             <div class="relative z-10">
               <p class="text-[10px] font-black uppercase tracking-[0.4em] opacity-50 mb-4">Итого к оплате</p>
-              <div class="flex items-baseline gap-4 mb-12">
+              <div class="flex items-baseline gap-4 mb-8">
                 <span class="text-7xl font-black tracking-tighter">{{ store.totalPrice }}</span>
                 <span class="text-3xl font-black opacity-30">₽</span>
               </div>
+
+              <!-- Блок ответственности (НАД кнопкой) -->
+              <div class="mb-8 flex gap-4 items-start bg-white/5 p-5 rounded-2xl border border-white/10 relative z-10">
+                <div class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div class="space-y-1.5">
+                  <p class="text-[10px] font-medium text-white/90 leading-tight uppercase tracking-wider">
+                    <span v-if="!store.measurementSelected">Замер своими силами: ответственность на вас</span>
+                    <span v-else>Замер мастером: ответственность наша</span>
+                  </p>
+                  <button type="button" @click="store.setMeasurement(!store.measurementSelected, store.measurementPriceCalculated)" 
+                          class="text-[10px] font-black text-white underline underline-offset-4 opacity-70 hover:opacity-100 transition-all uppercase tracking-widest text-left">
+                    {{ store.measurementSelected ? 'Мастер приедет на замер' : 'Рекомендуем вызвать мастера' }}
+                  </button>
+                </div>
+              </div>
+
               <button @click="openOrderForm()"
                       :disabled="!canSubmitOrder"
                       :class="[
@@ -781,9 +884,10 @@ const submitOrder = async () => {
                           ? 'bg-white text-brand-blue hover:bg-blue-50 shadow-2xl active:scale-95 cursor-pointer'
                           : 'bg-white/50 text-gray-400 cursor-not-allowed shadow-none'
                       ]">
-                {{ canSubmitOrder ? 'Оформить заказ' : 'Выберите способ получения' }}
+                {{ !store.config.measurementMethod ? 'Выберите метод замера' : (canSubmitOrder ? 'Оформить заказ' : 'Выберите способ получения') }}
               </button>
             </div>
+
             <!-- Декор -->
             <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700"></div>
             <div class="absolute -top-20 -left-20 w-40 h-40 bg-black/10 rounded-full blur-2xl"></div>
@@ -832,8 +936,8 @@ const submitOrder = async () => {
               <p v-if="formErrors.phone" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.phone }}</p>
             </div>
           </div>
-          <div class="space-y-3">
-            <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Адрес (если доставка/монтаж)</label>
+          <div v-if="store.delivery === 'Доставка' || store.allItemsWithInstallation" class="space-y-3">
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Адрес</label>
             <input v-model="form.address" type="text" placeholder="Город, улица, дом, кв"
                    :class="[
                      'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner',
@@ -858,7 +962,7 @@ const submitOrder = async () => {
               </svg>
             </div>
             <span class="text-[10px] md:text-xs text-gray-400 font-black leading-none uppercase tracking-widest group-hover:text-gray-600 transition-colors">
-              Я даю согласие ООО "Бикос" на обработку моих персональных данных в соответствии с <NuxtLink to="/privacy" class="text-brand-blue underline decoration-2 underline-offset-4">Политикой обработки данных</NuxtLink>
+              Я подтверждаю корректность размеров и даю согласие на <NuxtLink to="/privacy" class="text-brand-blue underline decoration-2 underline-offset-4">обработку данных</NuxtLink>
             </span>
           </label>
           <div class="flex flex-col sm:flex-row gap-4 pt-4">

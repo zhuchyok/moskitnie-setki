@@ -49,7 +49,7 @@ VALUES ('global_pricing', '{
   ],
   "services": [
     {"id": "measurement", "name": "Замер", "price": 500.0},
-    {"id": "installation", "name": "Монтаж (рамочная)", "price": 400.0},
+    {"id": "installation", "name": "Монтаж (рамочная)", "price": 300.0},
     {"id": "installation_vsn", "name": "Монтаж (вставная VSN)", "price": 100.0},
     {"id": "installation_plisse", "name": "Монтаж (плиссе)", "price": 500.0, "unit": "м2"},
     {"id": "delivery", "name": "Доставка", "price": 300.0},
@@ -68,4 +68,4 @@ VALUES ('global_pricing', '{
     "delivery_profit_factor": 33.0
   }
 }')
-ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+ON CONFLICT (key) DO NOTHING;

@@ -1,5 +1,6 @@
 // moskit-api/src/main.rs - API сервер
 
+use std::io::Write;
 use axum::{
     routing::{get, post, put},
     Router,
@@ -19,10 +20,15 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() {
+    // Ранний flush stderr (нужен для корректного вывода в Docker до инициализации tracing)
+    let _ = std::io::stderr().write_all(b"[moskit-api] starting\n");
+    let _ = std::io::stderr().flush();
+
     // Инициализация логирования ПЕРВОЙ ОЧЕРЕДЬЮ
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .with_target(false)
+        .with_ansi(false)  // Docker часто без TTY — отключаем ANSI для стабильного вывода
         .init();
 
     println!("Moskit API v2.1 starting...");

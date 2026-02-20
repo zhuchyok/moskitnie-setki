@@ -45,9 +45,7 @@ pub async fn get_global_pricing(State(state): State<Arc<AppState>>) -> ApiResult
         .map_err(|e| bad_request(&e.to_string()))?;
 
     if let Some((value,)) = row {
-        let mut pricing: GlobalPricing = serde_json::from_value(value).map_err(|e| bad_request(&e.to_string()))?;
-        // Удаляем "Замер" и "Изготовление" из услуг, так как они теперь рассчитываются по формуле
-        pricing.services.retain(|s| s.id != "measurement" && s.id != "work_base");
+        let pricing: GlobalPricing = serde_json::from_value(value).map_err(|e| bad_request(&e.to_string()))?;
         return ok(pricing);
     }
 
@@ -107,7 +105,7 @@ pub async fn get_global_pricing(State(state): State<Arc<AppState>>) -> ApiResult
     ];
 
         let services = vec![
-            PricingItem { id: "installation".to_string(), name: "Монтаж (рамочная)".to_string(), price: 400.0 },
+            PricingItem { id: "installation".to_string(), name: "Монтаж (рамочная)".to_string(), price: 300.0 },
             PricingItem { id: "installation_vsn".to_string(), name: "Монтаж (вставная VSN)".to_string(), price: 100.0 },
             PricingItem { id: "installation_plisse".to_string(), name: "Монтаж (плиссе)".to_string(), price: 500.0 },
             PricingItem { id: "delivery".to_string(), name: "Доставка".to_string(), price: 300.0 },

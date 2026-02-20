@@ -14,6 +14,7 @@ export interface OrderItem {
   height: number
   count: number
   price: number
+  measurementMethod: string
 }
 
 export const useOrderStore = defineStore('order', {
@@ -38,6 +39,7 @@ export const useOrderStore = defineStore('order', {
       count: 1,
       installation: false,
       handleType: 'pvc' as HandleType,
+      measurementMethod: '' as '' | 'stvorka' | 'proem' | 'old_mesh',
     },
     /** Способ получения: по умолчанию доставка (Чебоксары и Новочебоксарск) */
     delivery: 'Доставка',
@@ -118,10 +120,16 @@ export const useOrderStore = defineStore('order', {
     currentPrice(state): number {
       const pricingStore = usePricingStore()
       const isMetal = state.config.handleType === 'metal'
+      
+      // Размеры теперь корректируются напрямую в config при выборе метода,
+      // поэтому здесь используем значения как есть.
+      const calcWidth = state.config.width
+      const calcHeight = state.config.height
+
       if (state.config.frameType === 'vstavnaya') {
         const cost = computeCostVstavnaya(
-          state.config.width,
-          state.config.height,
+          calcWidth,
+          calcHeight,
           state.config.color,
           state.config.type,
           pricingStore.pricing ?? undefined
@@ -130,8 +138,8 @@ export const useOrderStore = defineStore('order', {
         return isMetal ? (base - costToClientPrice(PRICING_CONFIG.fixed.handles, pricingStore.pricing ?? undefined)) : base
       }
       const cost = computeCost(
-        state.config.width,
-        state.config.height,
+        calcWidth,
+        calcHeight,
         state.config.color,
         state.config.type,
         pricingStore.pricing ?? undefined
@@ -203,16 +211,33 @@ export const useOrderStore = defineStore('order', {
       const handleName = this.config.handleType === 'metal' ? 'МЕТАЛЛ' : 'ПВХ'
       const frameName = FRAME_TYPE_NAMES[this.config.frameType]
 
+      // Размеры в config уже скорректированы, берем их напрямую
+      const finalWidth = this.config.width
+      const finalHeight = this.config.height
+      let methodLabel = ''
+
+      if (this.config.measurementMethod === 'stvorka') {
+        methodLabel = 'ПО СТВОРКЕ (-5 мм)'
+      } else if (this.config.measurementMethod === 'proem') {
+        const isVstavnaya = this.config.frameType === 'vstavnaya'
+        const wCorr = isVstavnaya ? 17 : 50
+        const hCorr = isVstavnaya ? 12 : 50
+        methodLabel = `ПО ПРОЕМУ (+${wCorr}/${hCorr} мм)`
+      } else {
+        methodLabel = 'ПО СЕТКЕ'
+      }
+
       this.items.push({
         id: Date.now(),
         type: this.config.type,
         typeName: `${MESH_TYPE_NAMES[this.config.type]} (${handleName})${this.config.installation ? ' + МОНТАЖ' : ''}`,
         frameTypeName: frameName,
         color: colorName,
-        width: this.config.width,
-        height: this.config.height,
+        width: finalWidth,
+        height: finalHeight,
         count: this.config.count,
         price,
+        measurementMethod: methodLabel,
       })
     },
     removeItem(id: number) {
@@ -228,6 +253,51 @@ export const useOrderStore = defineStore('order', {
     },
     updateConfig(newConfig: Partial<typeof this.config>) {
       this.config = { ...this.config, ...newConfig }
+    },
+    updateItemCount(id: number, count: number) {
+      const item = this.items.find(i => i.id === id)
+      if (item) {
+        const unitPrice = item.price / item.count
+        item.count = Math.max(1, count)
+        item.price = unitPrice * item.count
+      }
+    },
+    setMeasurementMethod(method: 'stvorka' | 'proem' | 'old_mesh' | '') {
+      const oldMethod = this.config.measurementMethod
+      if (oldMethod === method) return
+
+      // Если новый метод пустой (сброс), просто сохраняем и выходим
+      if (method === '') {
+        this.config.measurementMethod = ''
+        return
+      }
+
+      // 1. Сначала возвращаемся к "чистому" замеру (отменяем предыдущую корректировку)
+      if (oldMethod === 'stvorka') {
+        this.config.width += 5
+        this.config.height += 5
+      } else if (oldMethod === 'proem') {
+        const isVstavnaya = this.config.frameType === 'vstavnaya'
+        const wCorr = isVstavnaya ? 17 : 50
+        const hCorr = isVstavnaya ? 12 : 50
+        this.config.width -= wCorr
+        this.config.height -= hCorr
+      }
+
+      // 2. Применяем новую корректировку к текущим значениям
+      if (method === 'stvorka') {
+        this.config.width -= 5
+        this.config.height -= 5
+      } else if (method === 'proem') {
+        const isVstavnaya = this.config.frameType === 'vstavnaya'
+        const wCorr = isVstavnaya ? 17 : 50
+        const hCorr = isVstavnaya ? 12 : 50
+        this.config.width += wCorr
+        this.config.height += hCorr
+      }
+
+      // 3. Сохраняем новый метод
+      this.config.measurementMethod = method
     },
     setDelivery(value: string, price: number) {
       this.delivery = value

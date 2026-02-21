@@ -153,7 +153,7 @@ const handleAuth = async () => {
     <section class="bg-brand-dark text-white py-20 relative overflow-hidden">
       <div class="container mx-auto px-4 relative z-10 text-center">
         <h1 class="text-4xl md:text-6xl font-black mb-6 uppercase tracking-tighter text-white">
-          Партнерство на <span class="text-brand-blue">успех</span>
+          Партнерство на <span class="text-[#2A6AB2]">успех</span>
         </h1>
         <p class="text-xl text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed">
           Приглашаем оконные компании, строительные бригады и частных мастеров стать нашими дилерами в Чебоксарах и Новочебоксарске.

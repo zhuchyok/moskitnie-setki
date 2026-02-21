@@ -116,10 +116,6 @@ const faqItems = [
     </section>
 
     <section class="bg-gray-50 py-12">
-      <div class="container mx-auto px-4 text-center mb-8">
-        <h2 class="text-3xl font-black mb-2 uppercase tracking-tight text-brand-dark">Расчет Антимошки</h2>
-        <p class="text-gray-500 font-bold uppercase text-[10px] tracking-[0.2em]">Металлические крепления в комплекте!</p>
-      </div>
       <ClientOnly>
         <Calculator />
       </ClientOnly>
@@ -146,23 +142,23 @@ const faqItems = [
             <div class="relative z-10">
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Плюсы Антимошки</h2>
               <div class="grid md:grid-cols-2 gap-12">
-                <div class="flex gap-6">
-                  <div class="text-brand-blue text-5xl font-black opacity-50">01</div>
+                <div class="flex gap-6 group">
+                  <div class="text-brand-blue text-6xl font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
                   <div>
-                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wider">Защита</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium">Предотвращает проникновение мошек, жуков, защищает от листьев и грязи с дорог.</p>
+                    <h3 class="font-black text-xl mb-2 uppercase tracking-tighter text-white">Защита</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Предотвращает проникновение мошек, жуков, защищает от листьев и грязи с дорог.</p>
                   </div>
                 </div>
-                <div class="flex gap-6">
-                  <div class="text-brand-blue text-5xl font-black opacity-50">02</div>
+                <div class="flex gap-6 group">
+                  <div class="text-brand-blue text-6xl font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
                   <div>
-                    <h3 class="font-bold text-lg mb-2 uppercase tracking-wider">Комфорт</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium">Легко очищается, сдерживает солнечные лучи, обеспечивая фильтрацию света.</p>
+                    <h3 class="font-black text-xl mb-2 uppercase tracking-tighter text-white">Комфорт</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Легко очищается, сдерживает солнечные лучи, обеспечивая фильтрацию света.</p>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
           </div>
           <SeoTextBlock title="Сетка Антимошка в Чебоксарах и Новочебоксарске" class="mt-20">
             <p>

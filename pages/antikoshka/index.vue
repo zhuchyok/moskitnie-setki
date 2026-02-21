@@ -116,10 +116,6 @@ const faqItems = [
     </section>
 
     <section class="bg-gray-50 py-12">
-      <div class="container mx-auto px-4 text-center mb-8">
-        <h2 class="text-3xl font-black mb-2 uppercase tracking-tight text-brand-dark">Расчет Антикошки</h2>
-        <p class="text-gray-500 font-bold uppercase text-[10px] tracking-[0.2em]">Металлические крепления в комплекте!</p>
-      </div>
       <ClientOnly>
         <Calculator />
       </ClientOnly>
@@ -146,24 +142,24 @@ const faqItems = [
             <div class="relative z-10">
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Преимущества Антикошки</h2>
               <div class="grid md:grid-cols-3 gap-12">
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">01</div>
-                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Универсальность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed">Устанавливаются в любые проемы: на балконах, лоджиях, в оконных рамах и входных группах.</p>
+                <div class="text-center md:text-left group">
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Универсальность</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Устанавливаются в любые проемы: на балконах, лоджиях, в оконных рамах и входных группах.</p>
                 </div>
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">02</div>
-                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Надежность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed">Домашний питомец не сможет ее открыть, разорвать или прогнуть под собственным весом при прыжке.</p>
+                <div class="text-center md:text-left group">
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Надежность</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Домашний питомец не сможет ее открыть, разорвать или прогнуть под собственным весом при прыжке.</p>
                 </div>
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">03</div>
-                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed">Металлические крепления устойчивы к ультрафиолету и служат долгие годы без потери прочности.</p>
+                <div class="text-center md:text-left group">
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">03</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Металлические крепления устойчивы к ультрафиолету и служат долгие годы без потери прочности.</p>
                 </div>
               </div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
           </div>
           <SeoTextBlock title="Сетка Антикошка в Чебоксарах и Новочебоксарске" class="mt-20">
             <p>

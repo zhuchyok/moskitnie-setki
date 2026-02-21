@@ -109,8 +109,12 @@ const faqItems = [
         <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           <div v-for="s in services" :key="s.name" 
                class="group p-10 bg-white rounded-[3rem] hover:shadow-2xl transition-all duration-500 border border-gray-100">
-            <div class="w-16 h-16 bg-brand-blue rounded-2xl flex items-center justify-center mb-8 text-white text-2xl font-black shadow-lg shadow-brand-blue/20 group-hover:scale-110 transition-transform">
-              🛠️
+            <div class="w-16 h-16 bg-brand-blue rounded-2xl flex items-center justify-center mb-8 text-white shadow-lg shadow-brand-blue/30 group-hover:scale-110 transition-transform">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path v-if="s.name === 'Замена полотна'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                <path v-else-if="s.name === 'Замена ручек'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1 0 113 0m-3 6a1.5 1 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1 0 00-3 0m-6-3V11m0-5.5v-1A1.5 1 0 0111 3h1a1.5 1 0 011.5 1.5V11" />
+                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 00-1 1v1a2 2 0 11-4 0v-1a1 1 0 00-1-1H7a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H7a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+              </svg>
             </div>
             <h3 class="text-xl font-black mb-4 uppercase tracking-tight">{{ s.name }}</h3>
             <p class="text-gray-400 text-sm leading-relaxed mb-8 font-medium">{{ s.desc }}</p>
@@ -129,20 +133,20 @@ const faqItems = [
         <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
           <div class="relative z-10 grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 class="text-3xl font-black mb-8 uppercase tracking-widest text-center md:text-left text-white">Как заказать?</h2>
+              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center md:text-left text-white">Как заказать?</h2>
               <div class="space-y-10">
-                <div class="flex gap-6">
-                  <div class="w-12 h-12 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black">01</div>
+                <div class="flex gap-6 group">
+                  <div class="w-14 h-14 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black text-2xl opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
                   <div>
-                    <h3 class="font-bold uppercase tracking-wider mb-2">Привезите к нам</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium">В офис в Чебоксарах или Новочебоксарске. Сделаем за 3 дня.</p>
+                    <h3 class="font-black text-xl uppercase tracking-tighter mb-2 text-white">Привезите к нам</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">В офис в Чебоксарах или Новочебоксарске. Сделаем за 3 дня.</p>
                   </div>
                 </div>
-                <div class="flex gap-6">
-                  <div class="w-12 h-12 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black">02</div>
+                <div class="flex gap-6 group">
+                  <div class="w-14 h-14 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black text-2xl opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
                   <div>
-                    <h3 class="font-bold uppercase tracking-wider mb-2">Вызовите мастера</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium">Мастер приедет в удобное время, заберет сетки и привезет отремонтированные через 3 дня.</p>
+                    <h3 class="font-black text-xl uppercase tracking-tighter mb-2 text-white">Вызовите мастера</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Мастер приедет в удобное время, заберет сетки и привезет отремонтированные через 3 дня.</p>
                   </div>
                 </div>
               </div>
@@ -153,7 +157,7 @@ const faqItems = [
               </div>
             </div>
           </div>
-          <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
+          <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
         </div>
         <SeoTextBlock title="Ремонт москитных сеток в Чебоксарах и Новочебоксарске" class="mt-20">
           <p>

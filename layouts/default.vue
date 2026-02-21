@@ -217,7 +217,7 @@ useHead({
               <img src="/images/logo_clean.png" alt="Сетки 21" class="h-10 brightness-0 invert" />
               <div>
                 <h3 class="text-xl font-black text-white uppercase tracking-tight">СЕТКИ 21</h3>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest">Производство замер монтаж от 1 дня</p>
+                <p class="text-[10px] text-white uppercase tracking-widest opacity-60">Производство замер монтаж от 1 дня</p>
               </div>
             </div>
             <p class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
@@ -250,9 +250,9 @@ useHead({
           <div class="flex flex-wrap justify-center gap-6">
             <NuxtLink to="/contacts" class="hover:text-white transition-colors">Контакты</NuxtLink>
             <NuxtLink to="/delivery" class="hover:text-white transition-colors">Доставка и замер</NuxtLink>
-            <NuxtLink to="/admin/dealers" class="hover:text-white transition-colors">Дилеры</NuxtLink>
             <NuxtLink to="/privacy" class="hover:text-white transition-colors">Политика конфиденциальности</NuxtLink>
             <NuxtLink to="/karta-sajta" class="hover:text-white transition-colors">Карта сайта</NuxtLink>
+            <NuxtLink to="/admin/dealers" class="hover:text-white transition-colors">Дилерам</NuxtLink>
           </div>
         </div>
       </div>

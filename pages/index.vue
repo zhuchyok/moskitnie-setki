@@ -209,10 +209,6 @@ const faqMain = [
     </section>
 
     <section class="bg-gray-50 py-12">
-      <div class="container mx-auto px-4 text-center mb-8">
-        <h2 class="text-3xl font-black mb-2 uppercase tracking-tight text-brand-dark">Расчет стоимости</h2>
-        <p class="text-gray-500 font-bold uppercase text-[10px] tracking-[0.2em]">Металлические крепления в комплекте!</p>
-      </div>
       <ClientOnly>
         <Calculator />
       </ClientOnly>
@@ -239,24 +235,24 @@ const faqMain = [
             <div class="relative z-10">
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки?</h2>
               <div class="grid md:grid-cols-3 gap-12">
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">01</div>
-                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium">Прочная алюминиевая рамка окрашена порошковой краской. Не выгорает и не ржавеет.</p>
+                <div class="text-center md:text-left group">
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Прочная алюминиевая рамка окрашена порошковой краской. Не выгорает и не ржавеет.</p>
                 </div>
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">02</div>
-                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Защита</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium">Помогает задержать тополиный пух, уличную пыль и пыльцу растений, что важно для аллергиков.</p>
+                <div class="text-center md:text-left group">
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Защита</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Помогает задержать тополиный пух, уличную пыль и пыльцу растений, что важно для аллергиков.</p>
                 </div>
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">03</div>
-                  <h3 class="font-bold text-lg mb-4 uppercase tracking-wider">Безопасность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium">Москитные сетки могут служить защитой от случайного выпадения из окон предметов домашнего обихода.</p>
+                <div class="text-center md:text-left group">
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">03</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Безопасность</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Москитные сетки могут служить защитой от случайного выпадения из окон предметов домашнего обихода.</p>
                 </div>
               </div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
           </div>
 
           <SeoTextBlock title="Москитные сетки в Чебоксарах и Новочебоксарске" class="mt-20">

@@ -25,16 +25,16 @@ export const useAuthStore = defineStore('auth', {
       this.user = user
       this.token = token
       
-      const userCookie = useCookie('auth_user', { maxAge: 60 * 60 * 24 * 7 })
-      const tokenCookie = useCookie('auth_token', { maxAge: 60 * 60 * 24 * 7 })
+      const userCookie = useCookie('auth_user', { maxAge: 60 * 60 * 24 * 7, path: '/' })
+      const tokenCookie = useCookie('auth_token', { maxAge: 60 * 60 * 24 * 7, path: '/' })
       
       userCookie.value = JSON.stringify(user)
       tokenCookie.value = token
     },
 
     initAuth() {
-      const userCookie = useCookie('auth_user')
-      const tokenCookie = useCookie('auth_token')
+      const userCookie = useCookie('auth_user', { path: '/' })
+      const tokenCookie = useCookie('auth_token', { path: '/' })
       
       if (userCookie.value && tokenCookie.value) {
         this.user = userCookie.value as any
@@ -46,8 +46,8 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.token = null
       
-      const userCookie = useCookie('auth_user')
-      const tokenCookie = useCookie('auth_token')
+      const userCookie = useCookie('auth_user', { path: '/' })
+      const tokenCookie = useCookie('auth_token', { path: '/' })
       
       userCookie.value = null
       tokenCookie.value = null

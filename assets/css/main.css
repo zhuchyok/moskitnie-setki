@@ -1,5 +1,71 @@
-:root {
-  --brand-blue: #2A6AB2;
+/* Перебиваем Tailwind цвета на CSS переменную */
+.bg-brand-blue {
+  background-color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.text-brand-blue {
+  color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.border-brand-blue {
+  border-color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.accent-brand-blue {
+  accent-color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.shadow-brand-blue\/20 {
+  --tw-shadow-color: var(--brand-primary, #2A6AB2);
+  --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.shadow-brand-blue\/40 {
+  --tw-shadow-color: color-mix(in srgb, var(--brand-primary, #2A6AB2) 40%, transparent);
+  box-shadow: 0 10px 25px -5px var(--tw-shadow-color);
+}
+
+.shadow-brand-blue\/30 {
+  --tw-shadow-color: color-mix(in srgb, var(--brand-primary, #2A6AB2) 30%, transparent);
+  box-shadow: 0 25px 50px -12px var(--tw-shadow-color);
+}
+
+.shadow-brand-blue\/10 {
+  --tw-shadow-color: color-mix(in srgb, var(--brand-primary, #2A6AB2) 10%, transparent);
+  box-shadow: 0 4px 6px -1px var(--tw-shadow-color);
+}
+
+.selection\:bg-brand-blue::selection {
+  background-color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.bg-blue-600 {
+  background-color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.border-blue-600 {
+  border-color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.text-blue-600 {
+  color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.hover\:bg-blue-700:hover {
+  background-color: color-mix(in srgb, var(--brand-primary, #2A6AB2) 80%, black) !important;
+}
+
+.hover\:bg-blue-600:hover {
+  background-color: var(--brand-primary, #2A6AB2) !important;
+}
+
+.bg-blue-50 {
+  background-color: color-mix(in srgb, var(--brand-primary, #2A6AB2) 5%, white) !important;
+}
+
+.hover\:bg-blue-50:hover {
+  background-color: color-mix(in srgb, var(--brand-primary, #2A6AB2) 10%, white) !important;
 }
 
 @tailwind base;

@@ -53,7 +53,7 @@ const fetchOrder = async () => {
 }
 
 useHead({
-  title: order.value ? `Заказ ${order.value.order_number} — Сетки 21` : 'Заказ — Сетки 21'
+  title: computed(() => order.value ? `Заказ ${order.value.order_number} — Сетки 21` : 'Заказ — Сетки 21')
 })
 
 onMounted(fetchOrder)

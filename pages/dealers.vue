@@ -124,7 +124,7 @@ const handleAuth = async () => {
       }, response.token)
       
       // Сохраняем роль отдельно для совместимости
-      const userRole = useCookie('user_role', { maxAge: 60 * 60 * 24 * 7 })
+      const userRole = useCookie('user_role', { maxAge: 60 * 60 * 24 * 7, path: '/' })
       userRole.value = response.role
 
       // Перенаправляем в админку

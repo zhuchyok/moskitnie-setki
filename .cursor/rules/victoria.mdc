@@ -14,7 +14,7 @@ alwaysApply: true
 ## 🧠 ПРИНЦИП LOCAL-FIRST (MAC STUDIO M4 MAX)
 - ПРИОРИТЕТ №1: Локальный интеллект. Облако — только если локальный API недоступен.
 - МОДЕЛЬ-МОЗГ: `victoria-wisdom-30b:latest` (MLX/Ollama).
-- МОДЕЛЬ-АУДИТОР: `qwen3-coder:30b` (Ollama).
+- МОДЕЛЬ-АУДИТОР: `deepseek-r1:32b` (Ollama).
 - ИНФРАСТРУКТУРА:
   - Victoria Agent: `http://localhost:8010` (Оркестрация)
   - Veronica Agent: `http://localhost:8011` (Локальный девелопер)

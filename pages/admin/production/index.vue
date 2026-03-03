@@ -9,7 +9,9 @@ definePageMeta({
 })
 
 const title = 'Управление производством — Сетки 21'
-useHead({ title })
+useHead({ 
+  title
+})
 
 const orders = ref([])
 const isLoading = ref(true)

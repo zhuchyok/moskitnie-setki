@@ -7,25 +7,45 @@ const auth = useAuthStore()
 const tenant = useTenantStore()
 const pricing = usePricingStore()
 
-// Инициализация при загрузке: не блокируем первый рендер (при холодном старте API первый запрос может не успеть)
+// Инициализация при загрузке
+const { data: tenantConfig } = await useAsyncData('tenant-config', async () => {
+  await tenant.fetchConfig()
+  return tenant.config
+})
+
+const { data: pricingData } = await useAsyncData('pricing-config', async () => {
+  await pricing.fetchPricing()
+  return pricing.pricing
+})
+
 onMounted(() => {
   auth.initAuth()
-  Promise.all([
-    tenant.fetchConfig(),
+  // Если по какой-то причине данные не загрузились в SSR (например, локальная разработка)
+  if (!tenant.isLoaded) {
+    tenant.fetchConfig()
+  }
+  if (!pricing.pricing) {
     pricing.fetchPricing()
-  ]).catch(() => {}).then(() => {
-    // Повторная попытка через 2 с, если API ещё не проснулся (Docker/VDS cold start)
-    if (!pricing.pricing) {
-      setTimeout(() => pricing.fetchPricing(), 2000)
-    }
-  })
+  }
+})
+useHead({
+  title: computed(() => tenant.config.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21'),
+  meta: computed(() => [
+    { name: 'description', content: tenant.config.seo?.description || '' },
+    { property: 'og:title', content: tenant.config.seo?.title || '' },
+    { property: 'og:description', content: tenant.config.seo?.description || '' },
+    { property: 'og:image', content: tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_final_v58.png' },
+    { name: 'twitter:image', content: tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_final_v58.png' }
+  ])
 })
 </script>
 
 <template>
-  <NuxtLayout>
-    <NuxtPage :key="$route.fullPath" />
-  </NuxtLayout>
+  <div :class="{ 'opacity-0': !tenant.isLoaded }" class="transition-opacity duration-300">
+    <NuxtLayout>
+      <NuxtPage :key="$route.fullPath" />
+    </NuxtLayout>
+  </div>
 </template>
 
 <style>

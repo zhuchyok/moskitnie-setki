@@ -9,7 +9,9 @@ definePageMeta({
 })
 
 const title = 'Панель управления — Сетки 21'
-useHead({ title })
+useHead({ 
+  title
+})
 
 // Инициализация данных при загрузке
 const userName = computed(() => auth.user?.name || 'Пользователь')

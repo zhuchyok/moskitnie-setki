@@ -9,7 +9,9 @@ definePageMeta({
 })
 
 const title = 'Калькулятор — Сетки 21'
-useHead({ title })
+useHead({ 
+  title
+})
 </script>
 
 <template>

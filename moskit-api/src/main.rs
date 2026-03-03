@@ -14,6 +14,8 @@ use std::sync::Arc;
 
 mod handlers;
 
+use tower_http::services::ServeDir;
+
 pub struct AppState {
     pub pool: PgPool,
 }
@@ -69,10 +71,13 @@ async fn main() {
     let app = Router::new()
         // Health check
         .route("/health", get(handlers::health))
+        // Раздача статики (логотипы и т.д.)
+        .nest_service("/uploads", ServeDir::new("uploads"))
         // Аутентификация
         .route("/api/v1/auth/login", post(handlers::auth::login))
         .route("/api/v1/auth/register", post(handlers::auth::register))
         // Дилер
+        .route("/api/v1/dealers/:id", get(handlers::admin::get_dealer))
         .route("/api/v1/dealer/pricing", get(handlers::dealer::get_pricing))
         .route("/api/v1/dealer/calculate", post(handlers::dealer::calculate))
         .route("/api/v1/dealer/orders", post(handlers::dealer::create_order))
@@ -94,6 +99,8 @@ async fn main() {
         .route("/api/v1/admin/pricing", get(handlers::pricing::get_global_pricing))
         .route("/api/v1/admin/pricing", post(handlers::pricing::update_global_pricing))
         .route("/api/v1/pricing", get(handlers::pricing::get_global_pricing))
+        // Фавикон дилера
+        .route("/api/v1/tenant/favicon", get(handlers::content::get_tenant_favicon))
         // Контент и мультитенантность
         .route("/api/v1/tenant/config", get(handlers::content::get_tenant_config))
         .layer(cors)

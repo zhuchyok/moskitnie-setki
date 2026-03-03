@@ -3,23 +3,23 @@ import { defineStore } from 'pinia'
 export const useTenantStore = defineStore('tenant', () => {
   const config = ref({
     dealer_id: '',
-    dealer_name: 'Сетки 21',
-    city: 'Чебоксары и Новочебоксарск',
-    phone: '+7 (8352) 38-14-20',
+    dealer_name: '',
+    city: '',
+    phone: '',
     branding: {
-      logo_url: '/images/logo_clean.png',
-      primary_color: '#2A6AB2',
-      short_description: 'Производство замер монтаж от 1 дня',
-      working_hours: 'Пн–Пт 10:00–18:00'
+      logo_url: '',
+      primary_color: '',
+      short_description: '',
+      working_hours: ''
     },
     contacts: {
       phones: [],
       emails: []
     },
     seo: {
-      title: 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21',
-      description: 'Заказать москитные сетки в Чебоксарах и Новочебоксарске от производителя. Изготовление за 1 день, качественные комплектующие, гарантия.',
-      keywords: 'москитные сетки, чебоксары, новочебоксарск, купить, заказать, антикошка, антипыль'
+      title: '',
+      description: '',
+      keywords: ''
     },
     legal: {
       requisites: '',
@@ -36,7 +36,12 @@ export const useTenantStore = defineStore('tenant', () => {
       const route = useRoute()
       
       // Получаем конфиг по текущему домену или dealer_id из URL
-      const queryParams = route.query.dealer_id ? { dealer_id: route.query.dealer_id } : {}
+      // Добавляем логирование для отладки в консоли браузера
+      console.log('Fetching tenant config, query:', route.query)
+      
+      // Игнорируем dealer_id в query для админ-панели, чтобы не менять брендинг при редактировании дилера
+      const dealerId = !route.path.startsWith('/admin') ? route.query.dealer_id : null
+      const queryParams = dealerId ? { dealer_id: String(dealerId) } : {}
       
       const data = await $fetch('/api/v1/tenant/config', {
         baseURL: apiBase,
@@ -47,8 +52,8 @@ export const useTenantStore = defineStore('tenant', () => {
         config.value = data
         isLoaded.value = true
         
-        // Применяем основной цвет к CSS переменной
-        if (data.branding?.primary_color) {
+        // Применяем основной цвет к CSS переменной (только на клиенте)
+        if (process.client && data.branding?.primary_color) {
           document.documentElement.style.setProperty('--brand-blue', data.branding.primary_color)
         }
       }

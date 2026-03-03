@@ -25,7 +25,9 @@ definePageMeta({
 })
 
 const title = 'Настройки кабинета — Сетки 21'
-useHead({ title })
+useHead({ 
+  title
+})
 
 const isLoading = ref(true)
 const isSaving = ref(false)
@@ -210,13 +212,11 @@ onMounted(fetchSettings)
       </div>
 
       <div class="bg-white rounded-[3rem] shadow-2xl border border-gray-100 overflow-hidden">
-        <div class="p-10 border-b border-gray-50 flex justify-between items-center">
+          <div class="p-10 border-b border-gray-50 flex justify-between items-center">
           <h2 class="text-2xl font-black text-brand-dark uppercase tracking-tighter">Настройки кабинета</h2>
           <div class="flex gap-2 flex-wrap">
-            <button @click="activeTab = 'site'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all', activeTab === 'site' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Сайт</button>
-            <button @click="activeTab = 'branding'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all', activeTab === 'branding' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Брендинг</button>
+            <button @click="activeTab = 'site'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all', activeTab === 'site' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Основное</button>
             <button @click="activeTab = 'contacts'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all', activeTab === 'contacts' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Контакты</button>
-            <button @click="activeTab = 'seo'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all', activeTab === 'seo' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">SEO</button>
             <button @click="activeTab = 'legal'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all', activeTab === 'legal' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Юр. данные</button>
           </div>
         </div>
@@ -227,18 +227,15 @@ onMounted(fetchSettings)
         </div>
 
         <form v-else @submit.prevent="handleSave" class="p-10 space-y-10">
-          <!-- Сайт -->
-          <div v-if="activeTab === 'site'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <!-- Основное (Сайт + Брендинг) -->
+          <div v-if="activeTab === 'site'" class="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div class="space-y-2">
               <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Домен сайта</label>
               <input v-model="form.domain" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="setki21.ru или www.setki21.ru" />
               <p class="text-[9px] text-gray-400 ml-4 mt-2">При заходе на этот адрес посетители увидят ваши настройки (брендинг, контакты, SEO). Укажите домен вашего сайта, например setki21.ru</p>
             </div>
-          </div>
 
-          <!-- Branding -->
-          <div v-if="activeTab === 'branding'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="pt-6 border-t border-gray-50 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div class="space-y-2">
                 <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Ваш логотип</label>
                 <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 hover:border-brand-blue transition-colors relative group">
@@ -260,13 +257,15 @@ onMounted(fetchSettings)
                 </div>
               </div>
             </div>
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Краткое описание (подпись)</label>
-              <input v-model="form.branding.short_description" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Режим работы</label>
-              <input v-model="form.branding.working_hours" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Пн-Пт 9:00-18:00" />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div class="space-y-2">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Краткое описание (подпись)</label>
+                <input v-model="form.branding.short_description" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+              </div>
+              <div class="space-y-2">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Режим работы</label>
+                <input v-model="form.branding.working_hours" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Пн-Пт 9:00-18:00" />
+              </div>
             </div>
           </div>
 

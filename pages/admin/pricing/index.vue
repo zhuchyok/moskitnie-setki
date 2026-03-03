@@ -9,7 +9,9 @@ definePageMeta({
 })
 
 const title = 'Управление ценами — Сетки 21'
-useHead({ title })
+useHead({ 
+  title
+})
 
 const pricing = reactive({
   mesh: [],

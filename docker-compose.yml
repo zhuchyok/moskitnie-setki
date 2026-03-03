@@ -1,11 +1,13 @@
 version: '3.8'
 
 services:
-  # API Gateway
+  # API Gateway (image: при деплое подставляется из tar, иначе собирается из build)
   api:
+    image: moskit-api:latest
     build:
       context: .
       dockerfile: moskit-api/Dockerfile
+    # 8083 снаружи: 8081 часто занят atra-web-ide-gateway
     ports:
       - "8083:8080"
     environment:
@@ -19,10 +21,13 @@ services:
     restart: unless-stopped
 
   # Frontend (Nuxt)
+  # Для VDS: при сборке передать NUXT_PUBLIC_API_URL (публичный URL API для браузера), см. .env.deploy и scripts/deploy_moskit_api_vds.sh
   web:
     build:
       context: .
       dockerfile: Dockerfile.web
+      args:
+        NUXT_PUBLIC_API_URL: ${NUXT_PUBLIC_API_URL:-http://localhost:8083}
     ports:
       - "3003:3000"
     environment:

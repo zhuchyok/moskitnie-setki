@@ -27,17 +27,35 @@ const fetchOrders = async () => {
         'Authorization': `Bearer ${auth.token}`
       }
     }) as any
-    orders.value = response
+    
+    orders.value = response.map((o: any) => ({
+      orderId: o.id,
+      orderNumber: o.order_number || String(o.id).substring(0, 8),
+      date: new Date(o.created_at).toLocaleDateString('ru-RU'),
+      client: o.client_name,
+      amount: new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(o.total_amount),
+      status: mapStatus(o.status).label,
+      statusColor: mapStatus(o.status).color,
+      dealer: o.dealer_name || '—'
+    }))
   } catch (e) {
     console.error('Failed to fetch orders', e)
-    // Заглушка для демонстрации, если API еще не возвращает данные
-    orders.value = [
-      { id: 'MS-2024021501', date: '15.02.2024', client: 'Иван И.', amount: '3 450 ₽', status: 'В производстве', statusColor: 'blue' },
-      { id: 'MS-2024021408', date: '14.02.2024', client: 'Мария С.', amount: '1 200 ₽', status: 'Готов', statusColor: 'green' },
-    ]
+    orders.value = []
   } finally {
     isLoading.value = false
   }
+}
+
+const mapStatus = (status: string) => {
+  const statuses: Record<string, { label: string, color: string }> = {
+    'new': { label: 'Новый', color: 'gray' },
+    'confirmed': { label: 'Подтвержден', color: 'blue' },
+    'in_production': { label: 'В производстве', color: 'blue' },
+    'ready': { label: 'Готов', color: 'green' },
+    'completed': { label: 'Завершен', color: 'green' },
+    'cancelled': { label: 'Отменен', color: 'red' }
+  }
+  return statuses[status] || { label: status, color: 'gray' }
 }
 
 onMounted(fetchOrders)
@@ -56,6 +74,9 @@ onMounted(fetchOrders)
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-blue mx-auto mb-4"></div>
           <p class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Загрузка заказов...</p>
         </div>
+        <div v-else-if="orders.length === 0" class="p-20 text-center">
+          <p class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Заказов пока нет</p>
+        </div>
         <div v-else class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
@@ -70,11 +91,11 @@ onMounted(fetchOrders)
               </tr>
             </thead>
             <tbody class="text-sm font-bold text-brand-dark">
-              <tr v-for="order in orders" :key="order.id" class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                <td class="p-10">{{ order.id }}</td>
+              <tr v-for="order in orders" :key="order.orderId" class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                <td class="p-10">{{ order.orderNumber }}</td>
                 <td class="p-10 text-gray-400">{{ order.date }}</td>
                 <td class="p-10">{{ order.client }}</td>
-                <td v-if="auth.isAdmin" class="p-10 text-gray-400">ООО "Окна Плюс"</td>
+                <td v-if="auth.isAdmin" class="p-10 text-gray-400">{{ order.dealer }}</td>
                 <td class="p-10 text-brand-blue font-black">{{ order.amount }}</td>
                 <td class="p-10">
                   <span :class="[
@@ -86,7 +107,7 @@ onMounted(fetchOrders)
                   </span>
                 </td>
                 <td class="p-10 text-right">
-                  <button class="text-gray-300 hover:text-brand-blue transition-colors">Просмотр</button>
+                  <NuxtLink :to="`/admin/orders/${order.orderId}`" class="text-brand-blue hover:underline font-black text-[10px] uppercase tracking-widest">Просмотр</NuxtLink>
                 </td>
               </tr>
             </tbody>

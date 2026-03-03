@@ -7,13 +7,18 @@ const auth = useAuthStore()
 const tenant = useTenantStore()
 const pricing = usePricingStore()
 
-// Инициализация авторизации и конфига при загрузке приложения
-onMounted(async () => {
+// Инициализация при загрузке: не блокируем первый рендер (при холодном старте API первый запрос может не успеть)
+onMounted(() => {
   auth.initAuth()
-  await Promise.all([
+  Promise.all([
     tenant.fetchConfig(),
     pricing.fetchPricing()
-  ])
+  ]).catch(() => {}).then(() => {
+    // Повторная попытка через 2 с, если API ещё не проснулся (Docker/VDS cold start)
+    if (!pricing.pricing) {
+      setTimeout(() => pricing.fetchPricing(), 2000)
+    }
+  })
 })
 </script>
 

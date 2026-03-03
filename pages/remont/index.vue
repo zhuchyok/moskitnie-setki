@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const title = 'Ремонт москитных сеток в Чебоксарах — цены от 100 руб'
 const description = 'Профессиональный ремонт москитных сеток в Чебоксарах и Новочебоксарске. Замена полотна, ручек, уголков. Быстро, качественно, недорого. Звоните!'
-const keywords = 'ремонт сеток, замена полотна, москитная сетка ремонт, чебоксары, новочебоксарск, запчасти для сеток'
+const keywords = 'ремонт сеток, замена полотна, москитная сетка ремонт, чебоксары, новочебоксарск, запчасти для сеток, перетяжка сетки, замена ручек'
 const url = 'https://www.setki21.ru/remont/'
 const image = 'https://www.setki21.ru/images/logo_new.png'
 
@@ -136,14 +136,14 @@ const faqItems = [
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center md:text-left text-white">Как заказать?</h2>
               <div class="space-y-10">
                 <div class="flex gap-6 group">
-                  <div class="w-14 h-14 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black text-2xl opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
+                  <div class="w-14 h-14 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black text-2xl opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">01</div>
                   <div>
                     <h3 class="font-black text-xl uppercase tracking-tighter mb-2 text-white">Привезите к нам</h3>
                     <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">В офис в Чебоксарах или Новочебоксарске. Сделаем за 3 дня.</p>
                   </div>
                 </div>
                 <div class="flex gap-6 group">
-                  <div class="w-14 h-14 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black text-2xl opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
+                  <div class="w-14 h-14 rounded-2xl bg-brand-blue flex-shrink-0 flex items-center justify-center font-black text-2xl opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">02</div>
                   <div>
                     <h3 class="font-black text-xl uppercase tracking-tighter mb-2 text-white">Вызовите мастера</h3>
                     <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Мастер приедет в удобное время, заберет сетки и привезет отремонтированные через 3 дня.</p>
@@ -157,7 +157,7 @@ const faqItems = [
               </div>
             </div>
           </div>
-          <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
+          <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" style="will-change: filter; transform: translateZ(0);"></div>
         </div>
         <SeoTextBlock title="Ремонт москитных сеток в Чебоксарах и Новочебоксарске" class="mt-20">
           <p>

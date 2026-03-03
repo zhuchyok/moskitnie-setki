@@ -23,7 +23,7 @@ const pricing = reactive({
     manufacturing_percent: 0,
     measurement_base: 0,
     measurement_percent: 0,
-    measurement_profit_factor: 0,
+    measurement_profit_factor: 5,
     urgent_profit_factor: 0,
     installation_profit_factor: 0,
     delivery_profit_factor: 0
@@ -51,22 +51,16 @@ const fetchPricing = async () => {
     console.log('Pricing response:', response)
     
     if (response) {
+      const defaults = { 
+        dealer: 0, client: 0, manufacturing_base: 0, manufacturing_percent: 0,
+        measurement_base: 0, measurement_percent: 0, measurement_profit_factor: 5,
+        urgent_profit_factor: 0, installation_profit_factor: 0, delivery_profit_factor: 0
+      }
       pricing.mesh = response.mesh || []
       pricing.profiles = response.profiles || []
       pricing.components = response.components || []
-      pricing.services = response.services || []
-      pricing.markup = response.markup || { 
-        dealer: 0, 
-        client: 0, 
-        manufacturing_base: 0, 
-        manufacturing_percent: 0,
-        measurement_base: 0,
-        measurement_percent: 0,
-        measurement_profit_factor: 0,
-        urgent_profit_factor: 0,
-        installation_profit_factor: 0,
-        delivery_profit_factor: 0
-      }
+      pricing.services = (response.services || []).filter((s: any) => s.id !== 'measurement')
+      pricing.markup = { ...defaults, ...(response.markup || {}) }
     }
   } catch (e) {
     console.error('Failed to fetch pricing', e)
@@ -232,7 +226,7 @@ onMounted(fetchPricing)
             <h2 class="text-xl font-black text-brand-dark uppercase tracking-tighter">Работы и услуги</h2>
           </div>
           <div class="p-8 space-y-6">
-            <div v-for="item in pricing.services" :key="item.id" class="flex items-center justify-between gap-4">
+            <div v-for="item in pricing.services.filter(s => s.id !== 'measurement')" :key="item.id" class="flex items-center justify-between gap-4">
               <span class="font-bold text-gray-600 truncate">{{ item.name }}</span>
               <div class="flex items-center gap-3 shrink-0 min-w-[140px] justify-end">
                 <input v-model.number="item.price" type="number" class="w-24 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-xl px-4 py-2 text-right font-black text-brand-blue outline-none transition-all" />
@@ -320,6 +314,12 @@ onMounted(fetchPricing)
               <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Коэффициент доставки</label>
               <div class="flex items-center gap-4">
                 <input v-model.number="pricing.markup.delivery_profit_factor" type="number" step="0.1" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 font-black text-2xl text-brand-blue outline-none transition-all" />
+              </div>
+            </div>
+            <div class="space-y-4">
+              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Коэффициент замера</label>
+              <div class="flex items-center gap-4">
+                <input v-model.number="pricing.markup.measurement_profit_factor" type="number" step="0.1" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 font-black text-2xl text-brand-blue outline-none transition-all" placeholder="5" />
               </div>
             </div>
           </div>

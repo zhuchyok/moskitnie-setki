@@ -123,10 +123,40 @@ const ralAnimationColors = [
   '#F1753F'  // RAL 2004 (Оранжевый)
 ]
 
+// ... (предыдущий код) ...
 const currentRalIndex = ref(0)
 const animatedRalColor = computed(() => ralAnimationColors[currentRalIndex.value])
 
+// SEO: Микроразметка цен для поисковиков
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      children: JSON.stringify({
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": "Москитные сетки в Чебоксарах",
+        "description": "Индивидуальный расчет стоимости москитных сеток: Антикошка, Антипыль, VSN. Изготовление от 1 дня.",
+        "brand": {
+          "@type": "Brand",
+          "name": "Сетки 21"
+        },
+        "offers": {
+          "@type": "AggregateOffer",
+          "lowPrice": "800",
+          "highPrice": "5500",
+          "priceCurrency": "RUB",
+          "offerCount": "10",
+          "availability": "https://schema.org/InStock",
+          "areaServed": "Чебоксары, Новочебоксарск"
+        }
+      })
+    }
+  ]
+})
+
 onMounted(() => {
+// ... (остальной код) ...
   store.setDelivery('Доставка', store.deliveryPriceCalculated)
   // Анимация смены цветов только для рамки, если выбран RAL
   setInterval(() => {
@@ -182,14 +212,14 @@ const measurementOption = computed(() => ({
   price: store.measurementPriceCalculated 
 }))
 
-// Размер ячейки сетки в зависимости от типа полотна
+// Размер ячейки сетки в зависимости от типа полотна (меньше число — мельче ячейка на превью)
 const meshSize = computed(() => {
   switch (store.config.type) {
     case 'standart': return 4    // Стандартная 1.2x1.2
-    case 'antimoshka': return 1.5 // Было 2, стало 1.5 (микро-ячейка)
-    case 'antikoshka': return 5  // Было 6, стало 5 (чуть мельче ячейка Pet Screen)
-    case 'ultravyu': return 1.5   // Как у антимошки (1.5)
-    case 'antipyl': return 2     // Было 1.5, стало 2 (самая мелкая ячейка 0.8x0.8)
+    case 'antimoshka': return 3 // Мельче стандарта: микро-ячейка 0.8x0.8
+    case 'antikoshka': return 5  // Крупная ячейка Pet Screen
+    case 'ultravyu': return 3 // Мельче стандарта: прозрачность + мелкая ячейка
+    case 'antipyl': return 2     // Самая мелкая ячейка 0.8x0.8
     default: return 4
   }
 })
@@ -198,7 +228,7 @@ const meshSize = computed(() => {
 const meshThickness = computed(() => {
   switch (store.config.type) {
     case 'antikoshka': return '2px'   // Толстая нить (полиэстер)
-    case 'ultravyu': return '0.4px'   // Чуть тоньше антимошки (было 0.3px, но антимошка теперь 0.7px, так что 0.4px - это заметно тоньше)
+    case 'ultravyu': return '0.65px'   // Тонкая нить, но линии видны на превью (не 0.4px — иначе сетка не видна)
     case 'antimoshka': return '0.7px' // Было 0.8, стало 0.7 (тонкая нить)
     case 'antipyl': return '0.8px'    // Было 0.7, стало 0.8 (тонкая нить)
     default: return '1px'             // Стандарт
@@ -207,7 +237,7 @@ const meshThickness = computed(() => {
 
 const meshOpacity = computed(() => {
   switch (store.config.type) {
-    case 'ultravyu': return '0.1'     // Максимальная прозрачность (светлые нити)
+    case 'ultravyu': return '0.2'     // Прозрачнее стандарта, но линии сетки видны на превью
     case 'antikoshka': return '0.45'  // Самая плотная и темная
     case 'antipyl': return '0.35'     // Плотная (фильтр)
     case 'antimoshka': return '0.28'  // Чуть плотнее стандарта
@@ -271,6 +301,52 @@ const formErrors = reactive<Record<string, string>>({ name: '', phone: '', addre
 
 /** Российские форматы: +7 (XXX) XX-XX-XX, +7 (XXXX) XX-XX-XX, +79XXXXXXXXX */
 const PHONE_REGEX = /^\+7\s?\(\d{3,4}\)\s?\d{2,3}-\d{2}-\d{2}$|^\+7\d{10}$/
+
+/** Допустимые символы в поле телефона: цифры, +, пробел, скобки, дефис. Не более 11 цифр (+7 и 10 цифр номера). */
+const PHONE_ALLOWED = /[\d+\s()\-]/g
+const MAX_PHONE_DIGITS = 11
+
+/** Символы, которые можно вводить с клавиатуры (мировая практика: ограничить ввод до допустимых) */
+const PHONE_KEY_ALLOWED = /^[\d+\s\-()]$/
+
+/**
+ * Форматирует ввод телефона в вид +7 (XXX) XXX-XX-XX (мировая практика: маска при вводе).
+ * Только цифры, макс. 11; ведущая 8 заменяется на 7.
+ */
+function formatPhoneDisplay(raw: string): string {
+  const digits = (raw.match(/\d/g) || []).join('').slice(0, MAX_PHONE_DIGITS)
+  if (digits.length === 0) return ''
+  let d = digits
+  if (d.startsWith('8') && d.length <= 11) d = '7' + d.slice(1)
+  else if (!d.startsWith('7')) d = '7' + d
+  d = d.slice(0, 11)
+  if (d.length <= 1) return d === '7' ? '+7' : '+7 (' + d
+  if (d.length <= 4) return '+7 (' + d.slice(1)
+  if (d.length <= 7) return '+7 (' + d.slice(1, 4) + ') ' + d.slice(4)
+  if (d.length <= 9) return '+7 (' + d.slice(1, 4) + ') ' + d.slice(4, 7) + '-' + d.slice(7)
+  return '+7 (' + d.slice(1, 4) + ') ' + d.slice(4, 7) + '-' + d.slice(7, 9) + '-' + d.slice(9, 11)
+}
+
+/** Оставляет только допустимые символы, обрезает до 11 цифр и форматирует отображение */
+function sanitizePhoneInput(value: string): string {
+  const allowed = (value.match(PHONE_ALLOWED) || []).join('')
+  const digits = allowed.replace(/\D/g, '')
+  if (digits.length === 0) return ''
+  return formatPhoneDisplay(allowed)
+}
+
+/** Блокирует ввод букв и недопустимых символов (только цифры, +, пробел, скобки, дефис) */
+function onPhoneKeydown(e: KeyboardEvent) {
+  const key = e.key
+  if (key.length === 1 && !PHONE_KEY_ALLOWED.test(key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault()
+  }
+}
+
+function onPhoneInput(e: Event) {
+  form.phone = sanitizePhoneInput((e.target as HTMLInputElement).value)
+  formErrors.phone = ''
+}
 
 function validateOrderForm(): boolean {
   formErrors.name = ''
@@ -361,18 +437,19 @@ const submitOrder = async () => {
     }
   } catch (e: any) {
     console.error('Ошибка отправки:', e)
-    const errorMessage = e.data?.message || e.message || 'Произошла ошибка при отправке. Пожалуйста, позвоните нам по телефону.'
+    const errorMessage = e.data?.statusMessage || e.data?.message || e.message || 'Произошла ошибка при отправке. Позвоните нам по телефону.'
     showNotification(errorMessage, 'error')
   }
 }
 </script>
 
 <template>
-  <div ref="calculatorRef" class="container mx-auto px-4 space-y-12 scroll-mt-40">
+  <!-- Отступы: как в блоке «Ваш заказ» (p-10 md:p-16). Между блоками — тот же размер (space-y-10 md:space-y-16). -->
+  <div ref="calculatorRef" class="container mx-auto px-4 space-y-10 md:space-y-16 scroll-mt-40">
     <!-- Калькулятор -->
-    <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 min-h-[650px]">
+    <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 h-auto lg:min-h-[680px] lg:h-[740px]">
       <!-- Визуализация (Левая часть) -->
-      <div class="lg:w-4/12 bg-gray-50/50 p-12 flex flex-col items-center justify-center relative border-r border-gray-100">
+      <div class="lg:w-4/12 bg-gray-50/50 p-10 flex flex-col items-center justify-center relative border-r border-gray-100 h-full">
         <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
              :style="{ 
                width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', 
@@ -408,20 +485,55 @@ const submitOrder = async () => {
         
         <!-- Размеры под рамкой -->
         <div class="mt-12 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
-          <div class="flex items-center gap-3">
-            <span class="w-2.5 h-2.5 rounded-full bg-brand-blue shadow-lg shadow-brand-blue/40"></span>
-            {{ store.config.width }} мм
+          <!-- Ширина -->
+          <div class="flex items-center gap-3 group">
+            <span class="w-2.5 h-2.5 rounded-full bg-brand-blue shadow-lg shadow-brand-blue/40 transition-transform group-hover:scale-125"></span>
+            <div class="flex items-baseline gap-1">
+              <input v-if="editingWidth" 
+                     type="text" 
+                     v-model="tempWidth" 
+                     @blur="saveWidth" 
+                     @keyup.enter="saveWidth"
+                     @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
+                     maxlength="4"
+                     class="w-16 text-sm font-black text-brand-blue text-center bg-blue-50 border-b-2 border-brand-blue outline-none py-0.5" 
+                     autofocus />
+              <span v-else 
+                    @click="startEditWidth" 
+                    class="border-b border-dashed border-gray-300 group-hover:border-brand-blue group-hover:text-brand-blue transition-colors cursor-pointer">
+                {{ store.config.width }}
+              </span>
+              <small class="text-[9px] text-gray-300 ml-0.5">ММ</small>
+            </div>
           </div>
-          <div class="flex items-center gap-3">
-            <span class="w-2.5 h-2.5 rounded-full bg-brand-blue shadow-lg shadow-brand-blue/40"></span>
-            {{ store.config.height }} мм
+
+          <!-- Высота -->
+          <div class="flex items-center gap-3 group">
+            <span class="w-2.5 h-2.5 rounded-full bg-brand-blue shadow-lg shadow-brand-blue/40 transition-transform group-hover:scale-125"></span>
+            <div class="flex items-baseline gap-1">
+              <input v-if="editingHeight" 
+                     type="text" 
+                     v-model="tempHeight" 
+                     @blur="saveHeight" 
+                     @keyup.enter="saveHeight"
+                     @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
+                     maxlength="4"
+                     class="w-16 text-sm font-black text-brand-blue text-center bg-blue-50 border-b-2 border-brand-blue outline-none py-0.5" 
+                     autofocus />
+              <span v-else 
+                    @click="startEditHeight" 
+                    class="border-b border-dashed border-gray-300 group-hover:border-brand-blue group-hover:text-brand-blue transition-colors cursor-pointer">
+                {{ store.config.height }}
+              </span>
+              <small class="text-[9px] text-gray-300 ml-0.5">ММ</small>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Управление (Правая часть) -->
-      <div class="lg:w-8/12 p-10 lg:p-20 flex flex-col justify-start min-w-0 overflow-hidden">
-        <div class="flex items-center gap-5 mb-12">
+      <!-- Управление (Правая часть): отступ сверху как у левого (p-12); снизу увеличен под цену и кнопку (на VDS не перекрывает) -->
+      <div class="lg:w-8/12 px-10 md:px-16 pt-12 pb-14 lg:pb-16 flex flex-col justify-start min-w-0 overflow-hidden">
+        <div class="flex items-center gap-5 mb-8">
           <div class="w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center text-white shadow-2xl shadow-brand-blue/30 transform -rotate-3">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -441,8 +553,7 @@ const submitOrder = async () => {
           </div>
         </div>
         
-        <div class="space-y-10 w-full min-w-0 transition-all duration-500 ease-in-out overflow-hidden pb-10" 
-             style="min-height: 520px">
+        <div class="space-y-10 w-full min-w-0 transition-all duration-500 ease-in-out overflow-hidden pb-8">
           <Transition name="fade-slide" mode="out-in">
             <div :key="currentStep" class="space-y-10">
               <!-- Шаг 1: Конфигурация -->
@@ -768,17 +879,19 @@ const submitOrder = async () => {
                 <div class="pt-4 flex flex-col sm:flex-row items-end justify-between gap-6">
                   <div class="text-center sm:text-left w-full sm:w-auto">
                     <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-2">Итоговая цена</p>
-                    <div class="flex items-baseline gap-1 justify-center sm:justify-start">
-                      <span class="text-6xl font-black text-brand-blue leading-none tracking-tighter">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
-                      <span class="text-2xl font-black text-gray-200 uppercase leading-none self-baseline ml-1" style="font-size: 1.5rem; line-height: 1;">₽</span>
+                    <div class="flex items-baseline justify-center sm:justify-start">
+                      <div class="inline-flex items-baseline gap-3 bg-white px-8 py-6 -ml-8 -mt-2 overflow-visible">
+                        <span class="text-5xl font-black text-brand-blue leading-[1.2] tracking-normal whitespace-nowrap">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
+                        <span class="text-2xl font-black text-gray-200 uppercase leading-none self-baseline" style="font-size: 1.5rem; line-height: 1;">₽</span>
+                      </div>
                     </div>
                   </div>
                   <button @click="handleAddToOrder()"
                           :class="[
-                            'w-full sm:w-auto font-black py-4 px-14 rounded-2xl transition-all shadow-[0_20px_50px_-10px_rgba(0,0,0,0.3)] active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap',
+                            'w-full sm:w-auto font-black py-4 px-14 rounded-2xl transition-all shadow-xl active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap',
                             isAdded 
-                              ? 'bg-brand-blue text-white hover:bg-brand-blue' 
-                              : 'bg-brand-dark hover:bg-black text-white hover:shadow-brand-dark/40'
+                              ? 'bg-brand-blue text-white hover:bg-brand-blue shadow-brand-blue/20' 
+                              : 'bg-brand-dark hover:bg-black text-white shadow-black/20 hover:shadow-xl hover:shadow-black/25'
                           ]">
                     {{ isAdded ? 'Добавлено' : 'Добавить в заказ' }}
                   </button>
@@ -787,23 +900,25 @@ const submitOrder = async () => {
             </div>
           </Transition>
 
-          <!-- Навигация и Цена (Step 1-4) -->
-          <div v-if="currentStep < 5" class="pt-10 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
+          <!-- Навигация и Цена (Step 1-4): нижний отступ увеличен, чтобы на VDS не обрезало цену и кнопку -->
+          <div v-if="currentStep < 5" class="pt-10 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
             <!-- Цена в левом углу -->
             <div class="text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
               <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-2">Предварительная цена</p>
-              <div class="flex items-baseline gap-1 justify-center sm:justify-start">
-                <span class="text-4xl font-black text-brand-blue leading-none tracking-tighter">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
-                <span class="text-xl font-black text-gray-200 uppercase leading-none self-baseline ml-1">₽</span>
+              <div class="flex items-baseline justify-center sm:justify-start">
+                <div class="inline-flex items-baseline gap-3 bg-white px-8 py-6 -ml-8 -mt-2 overflow-visible">
+                  <span class="text-3xl font-black text-brand-blue leading-[1.2] tracking-normal whitespace-nowrap">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
+                  <span class="text-xl font-black text-gray-200 uppercase leading-none self-baseline">₽</span>
+                </div>
               </div>
             </div>
 
-            <!-- Кнопки навигации -->
-          <div class="flex items-center gap-4 w-full sm:w-auto order-1 sm:order-2">
+            <!-- Кнопки навигации: «Далее» по ширине как «Назад», обе одинаковой ширины (сетка); pb-6 чтобы тень не обрезалась -->
+          <div class="grid grid-cols-2 gap-4 w-full sm:w-auto order-1 sm:order-2 pb-6">
             <button v-if="currentStep > 1" 
                     @click="prevStep"
-                    class="flex-1 sm:flex-none text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2 hover:text-brand-dark transition-colors py-4 px-6 border-2 border-gray-100 rounded-2xl">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    class="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2 hover:text-brand-dark transition-colors py-4 px-6 border-2 border-gray-100 rounded-2xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
               </svg>
               Назад
@@ -812,13 +927,14 @@ const submitOrder = async () => {
             <button @click="nextStep"
                     :disabled="currentStep === 3 && !store.config.measurementMethod"
                     :class="[
-                      'flex-[2] sm:flex-none font-black py-4 px-10 rounded-2xl transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-95',
+                      'w-full font-black py-4 px-6 rounded-2xl transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-95',
+                      currentStep === 1 ? 'col-span-2' : '',
                       currentStep === 3 && !store.config.measurementMethod
                         ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
                         : 'bg-brand-blue text-white hover:bg-[#1e5a9a] shadow-brand-blue/20'
                     ]">
               {{ currentStep === 3 && !store.config.measurementMethod ? 'Выберите метод замера' : 'Далее' }}
-              <svg v-if="!(currentStep === 3 && !store.config.measurementMethod)" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg v-if="!(currentStep === 3 && !store.config.measurementMethod)" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -1081,7 +1197,10 @@ const submitOrder = async () => {
             </div>
             <div class="space-y-3">
               <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Телефон</label>
-              <input v-model="form.phone" type="tel" required placeholder="+7 (___) ___-__-__"
+              <input :value="form.phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="+7 (___) ___-__-__"
+                     @keydown="onPhoneKeydown"
+                     @input="onPhoneInput"
+                     maxlength="18"
                      :class="[
                        'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner',
                        formErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'

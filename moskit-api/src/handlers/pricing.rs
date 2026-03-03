@@ -30,6 +30,7 @@ pub struct MarkupConfig {
     pub manufacturing_percent: f64,
     pub measurement_base: f64,
     pub measurement_percent: f64,
+    #[serde(default)]
     pub measurement_profit_factor: f64,
     pub urgent_profit_factor: f64,
     pub installation_profit_factor: f64,

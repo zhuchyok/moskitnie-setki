@@ -3,7 +3,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use sqlx::{FromRow, Type};
+use sqlx::FromRow;
 
 use super::pricing::MarginConfig;
 
@@ -18,7 +18,7 @@ pub struct DealerNotificationSettings {
     pub notify_on_balance_low: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum DeliveryMode {
     SelfPickup,      // Самовывоз
@@ -26,11 +26,87 @@ pub enum DeliveryMode {
     FullService,     // Монтаж силами производителя
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
+impl sqlx::Type<sqlx::Postgres> for DeliveryMode {
+    fn type_info() -> sqlx::postgres::PgTypeInfo {
+        sqlx::postgres::PgTypeInfo::with_name("TEXT")
+    }
+}
+
+impl DeliveryMode {
+    /// Каноническое значение для БД и API (всегда snake_case, как в БД).
+    pub fn as_db_value(&self) -> &'static str {
+        match self {
+            DeliveryMode::SelfPickup => "self_pickup",
+            DeliveryMode::DealerDelivery => "dealer_delivery",
+            DeliveryMode::FullService => "full_service",
+        }
+    }
+    /// Парсит значение из БД (регистронезависимо): self_pickup, SELF_PICKUP и т.д.
+    pub fn from_db_value(s: &str) -> Result<Self, String> {
+        match s.trim().to_lowercase().as_str() {
+            "self_pickup" => Ok(DeliveryMode::SelfPickup),
+            "dealer_delivery" => Ok(DeliveryMode::DealerDelivery),
+            "full_service" => Ok(DeliveryMode::FullService),
+            _ => Err(format!("Invalid value for DeliveryMode: {:?}", s)),
+        }
+    }
+}
+
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for DeliveryMode {
+    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let s = <&str as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
+        Self::from_db_value(s).map_err(|e| e.into())
+    }
+}
+
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for DeliveryMode {
+    fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
+        <&str as sqlx::Encode<sqlx::Postgres>>::encode(self.as_db_value(), buf)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum PaymentType {
     Prepaid,  // Депозит
     Postpaid, // По факту
+}
+
+impl sqlx::Type<sqlx::Postgres> for PaymentType {
+    fn type_info() -> sqlx::postgres::PgTypeInfo {
+        sqlx::postgres::PgTypeInfo::with_name("TEXT")
+    }
+}
+
+impl PaymentType {
+    /// Каноническое значение для БД и API (всегда как в БД).
+    pub fn as_db_value(&self) -> &'static str {
+        match self {
+            PaymentType::Prepaid => "prepaid",
+            PaymentType::Postpaid => "postpaid",
+        }
+    }
+    /// Парсит значение из БД (регистронезависимо).
+    pub fn from_db_value(s: &str) -> Result<Self, String> {
+        match s.trim().to_lowercase().as_str() {
+            "prepaid" => Ok(PaymentType::Prepaid),
+            "postpaid" => Ok(PaymentType::Postpaid),
+            _ => Err(format!("Invalid value for PaymentType: {:?}", s)),
+        }
+    }
+}
+
+impl<'r> sqlx::Decode<'r, sqlx::Postgres> for PaymentType {
+    fn decode(value: sqlx::postgres::PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+        let s = <&str as sqlx::Decode<sqlx::Postgres>>::decode(value)?;
+        Self::from_db_value(s).map_err(|e| e.into())
+    }
+}
+
+impl<'q> sqlx::Encode<'q, sqlx::Postgres> for PaymentType {
+    fn encode_by_ref(&self, buf: &mut sqlx::postgres::PgArgumentBuffer) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Send + Sync>> {
+        <&str as sqlx::Encode<sqlx::Postgres>>::encode(self.as_db_value(), buf)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -63,6 +139,8 @@ pub struct DealerSeoConfig {
     pub keywords: Option<String>,
 }
 
+use rust_decimal::Decimal;
+
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Dealer {
     pub id: Uuid,
@@ -76,7 +154,7 @@ pub struct Dealer {
     pub margin_config: MarginConfig,
     pub delivery_mode: DeliveryMode,
     pub payment_type: PaymentType,
-    pub balance: f64,
+    pub balance: Decimal,
     #[sqlx(json)]
     pub branding: DealerBranding,
     #[sqlx(json)]
@@ -104,7 +182,7 @@ impl Dealer {
             margin_config: MarginConfig::default(),
             delivery_mode: DeliveryMode::SelfPickup,
             payment_type: PaymentType::Postpaid,
-            balance: 0.0,
+            balance: Decimal::ZERO,
             branding: DealerBranding::default(),
             contacts: DealerContacts::default(),
             legal_info: DealerLegalInfo::default(),
@@ -138,6 +216,43 @@ impl DealerDepartment {
             is_active: true,
             created_at: now,
             updated_at: now,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{DeliveryMode, PaymentType};
+
+    #[test]
+    fn delivery_mode_from_db_value_accepts_any_case() {
+        assert_eq!(DeliveryMode::from_db_value("self_pickup").unwrap(), DeliveryMode::SelfPickup);
+        assert_eq!(DeliveryMode::from_db_value("SELF_PICKUP").unwrap(), DeliveryMode::SelfPickup);
+        assert_eq!(DeliveryMode::from_db_value("Self_Pickup").unwrap(), DeliveryMode::SelfPickup);
+        assert_eq!(DeliveryMode::from_db_value("  dealer_delivery  ").unwrap(), DeliveryMode::DealerDelivery);
+        assert_eq!(DeliveryMode::from_db_value("DEALER_DELIVERY").unwrap(), DeliveryMode::DealerDelivery);
+        assert_eq!(DeliveryMode::from_db_value("FULL_SERVICE").unwrap(), DeliveryMode::FullService);
+        assert!(DeliveryMode::from_db_value("unknown").is_err());
+    }
+
+    #[test]
+    fn payment_type_from_db_value_accepts_any_case() {
+        assert_eq!(PaymentType::from_db_value("postpaid").unwrap(), PaymentType::Postpaid);
+        assert_eq!(PaymentType::from_db_value("POSTPAID").unwrap(), PaymentType::Postpaid);
+        assert_eq!(PaymentType::from_db_value("prepaid").unwrap(), PaymentType::Prepaid);
+        assert_eq!(PaymentType::from_db_value("PREPAID").unwrap(), PaymentType::Prepaid);
+        assert!(PaymentType::from_db_value("invalid").is_err());
+    }
+
+    #[test]
+    fn delivery_mode_and_payment_type_as_db_value_roundtrip() {
+        for mode in &[DeliveryMode::SelfPickup, DeliveryMode::DealerDelivery, DeliveryMode::FullService] {
+            let s = mode.as_db_value();
+            assert_eq!(DeliveryMode::from_db_value(s).unwrap(), *mode, "roundtrip {}", s);
+        }
+        for pt in &[PaymentType::Prepaid, PaymentType::Postpaid] {
+            let s = pt.as_db_value();
+            assert_eq!(PaymentType::from_db_value(s).unwrap(), *pt, "roundtrip {}", s);
         }
     }
 }

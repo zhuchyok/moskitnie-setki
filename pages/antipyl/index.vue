@@ -6,7 +6,7 @@ onMounted(() => {
 
 const title = 'Москитная сетка Антипыль (Poll-Tex) в Чебоксарах — цены от 1400 руб'
 const description = 'Сетки для аллергиков Poll-Tex в Чебоксарах и Новочебоксарске. Нейлоновое полотно притягивает пыль и пыльцу. Чистый воздух в вашем доме. Закажите расчет!'
-const keywords = 'антипыль, poll-tex, москитная сетка для аллергиков, чебоксары, новочебоксарск, чистый воздух'
+const keywords = 'антипыль, poll-tex, москитная сетка для аллергиков, чебоксары, новочебоксарск, чистый воздух, защита от пыльцы, нейлоновая сетка'
 const url = 'https://www.setki21.ru/antipyl/'
 const image = 'https://www.setki21.ru/images/logo_new.png'
 
@@ -117,7 +117,7 @@ const faqItems = [
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки Антипыль" />
+              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки Антипыль" poster="/images/zamer-poster.jpg" />
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Как это работает?</h2>
@@ -135,23 +135,23 @@ const faqItems = [
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Преимущества Poll-Tex</h2>
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">01</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Чистота</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Блокирует до 90% пыльцы березы, злаковых и других аллергенов.</p>
                 </div>
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">02</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Легкий уход</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Достаточно просто промыть сетку под душем, чтобы смыть накопившуюся пыль.</p>
                 </div>
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">03</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">03</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Защита</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Помогает задержать тополиный пух и уличную копоть от дорог.</p>
                 </div>
               </div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" style="will-change: filter; transform: translateZ(0);"></div>
           </div>
           <SeoTextBlock title="Сетка Антипыль в Чебоксарах и Новочебоксарске" class="mt-20">
             <p>

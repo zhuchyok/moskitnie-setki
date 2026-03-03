@@ -6,7 +6,7 @@ onMounted(() => {
 
 const title = 'Москитные сетки на окна в Чебоксарах и Новочебоксарске — цены от 850 руб'
 const description = 'Производство и установка москитных сеток в Чебоксарах и Новочебоксарске по низким ценам. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!'
-const keywords = 'москитные сетки, москитная сетка, окна, чебоксары, новочебоксарск, заказать, купить, цена, установка, замер, производство'
+const keywords = 'москитные сетки, москитная сетка, окна, чебоксары, новочебоксарск, заказать, купить, цена, установка, замер, производство, антикошка, антипыль, vsn'
 const url = 'https://www.setki21.ru/'
 const image = 'https://www.setki21.ru/images/logo_final_v58.png'
 
@@ -164,9 +164,9 @@ const faqMain = [
 
 <template>
   <div>
-    <section class="py-16 bg-white">
+    <section class="py-10 bg-white">
       <div class="container mx-auto px-4">
-        <div class="flex flex-col lg:flex-row gap-12 items-center mb-16">
+        <div class="flex flex-col lg:flex-row gap-12 items-center mb-10">
           <div class="lg:w-1/2">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Рамочная <span class="text-brand-blue">москитная сетка</span> — за 1 день
@@ -218,7 +218,7 @@ const faqMain = [
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки" />
+              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки" poster="/images/zamer-poster.jpg" />
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Как замерить?</h2>
@@ -236,23 +236,23 @@ const faqMain = [
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки?</h2>
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">01</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Прочная алюминиевая рамка окрашена порошковой краской. Не выгорает и не ржавеет.</p>
                 </div>
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">02</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Защита</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Помогает задержать тополиный пух, уличную пыль и пыльцу растений, что важно для аллергиков.</p>
                 </div>
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">03</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">03</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Безопасность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Москитные сетки могут служить защитой от случайного выпадения из окон предметов домашнего обихода.</p>
                 </div>
               </div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" style="will-change: filter; transform: translateZ(0);"></div>
           </div>
 
           <SeoTextBlock title="Москитные сетки в Чебоксарах и Новочебоксарске" class="mt-20">

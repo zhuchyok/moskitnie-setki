@@ -5,6 +5,7 @@ interface User {
   email: string
   name: string
   role: 'admin' | 'dealer'
+  dealer_id?: string
 }
 
 export const useAuthStore = defineStore('auth', {

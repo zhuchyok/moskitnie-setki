@@ -6,7 +6,7 @@ onMounted(() => {
 
 const title = 'Москитная сетка Антикошка в Чебоксарах — цены от 1300 руб'
 const description = 'Усиленные москитные сетки Антикошка (Pet Screen) в Чебоксарах и Новочебоксарске. Выдерживают когти кошек, прочное полотно, металлический крепеж. Закажите расчет!'
-const keywords = 'антикошка, москитная сетка антикошка, чебоксары, новочебоксарск, pet screen, защита животных, цена, купить'
+const keywords = 'антикошка, москитная сетка антикошка, чебоксары, новочебоксарск, pet screen, защита животных, цена, купить, сетка на окна от кошек'
 const url = 'https://www.setki21.ru/antikoshka/'
 const image = 'https://www.setki21.ru/images/logo_new.png'
 
@@ -125,7 +125,7 @@ const faqItems = [
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки Антикошка" />
+              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки Антикошка" poster="/images/zamer-poster.jpg" />
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Особенности системы</h2>
@@ -143,23 +143,23 @@ const faqItems = [
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Преимущества Антикошки</h2>
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">01</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Универсальность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Устанавливаются в любые проемы: на балконах, лоджиях, в оконных рамах и входных группах.</p>
                 </div>
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">02</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Надежность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Домашний питомец не сможет ее открыть, разорвать или прогнуть под собственным весом при прыжке.</p>
                 </div>
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">03</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">03</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Металлические крепления устойчивы к ультрафиолету и служат долгие годы без потери прочности.</p>
                 </div>
               </div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" style="will-change: filter; transform: translateZ(0);"></div>
           </div>
           <SeoTextBlock title="Сетка Антикошка в Чебоксарах и Новочебоксарске" class="mt-20">
             <p>

@@ -6,7 +6,7 @@ onMounted(() => {
 
 const title = 'Вставные москитные сетки VSN в Чебоксарах — цены от 1450 руб'
 const description = 'Инновационные вставные сетки VSN в Чебоксарах. Не требуют сверления рамы, устанавливаются изнутри. Надежно, эстетично, безопасно. Закажите онлайн!'
-const keywords = 'вставная сетка, vsn, москитная сетка без сверления, чебоксары, новочебоксарск, внутренняя сетка'
+const keywords = 'вставная сетка, vsn, москитная сетка без сверления, чебоксары, новочебоксарск, внутренняя сетка, сетка в проем, установка без шурупов'
 const url = 'https://www.setki21.ru/vstavnye/'
 const image = 'https://www.setki21.ru/images/logo_new.png'
 
@@ -70,9 +70,9 @@ const faqItems = [
 
 <template>
   <div>
-    <section class="py-16 bg-white">
+    <section class="pt-16 pb-10 bg-white">
       <div class="container mx-auto px-4">
-        <div class="flex flex-col lg:flex-row gap-12 items-center mb-16">
+        <div class="flex flex-col lg:flex-row gap-12 items-center mb-8">
           <div class="lg:w-1/2">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Вставные сетки <span class="text-brand-blue">VSN</span> — без сверления
@@ -117,7 +117,7 @@ const faqItems = [
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <VideoLazy src="/zamer.mp4" title="Как замерить окно для вставной москитной сетки VSN" />
+              <VideoLazy src="/zamer.mp4" title="Как замерить окно для вставной москитной сетки VSN" poster="/images/zamer-poster.jpg" />
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Почему выбирают VSN?</h2>
@@ -135,23 +135,23 @@ const faqItems = [
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Особенности VSN</h2>
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">01</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Эстетика</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Сетка практически незаметна на окне, так как рамка находится внутри светового проема.</p>
                 </div>
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">02</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Надежность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Специальные зацепы намертво фиксируют сетку в раме без единого шурупа.</p>
                 </div>
                 <div class="text-center md:text-left group">
-                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">03</div>
+                  <div class="text-brand-blue text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">03</div>
                   <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
                   <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Алюминиевый профиль VSN имеет повышенную жесткость и не деформируется со временем.</p>
                 </div>
               </div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" style="will-change: filter; transform: translateZ(0);"></div>
           </div>
           <SeoTextBlock title="Вставные сетки VSN в Чебоксарах и Новочебоксарске" class="mt-20">
             <p>

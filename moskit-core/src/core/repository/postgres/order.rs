@@ -58,7 +58,9 @@ impl OrderRepository for PostgresOrderRepository {
     async fn find_by_order_number(&self, order_number: &str) -> CoreResult<Option<Order>> {
         let order_row: Option<Order> = sqlx::query_as::<_, Order>(
             r#"
-            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
+            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, 
+                   production_sub_status, installation_status, department_id,
+                   total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
             FROM orders WHERE order_number = $1
             "#,
         )
@@ -89,7 +91,9 @@ impl OrderRepository for PostgresOrderRepository {
     async fn find_by_dealer(&self, dealer_id: Uuid) -> CoreResult<Vec<Order>> {
         let orders = sqlx::query_as::<_, Order>(
             r#"
-            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
+            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, 
+                   production_sub_status, installation_status, department_id,
+                   total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
             FROM orders WHERE dealer_id = $1
             ORDER BY created_at DESC
             "#,
@@ -189,7 +193,9 @@ impl OrderRepository for PostgresOrderRepository {
     async fn list(&self, limit: usize, offset: usize) -> CoreResult<Vec<Order>> {
         let orders = sqlx::query_as::<_, Order>(
             r#"
-            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
+            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status,
+                   production_sub_status, installation_status, department_id,
+                   total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
             FROM orders
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
@@ -228,8 +234,8 @@ impl OrderRepository for PostgresOrderRepository {
             r#"
             SELECT 
                 COUNT(*) as total_count,
-                COALESCE(SUM(total_amount), 0)::FLOAT as total_amount,
-                COALESCE(SUM(dealer_profit), 0)::FLOAT as total_profit
+                COALESCE(SUM(total_amount), 0) as total_amount,
+                COALESCE(SUM(dealer_profit), 0) as total_profit
             FROM orders
             WHERE (dealer_id = $1 OR $1 IS NULL)
               AND created_at >= $2 AND created_at <= $3
@@ -243,9 +249,10 @@ impl OrderRepository for PostgresOrderRepository {
         .map_err(|e| CoreError::DatabaseError(e.to_string()))?;
 
         use sqlx::Row;
+        use rust_decimal::Decimal;
         let count: i64 = row.get("total_count");
-        let amount: f64 = row.get("total_amount");
-        let profit: f64 = row.get("total_profit");
+        let amount: Decimal = row.get("total_amount");
+        let profit: Decimal = row.get("total_profit");
 
         Ok(serde_json::json!({
             "count": count,

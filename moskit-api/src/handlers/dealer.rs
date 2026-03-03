@@ -7,6 +7,9 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
 
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
+
 #[derive(Debug, Deserialize)]
 pub struct CalculateRequest {
     pub width: i32,
@@ -20,9 +23,9 @@ pub struct CalculateRequest {
 
 #[derive(Debug, Serialize)]
 pub struct CalculateResponse {
-    pub dealer_cost: f64,
-    pub client_price: f64,
-    pub profit: f64,
+    pub dealer_cost: Decimal,
+    pub client_price: Decimal,
+    pub profit: Decimal,
 }
 
 pub async fn get_pricing() -> ApiResult<serde_json::Value> {
@@ -31,9 +34,9 @@ pub async fn get_pricing() -> ApiResult<serde_json::Value> {
 
 pub async fn calculate(Json(_payload): Json<CalculateRequest>) -> ApiResult<CalculateResponse> {
     ok(CalculateResponse {
-        dealer_cost: 500.0,
-        client_price: 1200.0,
-        profit: 700.0,
+        dealer_cost: dec!(500.0),
+        client_price: dec!(1200.0),
+        profit: dec!(700.0),
     })
 }
 
@@ -48,11 +51,44 @@ pub struct CreateOrderRequest {
 pub struct OrderItemRequest {
     pub name: String,
     pub quantity: i32,
-    pub price: f64,
+    pub price: Decimal,
 }
 
-pub async fn create_order(Json(_payload): Json<CreateOrderRequest>) -> ApiResult<serde_json::Value> {
-    ok(serde_json::json!({ "status": "created" }))
+pub async fn create_order(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<CreateOrderRequest>
+) -> ApiResult<serde_json::Value> {
+    use moskit_core::entity::{Order, OrderItem};
+    use moskit_core::repository::{OrderRepository, PostgresOrderRepository};
+
+    let mut items = Vec::new();
+    for item_req in payload.items {
+        items.push(OrderItem {
+            id: Uuid::new_v4(),
+            product_id: Uuid::nil(), // Для заказов с сайта пока ставим nil или найдем продукт
+            name: item_req.name,
+            params: serde_json::json!({}),
+            quantity: item_req.quantity,
+            unit_price: item_req.price,
+            total_price: item_req.price * Decimal::from(item_req.quantity),
+        });
+    }
+
+    let order = Order::new(
+        None, // С сайта — пока без dealer_id (прямой заказ)
+        payload.client_name,
+        payload.client_phone,
+        items,
+    );
+
+    let repo = PostgresOrderRepository::new(state.pool.clone());
+    let created = repo.create(order).await.map_err(|e| bad_request(&e.to_string()))?;
+
+    ok(serde_json::json!({ 
+        "status": "created",
+        "order_id": created.id,
+        "order_number": created.order_number
+    }))
 }
 
 pub async fn list_orders(

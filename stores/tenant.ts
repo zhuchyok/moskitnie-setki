@@ -33,10 +33,14 @@ export const useTenantStore = defineStore('tenant', () => {
     try {
       const runtimeConfig = useRuntimeConfig()
       const apiBase = runtimeConfig.public.apiUrl || 'http://localhost:8081'
+      const route = useRoute()
       
-      // Получаем конфиг по текущему домену
+      // Получаем конфиг по текущему домену или dealer_id из URL
+      const queryParams = route.query.dealer_id ? { dealer_id: route.query.dealer_id } : {}
+      
       const data = await $fetch('/api/v1/tenant/config', {
-        baseURL: apiBase
+        baseURL: apiBase,
+        query: queryParams
       }) as any
       
       if (data) {

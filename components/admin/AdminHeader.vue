@@ -70,6 +70,9 @@ const isActive = (path: string) => {
           <NuxtLink to="/admin/orders" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/orders') }">
             <span class="admin-nav-text">Все заказы</span>
           </NuxtLink>
+          <NuxtLink to="/admin/production" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/production') }">
+            <span class="admin-nav-text">Производство</span>
+          </NuxtLink>
           <NuxtLink to="/admin/dealers" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/dealers') }">
             <span class="admin-nav-text">Дилеры</span>
           </NuxtLink>
@@ -78,6 +81,9 @@ const isActive = (path: string) => {
           </NuxtLink>
           <NuxtLink to="/admin/calculator" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/calculator') }">
             <span class="admin-nav-text">Калькулятор</span>
+          </NuxtLink>
+          <NuxtLink to="/admin/settings" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/settings') }">
+            <span class="admin-nav-text">Настройки</span>
           </NuxtLink>
         </template>
 
@@ -88,6 +94,9 @@ const isActive = (path: string) => {
           </NuxtLink>
           <NuxtLink to="/admin/calculator" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/calculator') }">
             <span class="admin-nav-text">Калькулятор</span>
+          </NuxtLink>
+          <NuxtLink to="/admin/settings" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/settings') }">
+            <span class="admin-nav-text">Настройки</span>
           </NuxtLink>
           <NuxtLink to="/admin/profile" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/profile') }">
             <span class="admin-nav-text">Профиль</span>

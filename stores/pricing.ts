@@ -31,18 +31,24 @@ export const usePricingStore = defineStore('pricing', {
     isLoading: false
   }),
   actions: {
-    async fetchPricing() {
+    async fetchPricing(retry = true) {
       this.isLoading = true
       try {
         const config = useRuntimeConfig()
         const apiBase = config.public.apiUrl || 'http://localhost:8081'
         const response = await $fetch<GlobalPricing>('/api/v1/pricing', {
-          baseURL: apiBase
+          baseURL: apiBase,
+          timeout: 8000
         })
         this.pricing = response
         console.log('Global pricing loaded:', response)
       } catch (e) {
         console.error('Failed to fetch global pricing', e)
+        // Один повтор через 1.5 с при холодном старте API (Docker/VDS)
+        if (retry) {
+          setTimeout(() => this.fetchPricing(false), 1500)
+          return
+        }
       } finally {
         this.isLoading = false
       }

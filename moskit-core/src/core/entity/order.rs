@@ -44,6 +44,31 @@ pub enum ProductionSubStatus {
     Packaging,    // Упаковка
 }
 
+impl ProductionSubStatus {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Pending => "pending",
+            Self::Cutting => "cutting",
+            Self::Welding => "welding",
+            Self::Assembly => "assembly",
+            Self::QualityCheck => "quality_check",
+            Self::Packaging => "packaging",
+        }
+    }
+    pub fn from_str(s: &str) -> Option<Self> {
+        let s = s.to_lowercase();
+        match s.as_str() {
+            "pending" => Some(Self::Pending),
+            "cutting" => Some(Self::Cutting),
+            "welding" => Some(Self::Welding),
+            "assembly" => Some(Self::Assembly),
+            "quality_check" => Some(Self::QualityCheck),
+            "packaging" => Some(Self::Packaging),
+            _ => None,
+        }
+    }
+}
+
 /// Статус монтажа
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
 #[sqlx(type_name = "TEXT")]
@@ -54,6 +79,8 @@ pub enum InstallationStatus {
     Cancelled,   // Отменён
 }
 
+use rust_decimal::Decimal;
+
 /// Позиция заказа
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct OrderItem {
@@ -62,8 +89,8 @@ pub struct OrderItem {
     pub name: String,
     pub params: serde_json::Value,  // Параметры (размеры, цвет, тип)
     pub quantity: i32,
-    pub unit_price: f64,
-    pub total_price: f64,
+    pub unit_price: Decimal,
+    pub total_price: Decimal,
 }
 
 /// Заказ
@@ -80,13 +107,13 @@ pub struct Order {
     pub status: OrderStatus,
     pub production_sub_status: Option<ProductionSubStatus>,
     pub installation_status: Option<InstallationStatus>,
-    pub total_amount: f64,
-    pub dealer_cost: f64,           // Себестоимость для дилера
-    pub dealer_profit: f64,         // Прибыль дилера
+    pub total_amount: Decimal,
+    pub dealer_cost: Decimal,           // Себестоимость для дилера
+    pub dealer_profit: Decimal,         // Прибыль дилера
     pub department_id: Option<Uuid>, // Отдел дилера
-    pub installation_price: Option<f64>,
-    pub delivery_price: Option<f64>,
-    pub measurement_price: Option<f64>,
+    pub installation_price: Option<Decimal>,
+    pub delivery_price: Option<Decimal>,
+    pub measurement_price: Option<Decimal>,
     pub comment: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
@@ -100,7 +127,7 @@ impl Order {
         items: Vec<OrderItem>,
     ) -> Self {
         let now = Utc::now();
-        let total_amount: f64 = items.iter().map(|i| i.total_price).sum();
+        let total_amount: Decimal = items.iter().map(|i| i.total_price).sum();
 
         Self {
             id: Uuid::new_v4(),
@@ -114,8 +141,8 @@ impl Order {
             production_sub_status: None,
             installation_status: None,
             total_amount,
-            dealer_cost: 0.0,
-            dealer_profit: 0.0,
+            dealer_cost: Decimal::ZERO,
+            dealer_profit: Decimal::ZERO,
             department_id: None,
             installation_price: None,
             delivery_price: None,

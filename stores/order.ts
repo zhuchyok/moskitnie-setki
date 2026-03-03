@@ -111,8 +111,8 @@ export const useOrderStore = defineStore('order', {
       }, 0)
 
       const base = p.markup.measurement_base ?? 270
-      const bonus = totalMaterialCost * (p.markup.measurement_percent / 100)
-      const profit = totalMaterialCost * (p.markup.measurement_profit_factor / 100)
+      const bonus = totalMaterialCost * ((p.markup.measurement_percent ?? 5) / 100)
+      const profit = totalMaterialCost * ((p.markup.measurement_profit_factor ?? 5) / 100)
       
       const finalPrice = Math.round((base + (bonus || 0) + (profit || 0)) / 50) * 50
       return Math.max(finalPrice, 400)
@@ -217,7 +217,7 @@ export const useOrderStore = defineStore('order', {
       let methodLabel = ''
 
       if (this.config.measurementMethod === 'stvorka') {
-        methodLabel = 'ПО СТВОРКЕ (-5 мм)'
+        methodLabel = 'ПО СТВОРКЕ (-5/5 мм)'
       } else if (this.config.measurementMethod === 'proem') {
         const isVstavnaya = this.config.frameType === 'vstavnaya'
         const wCorr = isVstavnaya ? 17 : 50

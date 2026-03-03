@@ -20,29 +20,96 @@ const userRoleLabel = computed(() => {
 })
 
 const showCalculator = ref(false)
+const statsData = ref<{ dealers_count?: number; orders_in_progress?: number; revenue_month?: number; new_orders_today?: number } | null>(null)
 
 const stats = computed(() => {
+  const fmt = (n: number) => n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M ₽` : new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(n) + ' ₽'
   if (auth.isAdmin) {
+    const d = statsData.value
     return [
-      { label: 'Всего дилеров', value: '12', icon: 'users' },
-      { label: 'Заказов в работе', value: '48', icon: 'factory' },
-      { label: 'Выручка (мес)', value: '1.2M ₽', icon: 'trending-up' },
-      { label: 'Новых сегодня', value: '5', icon: 'plus-circle' }
+      { label: 'Всего дилеров', value: d?.dealers_count != null ? String(d.dealers_count) : '—', icon: 'users' },
+      { label: 'Заказов в работе', value: d?.orders_in_progress != null ? String(d.orders_in_progress) : '—', icon: 'factory' },
+      { label: 'Выручка (мес)', value: d?.revenue_month != null ? fmt(d.revenue_month) : '—', icon: 'trending-up' },
+      { label: 'Новых сегодня', value: d?.new_orders_today != null ? String(d.new_orders_today) : '—', icon: 'plus-circle' }
     ]
   }
   return [
-    { label: 'Мои заказы', value: '3', icon: 'shopping-bag' },
-    { label: 'В производстве', value: '12', icon: 'factory' },
-    { label: 'Готово к выдаче', value: '5', icon: 'check-circle' },
-    { label: 'Баланс', value: '45 200 ₽', icon: 'wallet' }
+    { label: 'Мои заказы', value: '—', icon: 'shopping-bag' },
+    { label: 'В производстве', value: '—', icon: 'factory' },
+    { label: 'Готово к выдаче', value: '—', icon: 'check-circle' },
+    { label: 'Баланс', value: '—', icon: 'wallet' }
   ]
 })
 
-const orders = [
-  { id: 'MS-2024021501', date: '15.02.2024', client: 'Иван И.', amount: '3 450 ₽', status: 'В производстве', statusColor: 'blue' },
-  { id: 'MS-2024021408', date: '14.02.2024', client: 'Мария С.', amount: '1 200 ₽', status: 'Готов', statusColor: 'green' },
-  { id: 'MS-2024021402', date: '14.02.2024', client: 'Дмитрий К.', amount: '8 900 ₽', status: 'Новый', statusColor: 'gray' },
-]
+const orders = ref([])
+const isLoading = ref(true)
+
+const fetchRecentOrders = async () => {
+  isLoading.value = true
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const endpoint = auth.isAdmin ? '/api/v1/admin/orders' : '/api/v1/dealer/orders'
+    
+    const response = await $fetch(endpoint, {
+      baseURL: apiBase,
+      headers: {
+        'Authorization': `Bearer ${auth.token}`
+      }
+    }) as any
+    
+    // Берем последние 5 заказов
+    orders.value = response.slice(0, 5).map((o: any) => ({
+      id: o.order_number || o.id.substring(0, 8),
+      date: new Date(o.created_at).toLocaleDateString('ru-RU'),
+      client: o.client_name,
+      amount: new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(o.total_amount),
+      status: mapStatus(o.status).label,
+      statusColor: mapStatus(o.status).color,
+      dealer: o.dealer_name || '—'
+    }))
+  } catch (e) {
+    console.error('Failed to fetch recent orders', e)
+    // Заглушка при ошибке
+    orders.value = [
+      { id: 'Ошибка', date: '-', client: 'Не удалось загрузить', amount: '0 ₽', status: 'Ошибка', statusColor: 'gray' },
+    ]
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const mapStatus = (status: string) => {
+  const statuses: Record<string, { label: string, color: string }> = {
+    'new': { label: 'Новый', color: 'gray' },
+    'confirmed': { label: 'Подтвержден', color: 'blue' },
+    'in_production': { label: 'В производстве', color: 'blue' },
+    'ready': { label: 'Готов', color: 'green' },
+    'completed': { label: 'Завершен', color: 'green' },
+    'cancelled': { label: 'Отменен', color: 'red' }
+  }
+  return statuses[status] || { label: status, color: 'gray' }
+}
+
+const fetchStats = async () => {
+  if (!auth.isAdmin) return
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const data = await $fetch<{ dealers_count: number; orders_in_progress: number; revenue_month: number; new_orders_today: number }>('/api/v1/admin/stats', {
+      baseURL: apiBase,
+      headers: { 'Authorization': `Bearer ${auth.token}` }
+    })
+    statsData.value = data
+  } catch (e) {
+    console.error('Failed to fetch stats', e)
+  }
+}
+
+onMounted(() => {
+  fetchRecentOrders()
+  fetchStats()
+})
 
 const handleLogout = () => {
   console.log('CRITICAL LOGOUT TRIGGERED')
@@ -121,12 +188,27 @@ const handleLogout = () => {
                   <th class="p-10"></th>
                 </tr>
               </thead>
-              <tbody class="text-sm font-bold text-brand-dark">
+              <tbody v-if="isLoading" class="text-sm font-bold text-brand-dark">
+                <tr>
+                  <td colspan="7" class="p-20 text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mx-auto mb-4"></div>
+                    <p class="text-gray-400 font-black uppercase text-[8px] tracking-widest">Загрузка...</p>
+                  </td>
+                </tr>
+              </tbody>
+              <tbody v-else-if="orders.length === 0" class="text-sm font-bold text-brand-dark">
+                <tr>
+                  <td colspan="7" class="p-20 text-center">
+                    <p class="text-gray-400 font-black uppercase text-[10px] tracking-widest">Заказов пока нет</p>
+                  </td>
+                </tr>
+              </tbody>
+              <tbody v-else class="text-sm font-bold text-brand-dark">
                 <tr v-for="order in orders" :key="order.id" class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                   <td class="p-10">{{ order.id }}</td>
                   <td class="p-10 text-gray-400">{{ order.date }}</td>
                   <td class="p-10">{{ order.client }}</td>
-                  <td v-if="auth.isAdmin" class="p-10 text-gray-400">ООО "Окна Плюс"</td>
+                  <td v-if="auth.isAdmin" class="p-10 text-gray-400">{{ order.dealer }}</td>
                   <td class="p-10 text-brand-blue font-black">{{ order.amount }}</td>
                   <td class="p-10">
                     <span :class="[

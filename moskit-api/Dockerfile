@@ -28,9 +28,15 @@ ENV SQLX_OFFLINE=true
 RUN cargo build --release
 RUN rm -rf src
 
-# Сборка
+# Сборка (ARG CACHEBUST при деплое — чтобы не подхватить слой с заглушкой main)
+ARG CACHEBUST
+RUN echo "Cache bust: ${CACHEBUST:-none}"
 COPY moskit-api/src ./src
+# Удалить артефакт от заглушки (fn main() {}), иначе cargo build не пересобирает бинарник
+RUN rm -f /app/target/release/moskit-api /app/target/release/deps/moskit_api* /app/target/release/.fingerprint/moskit-api-* 2>/dev/null; true
 RUN cargo build --release
+# Файл для инвалидации кэша финальной стадии (иначе COPY бинарника берётся из кэша)
+RUN echo "${CACHEBUST:-none}" > /app/target/release/build_id.txt
 
 # Минимальный рантайм
 FROM debian:bookworm-slim
@@ -38,7 +44,9 @@ RUN apt-get update && apt-get install -y ca-certificates postgresql-client libss
 
 WORKDIR /app
 
-# Копируем бинарник
+# Сначала build_id, чтобы слой с бинарником не брался из старого кэша
+ARG CACHEBUST
+COPY --from=builder /app/target/release/build_id.txt ./
 COPY --from=builder /app/target/release/moskit-api .
 RUN chmod +x ./moskit-api
 

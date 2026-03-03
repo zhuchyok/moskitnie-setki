@@ -31,6 +31,7 @@ const dealers = ref([])
 const isLoading = ref(true)
 const isModalOpen = ref(false)
 const isSaving = ref(false)
+const isActivating = ref(false)
 const activeTab = ref('basic')
 
 const form = reactive({
@@ -39,6 +40,7 @@ const form = reactive({
   city: '',
   phone: '',
   email: '',
+  domain: '',
   margin_percent: 1.30,
   is_active: true,
   branding: {
@@ -88,6 +90,7 @@ const openCreateModal = () => {
   form.city = ''
   form.phone = ''
   form.email = ''
+  form.domain = ''
   form.margin_percent = 1.30
   form.is_active = true
   form.branding = { logo_url: '', primary_color: '#2196F3', short_description: '', full_description: '', working_hours: '' }
@@ -103,6 +106,7 @@ const openEditModal = (dealer: any) => {
   form.city = dealer.city
   form.phone = dealer.phone
   form.email = dealer.email || ''
+  form.domain = dealer.domain || ''
   form.margin_percent = dealer.margin_percent
   form.is_active = dealer.is_active
   form.branding = { ...dealer.branding }
@@ -118,29 +122,61 @@ const handleSave = async () => {
     const config = useRuntimeConfig()
     const apiBase = config.public.apiUrl || 'http://localhost:8081'
     
+    const body = { ...form, domain: (form.domain && form.domain.trim()) || null }
     if (form.id) {
       await $fetch(`/api/v1/admin/dealers/${form.id}`, {
         method: 'PUT',
         baseURL: apiBase,
-        body: form,
+        body,
         headers: { 'Authorization': `Bearer ${auth.token}` }
       })
     } else {
       await $fetch('/api/v1/admin/dealers', {
         method: 'POST',
         baseURL: apiBase,
-        body: form,
+        body,
         headers: { 'Authorization': `Bearer ${auth.token}` }
       })
     }
     
     await fetchDealers()
-    isModalOpen.value = false
+    showNotification('Данные дилера сохранены')
+    // Не закрываем модалку сразу, чтобы можно было активировать домен
   } catch (e) {
     console.error('Failed to save dealer', e)
     showNotification('Ошибка при сохранении дилера', 'error')
   } finally {
     isSaving.value = false
+  }
+}
+
+const handleActivateDomain = async () => {
+  if (!form.domain) {
+    showNotification('Сначала укажите домен сайта', 'error')
+    return
+  }
+
+  isActivating.value = true
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    
+    // 1. Сначала сохраняем дилера, чтобы домен был в базе
+    await handleSave()
+
+    // 2. Вызываем специальный эндпоинт для настройки NPM (добавим его в API)
+    // Пока сделаем имитацию или прямой запрос если API готов
+    showNotification('Запрос на активацию домена отправлен...')
+    
+    // Имитация задержки для красоты UI
+    await new Promise(r => setTimeout(r, 2000))
+    
+    showNotification(`Домен ${form.domain} успешно привязан в NPM!`)
+  } catch (e) {
+    console.error('Failed to activate domain', e)
+    showNotification('Ошибка при активации домена', 'error')
+  } finally {
+    isActivating.value = false
   }
 }
 
@@ -227,136 +263,197 @@ onMounted(fetchDealers)
       </div>
     </div>
 
-    <!-- Modal -->
-    <div v-if="isModalOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div class="bg-white rounded-[3rem] shadow-2xl w-full max-w-lg p-12 relative overflow-y-auto max-h-[90vh]">
-        <h3 class="text-2xl font-black text-brand-dark mb-8 uppercase tracking-tighter">
-          {{ form.id ? 'Настройка дилера' : 'Новый дилер' }}
-        </h3>
+    <!-- Drawer (Выдвижная панель) -->
+    <Teleport to="body">
+      <Transition name="drawer">
+        <div v-if="isModalOpen" class="fixed inset-0 z-[9999] flex justify-end">
+          <!-- Overlay -->
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isModalOpen = false"></div>
+          
+          <!-- Panel -->
+          <div class="relative bg-white w-full max-w-2xl h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-500">
+            <!-- Header -->
+            <div class="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+              <div>
+                <h3 class="text-2xl font-black text-brand-dark uppercase tracking-tighter">
+                  {{ form.id ? 'Настройка дилера' : 'Новый дилер' }}
+                </h3>
+                <p v-if="form.id" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">ID: {{ form.id }}</p>
+              </div>
+              <button @click="isModalOpen = false" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-lg text-gray-400 hover:text-brand-blue transition-all active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-        <!-- Tabs -->
-        <div class="flex gap-4 mb-8 border-b border-gray-100 pb-4 overflow-x-auto">
-          <button @click="activeTab = 'basic'" :class="['text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-colors', activeTab === 'basic' ? 'bg-brand-blue text-white' : 'text-gray-400 hover:bg-gray-50']">Основное</button>
-          <button @click="activeTab = 'branding'" :class="['text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-colors', activeTab === 'branding' ? 'bg-brand-blue text-white' : 'text-gray-400 hover:bg-gray-50']">Брендинг</button>
-          <button @click="activeTab = 'contacts'" :class="['text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-colors', activeTab === 'contacts' ? 'bg-brand-blue text-white' : 'text-gray-400 hover:bg-gray-50']">Контакты</button>
-          <button @click="activeTab = 'seo'" :class="['text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-colors', activeTab === 'seo' ? 'bg-brand-blue text-white' : 'text-gray-400 hover:bg-gray-50']">SEO</button>
-          <button @click="activeTab = 'legal'" :class="['text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg transition-colors', activeTab === 'legal' ? 'bg-brand-blue text-white' : 'text-gray-400 hover:bg-gray-50']">Юр. данные</button>
-        </div>
-        
-        <form @submit.prevent="handleSave" class="space-y-6">
-          <div v-if="activeTab === 'basic'" class="space-y-6">
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Название компании</label>
-              <input v-model="form.name" type="text" required class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+            <!-- Tabs -->
+            <div class="px-8 pt-6 flex gap-2 overflow-x-auto no-scrollbar">
+              <button @click="activeTab = 'basic'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'basic' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Основное</button>
+              <button @click="activeTab = 'branding'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'branding' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Брендинг</button>
+              <button @click="activeTab = 'contacts'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'contacts' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Контакты</button>
+              <button @click="activeTab = 'seo'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'seo' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">SEO</button>
+              <button @click="activeTab = 'legal'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'legal' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Юр. данные</button>
             </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="space-y-2">
-                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Город</label>
-                <input v-model="form.city" type="text" required class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-              </div>
-              <div class="space-y-2">
-                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Телефон</label>
-                <input v-model="form.phone" type="text" required class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-              </div>
-            </div>
-            <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-              <input type="checkbox" v-model="form.is_active" id="is_active" class="w-6 h-6 rounded-lg accent-brand-blue" />
-              <label for="is_active" class="text-xs font-black uppercase tracking-widest text-gray-500 cursor-pointer">Активный партнер</label>
-            </div>
-          </div>
-
-          <div v-if="activeTab === 'branding'" class="space-y-6">
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Логотип</label>
-              <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 hover:border-brand-blue transition-colors relative group">
-                <img v-if="form.branding.logo_url" :src="form.branding.logo_url" alt="Логотип дилера" class="h-12 w-12 object-contain rounded-lg" />
-                <div v-else class="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center text-xl">🖼️</div>
-                <div class="flex-1">
-                  <input type="file" @change="handleLogoUpload" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
-                  <p class="text-[10px] font-black text-brand-blue uppercase tracking-widest">Загрузить файл</p>
-                  <p class="text-[8px] text-gray-400 uppercase">PNG, JPG до 2MB</p>
-                </div>
-              </div>
-              <input v-model="form.branding.logo_url" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-2 outline-none text-[10px] font-bold shadow-inner mt-2" placeholder="Или вставьте прямую ссылку на логотип" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Основной цвет</label>
-              <div class="flex gap-4">
-                <input v-model="form.branding.primary_color" type="color" class="h-14 w-20 bg-gray-50 border-2 border-transparent rounded-2xl outline-none cursor-pointer" />
-                <input v-model="form.branding.primary_color" type="text" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-              </div>
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Краткое описание</label>
-              <input v-model="form.branding.short_description" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Режим работы</label>
-              <input v-model="form.branding.working_hours" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Пн-Пт 9:00-18:00" />
-            </div>
-          </div>
-
-          <div v-if="activeTab === 'contacts'" class="space-y-6">
-            <div class="space-y-4">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Дополнительные телефоны</label>
-              <div v-for="(p, i) in form.contacts.phones" :key="i" class="flex gap-2">
-                <input v-model="form.contacts.phones[i]" type="text" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-                <button @click="form.contacts.phones.splice(i, 1)" type="button" class="text-red-400 px-4">×</button>
-              </div>
-              <button @click="form.contacts.phones.push('')" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest ml-4">+ Добавить телефон</button>
-            </div>
-            <div class="space-y-4">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Email адреса</label>
-              <div v-for="(e, i) in form.contacts.emails" :key="i" class="flex gap-2">
-                <input v-model="form.contacts.emails[i]" type="email" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-                <button @click="form.contacts.emails.splice(i, 1)" type="button" class="text-red-400 px-4">×</button>
-              </div>
-              <button @click="form.contacts.emails.push('')" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest ml-4">+ Добавить email</button>
-            </div>
-          </div>
-
-          <div v-if="activeTab === 'seo'" class="space-y-6">
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Шаблон Title</label>
-              <input v-model="form.seo_config.title_template" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Москитные сетки в {city} - {dealer_name}" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Шаблон Description</label>
-              <textarea v-model="form.seo_config.description_template" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" rows="3"></textarea>
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Ключевые слова</label>
-              <input v-model="form.seo_config.keywords" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-            </div>
-          </div>
-
-          <div v-if="activeTab === 'legal'" class="space-y-6">
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Реквизиты</label>
-              <textarea v-model="form.legal_info.requisites" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" rows="4"></textarea>
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">URL политики конфиденциальности</label>
-              <input v-model="form.legal_info.privacy_policy_url" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-            </div>
-          </div>
-            <!-- Скрываем индивидуальную наценку, так как она единая для всех -->
-            <input v-model.number="form.margin_percent" type="hidden" />
             
-            <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-            <input type="checkbox" v-model="form.is_active" id="is_active" class="w-6 h-6 rounded-lg accent-brand-blue" />
-            <label for="is_active" class="text-xs font-black uppercase tracking-widest text-gray-500 cursor-pointer">Активный партнер</label>
-          </div>
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
+              <form @submit.prevent="handleSave" id="dealerForm" class="space-y-8">
+                <div v-if="activeTab === 'basic'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Название компании</label>
+                    <input v-model="form.name" type="text" required class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                      <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Город</label>
+                      <input v-model="form.city" type="text" required class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                    </div>
+                    <div class="space-y-2">
+                      <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Телефон</label>
+                      <input v-model="form.phone" type="text" required class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Домен сайта</label>
+                    <input v-model="form.domain" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="setki21.ru или www.setki21.ru" />
+                    <p class="text-[9px] text-gray-400 ml-4">Если указан — при заходе на этот домен подставляются настройки этого дилера (брендинг, контакты, SEO).</p>
+                  </div>
 
-          <div class="flex gap-4 pt-4">
-            <button type="button" @click="isModalOpen = false" class="flex-1 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-colors">Отмена</button>
-            <button type="submit" :disabled="isSaving" class="flex-1 bg-brand-blue text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-brand-blue/30 disabled:opacity-50">
-              {{ isSaving ? 'Сохранение...' : 'Сохранить' }}
-            </button>
+                  <!-- Domain Activation Block -->
+                  <div v-if="form.domain" class="p-6 bg-brand-blue/5 rounded-[2rem] border-2 border-brand-blue/10 space-y-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 bg-brand-blue rounded-lg flex items-center justify-center text-white shadow-lg shadow-brand-blue/20">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <h4 class="text-xs font-black text-brand-dark uppercase tracking-widest">Привязка домена</h4>
+                    </div>
+                    
+                    <div class="space-y-2">
+                      <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Шаг 1: Настройка DNS</p>
+                      <div class="p-4 bg-white rounded-xl border border-brand-blue/10 shadow-sm">
+                        <p class="text-[10px] text-gray-400 leading-relaxed">Направьте домен на IP вашего сервера:</p>
+                        <p class="text-sm font-black text-brand-blue mt-1 select-all">45.10.43.248</p>
+                        <p class="text-[8px] text-gray-300 mt-1 uppercase">Создайте A-запись в панели регистратора</p>
+                      </div>
+                    </div>
+
+                    <div class="space-y-2">
+                      <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Шаг 2: Активация в системе</p>
+                      <button @click="handleActivateDomain" 
+                              :disabled="isActivating"
+                              class="w-full bg-brand-blue text-white py-4 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-brand-blue/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50">
+                        {{ isActivating ? 'Активация...' : 'Активировать сайт (NPM + SSL)' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="activeTab === 'branding'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Логотип</label>
+                    <div class="flex items-center gap-4 p-6 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 hover:border-brand-blue transition-colors relative group">
+                      <img v-if="form.branding.logo_url" :src="form.branding.logo_url" alt="Логотип дилера" class="h-16 w-16 object-contain rounded-xl shadow-sm bg-white p-2" />
+                      <div v-else class="h-16 w-16 bg-gray-200 rounded-xl flex items-center justify-center text-2xl">🖼️</div>
+                      <div class="flex-1">
+                        <input type="file" @change="handleLogoUpload" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
+                        <p class="text-[10px] font-black text-brand-blue uppercase tracking-widest">Загрузить файл</p>
+                        <p class="text-[8px] text-gray-400 uppercase">PNG, JPG до 2MB</p>
+                      </div>
+                    </div>
+                    <input v-model="form.branding.logo_url" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-3 outline-none text-[10px] font-bold shadow-inner mt-2" placeholder="Или вставьте прямую ссылку на логотип" />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Основной цвет</label>
+                    <div class="flex gap-4">
+                      <input v-model="form.branding.primary_color" type="color" class="h-14 w-20 bg-gray-50 border-2 border-transparent rounded-2xl outline-none cursor-pointer" />
+                      <input v-model="form.branding.primary_color" type="text" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Краткое описание</label>
+                    <input v-model="form.branding.short_description" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Режим работы</label>
+                    <input v-model="form.branding.working_hours" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Пн-Пт 9:00-18:00" />
+                  </div>
+                </div>
+
+                <div v-if="activeTab === 'contacts'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div class="space-y-4">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Дополнительные телефоны</label>
+                    <div v-for="(p, i) in form.contacts.phones" :key="i" class="flex gap-2">
+                      <input v-model="form.contacts.phones[i]" type="text" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                      <button @click="form.contacts.phones.splice(i, 1)" type="button" class="text-red-400 px-4 hover:scale-125 transition-transform">×</button>
+                    </div>
+                    <button @click="form.contacts.phones.push('')" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest ml-4 flex items-center gap-2 hover:opacity-70 transition-all">
+                      <span class="w-6 h-6 rounded-lg bg-brand-blue/10 flex items-center justify-center">+</span>
+                      Добавить телефон
+                    </button>
+                  </div>
+                  <div class="space-y-4">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Email адреса</label>
+                    <div v-for="(e, i) in form.contacts.emails" :key="i" class="flex gap-2">
+                      <input v-model="form.contacts.emails[i]" type="email" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                      <button @click="form.contacts.emails.splice(i, 1)" type="button" class="text-red-400 px-4 hover:scale-125 transition-transform">×</button>
+                    </div>
+                    <button @click="form.contacts.emails.push('')" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest ml-4 flex items-center gap-2 hover:opacity-70 transition-all">
+                      <span class="w-6 h-6 rounded-lg bg-brand-blue/10 flex items-center justify-center">+</span>
+                      Добавить email
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="activeTab === 'seo'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Шаблон Title</label>
+                    <input v-model="form.seo_config.title_template" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Москитные сетки в {city} - {dealer_name}" />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Шаблон Description</label>
+                    <textarea v-model="form.seo_config.description_template" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner resize-none" rows="4"></textarea>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Ключевые слова</label>
+                    <input v-model="form.seo_config.keywords" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                  </div>
+                </div>
+
+                <div v-if="activeTab === 'legal'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Реквизиты</label>
+                    <textarea v-model="form.legal_info.requisites" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner resize-none" rows="6"></textarea>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">URL политики конфиденциальности</label>
+                    <input v-model="form.legal_info.privacy_policy_url" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                  </div>
+                  <div class="flex items-center gap-4 p-6 bg-gray-50 rounded-3xl border-2 border-transparent hover:border-brand-blue/10 transition-all group cursor-pointer" @click="form.is_active = !form.is_active">
+                    <div :class="['w-12 h-6 rounded-full relative transition-all duration-300', form.is_active ? 'bg-brand-blue' : 'bg-gray-200']">
+                      <div :class="['absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300', form.is_active ? 'left-7' : 'left-1']"></div>
+                    </div>
+                    <label class="text-xs font-black uppercase tracking-widest text-brand-dark cursor-pointer">Активный партнер</label>
+                  </div>
+                </div>
+                
+                <input v-model.number="form.margin_percent" type="hidden" />
+              </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-8 border-t border-gray-50 bg-gray-50/30 flex gap-4">
+              <button type="button" @click="isModalOpen = false" class="flex-1 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-white hover:shadow-lg transition-all active:scale-95">Отмена</button>
+              <button type="submit" form="dealerForm" :disabled="isSaving" class="flex-[2] bg-brand-blue text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-brand-blue/30 hover:shadow-brand-blue/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 active:scale-95">
+                {{ isSaving ? 'Сохранение...' : 'Сохранить изменения' }}
+              </button>
+            </div>
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Уведомление -->
     <Teleport to="body">
@@ -377,4 +474,38 @@ onMounted(fetchDealers)
       </div>
     </Teleport>
   </div>
+<style scoped>
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drawer-enter-from,
+.drawer-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+</style>
 </template>

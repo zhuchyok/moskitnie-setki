@@ -1,8 +1,13 @@
 import nodemailer from 'nodemailer'
 import { escapeHtml } from '../utils/escape-html'
 
-/** Российские форматы: +7 (XXX) XX-XX-XX, +7 (XXXX) XX-XX-XX, +79XXXXXXXXX */
-const PHONE_REGEX = /^\+7\s?\(\d{3,4}\)\s?\d{2,3}-\d{2}-\d{2}$|^\+7\d{10}$/
+/** Нормализация телефона: только цифры, 8 в начале заменяем на 7, ожидаем 11 цифр (РФ). */
+function normalizePhone(value: string): string | null {
+  const digits = value.replace(/\D/g, '')
+  if (digits.length === 0) return null
+  const normalized = digits.startsWith('8') ? '7' + digits.slice(1) : digits.startsWith('7') ? digits : '7' + digits
+  return normalized.length === 11 ? normalized : null
+}
 
 export default defineEventHandler(async (event) => {
   // CORS headers
@@ -50,12 +55,12 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Валидация телефона (российские форматы)
-    const phoneNorm = trimmed.formPhone.replace(/\s/g, '')
-    if (!PHONE_REGEX.test(phoneNorm)) {
+    // Валидация телефона: любые скобки/дефисы/пробелы — нормализуем до 11 цифр
+    const phoneNorm = normalizePhone(trimmed.formPhone)
+    if (!phoneNorm) {
       throw createError({
         statusCode: 400,
-        statusMessage: 'Invalid phone format'
+        statusMessage: 'Неверный формат телефона. Введите 11 цифр, например +7 (927) 858-88-88'
       })
     }
 

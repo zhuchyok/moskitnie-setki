@@ -80,13 +80,15 @@ async fn main() {
         // Производитель (админ)
         .route("/api/v1/admin/dealers", post(handlers::admin::create_dealer))
         .route("/api/v1/admin/dealers", get(handlers::admin::list_dealers))
-        .route("/api/v1/admin/dealers/:id", put(handlers::admin::update_dealer))
+        .route("/api/v1/admin/dealers/:id", axum::routing::get(handlers::admin::get_dealer).put(handlers::admin::update_dealer))
         .route("/api/v1/admin/dealers/:dealer_id/departments", post(handlers::admin::create_department))
         .route("/api/v1/admin/dealers/:dealer_id/departments", get(handlers::admin::list_departments))
         .route("/api/v1/admin/dealers/:dealer_id/stats", get(handlers::admin::get_dealer_stats))
         .route("/api/v1/admin/dealers/:dealer_id/audit", get(handlers::admin::list_audit_logs))
         .route("/api/v1/admin/upload", post(handlers::admin::upload_file))
+        .route("/api/v1/admin/stats", get(handlers::admin::get_admin_stats))
         .route("/api/v1/admin/orders", get(handlers::admin::list_all_orders))
+        .route("/api/v1/admin/production/orders", get(handlers::admin::get_production_orders))
         .route("/api/v1/admin/orders/:id/status", put(handlers::admin::update_order_status))
         // Управление ценами
         .route("/api/v1/admin/pricing", get(handlers::pricing::get_global_pricing))
@@ -98,7 +100,7 @@ async fn main() {
         .with_state(state);
 
     // Запуск сервера
-    let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+    let port = std::env::var("PORT").unwrap_or_else(|_| "8081".to_string());
     let addr_str = format!("0.0.0.0:{}", port);
     tracing::info!("Attempting to bind to {}", addr_str);
     let addr: SocketAddr = addr_str.parse().expect("Failed to parse address");

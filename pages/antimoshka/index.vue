@@ -6,7 +6,7 @@ onMounted(() => {
 
 const title = 'Москитная сетка Антимошка в Чебоксарах — цены от 1000 руб'
 const description = 'Сетки Антимошка с уменьшенной ячейкой 0.8х0.8 мм. Защита от мелких насекомых и тополиного пуха в Чебоксарах и Новочебоксарске.'
-const keywords = 'антимошка, микромеш, москитная сетка, чебоксары, новочебоксарск, защита от мошек'
+const keywords = 'антимошка, микромеш, москитная сетка, чебоксары, новочебоксарск, защита от мошек, мелкая сетка, micro mesh'
 const url = 'https://www.setki21.ru/antimoshka/'
 const image = 'https://www.setki21.ru/images/logo_new.png'
 
@@ -125,7 +125,7 @@ const faqItems = [
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки Антимошка" />
+              <VideoLazy src="/zamer.mp4" title="Как замерить окно для москитной сетки Антимошка" poster="/images/zamer-poster.jpg" />
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Технология Micro Mesh</h2>
@@ -143,14 +143,14 @@ const faqItems = [
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Плюсы Антимошки</h2>
               <div class="grid md:grid-cols-2 gap-12">
                 <div class="flex gap-6 group">
-                  <div class="text-brand-blue text-6xl font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">01</div>
+                  <div class="text-brand-blue text-6xl font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">01</div>
                   <div>
                     <h3 class="font-black text-xl mb-2 uppercase tracking-tighter text-white">Защита</h3>
                     <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Предотвращает проникновение мошек, жуков, защищает от листьев и грязи с дорог.</p>
                   </div>
                 </div>
                 <div class="flex gap-6 group">
-                  <div class="text-brand-blue text-6xl font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500">02</div>
+                  <div class="text-brand-blue text-6xl font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" aria-hidden="true">02</div>
                   <div>
                     <h3 class="font-black text-xl mb-2 uppercase tracking-tighter text-white">Комфорт</h3>
                     <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Легко очищается, сдерживает солнечные лучи, обеспечивая фильтрацию света.</p>
@@ -158,7 +158,7 @@ const faqItems = [
                 </div>
               </div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
+            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" style="will-change: filter; transform: translateZ(0);"></div>
           </div>
           <SeoTextBlock title="Сетка Антимошка в Чебоксарах и Новочебоксарске" class="mt-20">
             <p>

@@ -67,8 +67,8 @@ function getConfig(pricing?: GlobalPricing) {
       dealerFactor: pricing.markup.dealer,
       clientFactorFromCost: pricing.markup.client,
       measurementBase: pricing.markup.measurement_base,
-      measurementPercent: pricing.markup.measurement_percent / 100,
-      measurementProfitFactor: pricing.markup.measurement_profit_factor / 100,
+      measurementPercent: (pricing.markup.measurement_percent ?? 5) / 100,
+      measurementProfitFactor: (pricing.markup.measurement_profit_factor ?? 5) / 100,
       urgentProfitFactor: pricing.markup.urgent_profit_factor / 100,
       installationProfitFactor: pricing.markup.installation_profit_factor / 100,
       deliveryProfitFactor: pricing.markup.delivery_profit_factor / 100,
@@ -125,10 +125,10 @@ export function getWork(widthMm: number, heightMm: number, colorId: ColorId, mes
   const areaM2 = w * h
   const v = config.variable ?? PRICING_CONFIG.variable
   const areaCalc = Math.max(areaM2, v.minAreaM2)
-  const meshPerM2 = v.meshPerM2 ?? PRICING_CONFIG.variable.meshPerM2
+  const meshPerM2 = v?.meshPerM2 ?? (PRICING_CONFIG as any).meshPerM2 ?? { standart: 63, antimoshka: 265, ultravyu: 295, antikoshka: 414, antipyl: 645 }
 
   // 1. Полотно
-  const meshBase = meshPerM2[meshType] ?? meshPerM2.standart
+  const meshBase = meshPerM2?.[meshType] ?? meshPerM2?.standart ?? 63
   materialCost += areaCalc * meshBase * v.marginMesh
   
   // 2. Профиль
@@ -239,8 +239,8 @@ export function computeCost(widthMm: number, heightMm: number, colorId: ColorId,
   const areaCalc = Math.max(areaM2, config.variable.minAreaM2)
 
   const v = config.variable ?? PRICING_CONFIG.variable
-  const meshPerM2 = v.meshPerM2 ?? PRICING_CONFIG.variable.meshPerM2
-  const meshBase = meshPerM2[meshType] ?? meshPerM2.standart
+  const meshPerM2 = v?.meshPerM2 ?? (PRICING_CONFIG as any).meshPerM2 ?? { standart: 63, antimoshka: 265, ultravyu: 295, antikoshka: 414, antipyl: 645 }
+  const meshBase = meshPerM2?.[meshType] ?? meshPerM2?.standart ?? 63
   const meshCost = areaCalc * meshBase * v.marginMesh
 
   const fixedTotal = getFixedTotal(widthMm, heightMm, colorId, meshType, pricing)
@@ -265,8 +265,8 @@ export function computeCostVstavnaya(widthMm: number, heightMm: number, colorId:
   const areaCalc = Math.max(areaM2, config.variable.minAreaM2)
 
   const v = config.variable ?? PRICING_CONFIG.variable
-  const meshPerM2 = v.meshPerM2 ?? PRICING_CONFIG.variable.meshPerM2
-  const meshBase = meshPerM2[meshType] ?? meshPerM2.standart
+  const meshPerM2 = v?.meshPerM2 ?? (PRICING_CONFIG as any).meshPerM2 ?? { standart: 63, antimoshka: 265, ultravyu: 295, antikoshka: 414, antipyl: 645 }
+  const meshBase = meshPerM2?.[meshType] ?? meshPerM2?.standart ?? 63
   const meshCost = areaCalc * meshBase * v.marginMesh
 
   const fixedTotal = getFixedTotalVstavnaya(widthMm, heightMm, colorId, meshType, pricing)
@@ -330,14 +330,14 @@ export function getOrderProfit(revenue: number, cost: number, ralAmount: number 
   return getNetRevenueAfterCard(revenue, pricing) - cost - ralAmount
 }
 
-/** Размер ячейки сетки в зависимости от типа полотна */
+/** Размер ячейки сетки в зависимости от типа полотна (меньше число — мельче ячейка) */
 export function getMeshSize(meshType: MeshType): number {
   switch (meshType) {
-    case 'antimoshka': return 4  // мелкая ячейка 0.8x0.8
-    case 'ultravyu': return 4    // повышенная прозрачность, мелкая ячейка
-    case 'antipyl': return 3     // мелкая ячейка
-    case 'antikoshka': return 5  // крупная ячейка Pet Screen
-    default: return 4            // стандартная 1.2x1.2
+    case 'antimoshka': return 3  // мельче стандарта: мелкая ячейка 0.8x0.8
+    case 'ultravyu': return 3     // мельче стандарта: повышенная прозрачность, мелкая ячейка
+    case 'antipyl': return 3      // мелкая ячейка
+    case 'antikoshka': return 5   // крупная ячейка Pet Screen
+    default: return 4             // стандартная 1.2x1.2
   }
 }
 

@@ -7,7 +7,11 @@ use crate::AppState;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Utc, Datelike, TimeZone};
+use tracing;
+
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 
 // --- Обработчики файлов ---
 
@@ -57,12 +61,13 @@ pub struct DealerResponse {
     pub name: String,
     pub city: String,
     pub phone: String,
+    pub email: Option<String>,
     pub domain: Option<String>,
     pub is_active: bool,
     pub margin_percent: f64,
     pub delivery_mode: String,
     pub payment_type: String,
-    pub balance: f64,
+    pub balance: Decimal,
     pub branding: moskit_core::entity::DealerBranding,
     pub contacts: moskit_core::entity::DealerContacts,
     pub legal_info: moskit_core::entity::DealerLegalInfo,
@@ -92,7 +97,7 @@ pub async fn create_dealer(
         },
         delivery_mode: DeliveryMode::SelfPickup,
         payment_type: PaymentType::Postpaid,
-        balance: 0.0,
+        balance: dec!(0.0),
         branding: Default::default(),
         contacts: Default::default(),
         legal_info: Default::default(),
@@ -103,23 +108,61 @@ pub async fn create_dealer(
     };
 
     let repo = PostgresDealerRepository::new(state.pool.clone());
-    let created = repo.create(dealer).await.map_err(|e| bad_request(&e.to_string()))?;
+    let created = repo.create(dealer).await.map_err(|e| {
+        tracing::error!(error = %e, "admin create_dealer: DB error");
+        bad_request(&e.to_string())
+    })?;
 
     ok(DealerResponse {
         id: created.id.to_string(),
         name: created.name,
         city: created.city,
         phone: created.phone,
+        email: created.email,
         domain: created.domain,
         is_active: created.is_active,
         margin_percent: created.margin_config.base_margin_percent,
-        delivery_mode: format!("{:?}", created.delivery_mode),
-        payment_type: format!("{:?}", created.payment_type),
+        delivery_mode: created.delivery_mode.as_db_value().to_string(),
+        payment_type: created.payment_type.as_db_value().to_string(),
         balance: created.balance,
         branding: created.branding,
         contacts: created.contacts,
         legal_info: created.legal_info,
         seo_config: created.seo_config,
+    })
+}
+
+pub async fn get_dealer(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> ApiResult<DealerResponse> {
+    use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+
+    let dealer_id = Uuid::parse_str(&id).map_err(|_| bad_request("Invalid UUID"))?;
+    let repo = PostgresDealerRepository::new(state.pool.clone());
+    let dealer = repo.find_by_id(dealer_id).await
+        .map_err(|e| {
+            tracing::error!(dealer_id = %dealer_id, error = %e, "admin get_dealer: DB/decode error");
+            bad_request(&e.to_string())
+        })?
+        .ok_or_else(|| bad_request("Dealer not found"))?;
+
+    ok(DealerResponse {
+        id: dealer.id.to_string(),
+        name: dealer.name,
+        city: dealer.city,
+        phone: dealer.phone,
+        email: dealer.email,
+        domain: dealer.domain,
+        is_active: dealer.is_active,
+        margin_percent: dealer.margin_config.base_margin_percent,
+        delivery_mode: dealer.delivery_mode.as_db_value().to_string(),
+        payment_type: dealer.payment_type.as_db_value().to_string(),
+        balance: dealer.balance,
+        branding: dealer.branding,
+        contacts: dealer.contacts,
+        legal_info: dealer.legal_info,
+        seo_config: dealer.seo_config,
     })
 }
 
@@ -129,18 +172,22 @@ pub async fn list_dealers(
     use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
     
     let repo = PostgresDealerRepository::new(state.pool.clone());
-    let dealers = repo.list(100, 0).await.map_err(|e| bad_request(&e.to_string()))?;
+    let dealers = repo.list(100, 0).await.map_err(|e| {
+        tracing::error!(error = %e, "admin list_dealers: DB/decode error");
+        bad_request(&e.to_string())
+    })?;
 
     let response = dealers.into_iter().map(|d| DealerResponse {
         id: d.id.to_string(),
         name: d.name,
         city: d.city,
         phone: d.phone,
+        email: d.email,
         domain: d.domain,
         is_active: d.is_active,
         margin_percent: d.margin_config.base_margin_percent,
-        delivery_mode: format!("{:?}", d.delivery_mode),
-        payment_type: format!("{:?}", d.payment_type),
+        delivery_mode: d.delivery_mode.as_db_value().to_string(),
+        payment_type: d.payment_type.as_db_value().to_string(),
         balance: d.balance,
         branding: d.branding,
         contacts: d.contacts,
@@ -177,7 +224,10 @@ pub async fn update_dealer(
     let repo = PostgresDealerRepository::new(state.pool.clone());
     
     let mut dealer = repo.find_by_id(dealer_id).await
-        .map_err(|e| bad_request(&e.to_string()))?
+        .map_err(|e| {
+            tracing::error!(dealer_id = %dealer_id, error = %e, "admin update_dealer find_by_id: DB/decode error");
+            bad_request(&e.to_string())
+        })?
         .ok_or_else(|| bad_request("Dealer not found"))?;
 
     if let Some(name) = payload.name { dealer.name = name; }
@@ -192,18 +242,22 @@ pub async fn update_dealer(
     if let Some(legal) = payload.legal_info { dealer.legal_info = legal; }
     if let Some(seo) = payload.seo_config { dealer.seo_config = seo; }
 
-    let updated = repo.update(dealer).await.map_err(|e| bad_request(&e.to_string()))?;
+    let updated = repo.update(dealer).await.map_err(|e| {
+        tracing::error!(dealer_id = %dealer_id, error = %e, "admin update_dealer update: DB error");
+        bad_request(&e.to_string())
+    })?;
 
     ok(DealerResponse {
         id: updated.id.to_string(),
         name: updated.name,
         city: updated.city,
         phone: updated.phone,
+        email: updated.email,
         domain: updated.domain,
         is_active: updated.is_active,
         margin_percent: updated.margin_config.base_margin_percent,
-        delivery_mode: format!("{:?}", updated.delivery_mode),
-        payment_type: format!("{:?}", updated.payment_type),
+        delivery_mode: updated.delivery_mode.as_db_value().to_string(),
+        payment_type: updated.payment_type.as_db_value().to_string(),
         balance: updated.balance,
         branding: updated.branding,
         contacts: updated.contacts,
@@ -327,8 +381,108 @@ pub struct OrderListItem {
     pub client_name: String,
     pub client_phone: String,
     pub status: String,
-    pub total_amount: f64,
+    pub total_amount: Decimal,
     pub created_at: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProductionOrderItem {
+    pub id: String,
+    pub name: String,
+    pub quantity: i32,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProductionOrderRow {
+    pub id: String,
+    pub order_number: String,
+    pub client_name: String,
+    pub created_at: String,
+    pub status: String,
+    pub production_sub_status: Option<String>,
+    pub items: Vec<ProductionOrderItem>,
+}
+
+pub async fn get_production_orders(State(state): State<Arc<AppState>>) -> ApiResult<Vec<ProductionOrderRow>> {
+    use moskit_core::repository::OrderRepository;
+    use moskit_core::entity::OrderStatus;
+
+    let order_repo = moskit_core::repository::PostgresOrderRepository::new(state.pool.clone());
+    let orders = order_repo.list(100, 0).await.map_err(|e| bad_request(&e.to_string()))?;
+
+    let mut rows = Vec::new();
+    for o in orders {
+        if o.status != OrderStatus::Confirmed && o.status != OrderStatus::InProduction {
+            continue;
+        }
+        let full = match order_repo.find_by_id(o.id).await {
+            Ok(Some(f)) => f,
+            _ => continue,
+        };
+        let items: Vec<ProductionOrderItem> = full.items.iter().map(|i| ProductionOrderItem {
+            id: i.id.to_string(),
+            name: i.name.clone(),
+            quantity: i.quantity,
+        }).collect();
+        rows.push(ProductionOrderRow {
+            id: full.id.to_string(),
+            order_number: full.order_number,
+            client_name: full.client_name,
+            created_at: full.created_at.to_rfc3339(),
+            status: full.status.as_str().to_string(),
+            production_sub_status: full.production_sub_status.map(|s| s.as_str().to_string()),
+            items,
+        });
+    }
+
+    ok(rows)
+}
+
+#[derive(Debug, Serialize)]
+pub struct AdminStats {
+    pub dealers_count: u32,
+    pub orders_in_progress: u32,
+    pub revenue_month: Decimal,
+    pub new_orders_today: u32,
+}
+
+pub async fn get_admin_stats(State(state): State<Arc<AppState>>) -> ApiResult<AdminStats> {
+    use moskit_core::repository::{DealerRepository, OrderRepository};
+    use moskit_core::entity::OrderStatus;
+
+    let dealer_repo = moskit_core::repository::PostgresDealerRepository::new(state.pool.clone());
+    let order_repo = moskit_core::repository::PostgresOrderRepository::new(state.pool.clone());
+
+    let dealers = dealer_repo.list(500, 0).await.map_err(|e| bad_request(&e.to_string()))?;
+    let orders = order_repo.list(500, 0).await.map_err(|e| bad_request(&e.to_string()))?;
+
+    let now = Utc::now();
+    let start_of_month = Utc
+        .with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0)
+        .single()
+        .unwrap_or(now);
+
+    let orders_in_progress = orders.iter()
+        .filter(|o| o.status == OrderStatus::Confirmed || o.status == OrderStatus::InProduction)
+        .count() as u32;
+
+    let new_orders_today = orders.iter()
+        .filter(|o| o.created_at.date_naive() == now.date_naive())
+        .count() as u32;
+
+    let stats_month = order_repo.get_stats(None, start_of_month, now).await
+        .map_err(|e| bad_request(&e.to_string()))?;
+    let revenue_month = stats_month.get("amount")
+        .and_then(|v| v.as_f64())
+        .map(|f| Decimal::from_f64_retain(f).unwrap_or_default())
+        .unwrap_or_default();
+
+    ok(AdminStats {
+        dealers_count: dealers.len() as u32,
+        orders_in_progress,
+        revenue_month,
+        new_orders_today,
+    })
 }
 
 pub async fn list_all_orders(
@@ -404,6 +558,11 @@ pub async fn update_order_status(
     order.status = new_status;
     if let Some(c) = payload.comment {
         order.comment = Some(c);
+    }
+    if let Some(ref ps) = payload.production_sub_status {
+        if let Some(sub) = moskit_core::entity::ProductionSubStatus::from_str(ps) {
+            order.production_sub_status = Some(sub);
+        }
     }
 
     let updated = repo.update(order).await.map_err(|e| bad_request(&e.to_string()))?;

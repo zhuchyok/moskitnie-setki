@@ -33,21 +33,84 @@ const form = reactive({
   agree: false
 })
 
+const formErrors = reactive<Record<string, string>>({ name: '', phone: '' })
+const PHONE_REGEX = /^\+7\s?\(\d{3,4}\)\s?\d{2,3}-\d{2}-\d{2}$|^\+7\d{10}$/
+const PHONE_ALLOWED = /[\d+\s()\-]/g
+const MAX_PHONE_DIGITS = 11
+/** Символы, разрешённые с клавиатуры (мировая практика: ограничить ввод) */
+const PHONE_KEY_ALLOWED = /^[\d+\s\-()]$/
+
+/** Форматирует телефон в вид +7 (XXX) XXX-XX-XX при вводе (маска по практике 2024) */
+function formatPhoneDisplay(raw: string): string {
+  const digits = (raw.match(/\d/g) || []).join('').slice(0, MAX_PHONE_DIGITS)
+  if (digits.length === 0) return ''
+  let d = digits
+  if (d.startsWith('8') && d.length <= 11) d = '7' + d.slice(1)
+  else if (!d.startsWith('7')) d = '7' + d
+  d = d.slice(0, 11)
+  if (d.length <= 1) return d === '7' ? '+7' : '+7 (' + d
+  if (d.length <= 4) return '+7 (' + d.slice(1)
+  if (d.length <= 7) return '+7 (' + d.slice(1, 4) + ') ' + d.slice(4)
+  if (d.length <= 9) return '+7 (' + d.slice(1, 4) + ') ' + d.slice(4, 7) + '-' + d.slice(7)
+  return '+7 (' + d.slice(1, 4) + ') ' + d.slice(4, 7) + '-' + d.slice(7, 9) + '-' + d.slice(9, 11)
+}
+
+function sanitizePhoneInput(value: string): string {
+  const allowed = (value.match(PHONE_ALLOWED) || []).join('')
+  if (!allowed.replace(/\D/g, '').length) return ''
+  return formatPhoneDisplay(allowed)
+}
+
+/** Блокирует ввод букв и недопустимых символов */
+function onPhoneKeydown(e: KeyboardEvent) {
+  const key = e.key
+  if (key.length === 1 && !PHONE_KEY_ALLOWED.test(key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault()
+  }
+}
+
+function onPhoneInput(e: Event) {
+  form.phone = sanitizePhoneInput((e.target as HTMLInputElement).value)
+  formErrors.phone = ''
+}
+
 const resetForm = () => {
   form.name = ''
   form.phone = ''
   form.address = ''
   form.comment = ''
   form.agree = false
+  formErrors.name = ''
+  formErrors.phone = ''
+}
+
+function validateForm(): boolean {
+  formErrors.name = ''
+  formErrors.phone = ''
+  let valid = true
+  if (!form.name.trim()) {
+    formErrors.name = 'Введите имя'
+    valid = false
+  }
+  const phone = form.phone.trim()
+  if (!phone) {
+    formErrors.phone = 'Введите телефон'
+    valid = false
+  } else if (!PHONE_REGEX.test(phone.replace(/\s/g, ''))) {
+    formErrors.phone = 'Формат: +7 (XXX) XXX-XX-XX'
+    valid = false
+  }
+  return valid
 }
 
 const handleSubmit = () => {
   if (!form.agree) return
+  if (!validateForm()) return
   emit('submit', {
-    name: form.name,
-    phone: form.phone,
-    address: form.address,
-    comment: form.comment
+    name: form.name.trim(),
+    phone: form.phone.trim(),
+    address: form.address.trim(),
+    comment: form.comment.trim()
   })
   resetForm()
   isModalOpen.value = false
@@ -86,15 +149,28 @@ const closeModal = () => {
                          type="text"
                          required
                          placeholder="Иван Иванов"
-                         class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-5 outline-none transition-all font-bold text-sm md:text-base shadow-inner" />
+                         :class="[
+                           'w-full bg-gray-50 border-2 focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-5 outline-none transition-all font-bold text-sm md:text-base shadow-inner',
+                           formErrors.name ? 'border-red-500 focus:border-red-500' : 'border-transparent'
+                         ]" />
+                  <p v-if="formErrors.name" class="text-red-500 text-xs font-bold ml-4 md:ml-6">{{ formErrors.name }}</p>
                 </div>
                 <div class="space-y-2 md:space-y-3">
                   <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-4 md:ml-6">Телефон</label>
-                  <input v-model="form.phone"
+                  <input :value="form.phone"
                          type="tel"
+                         inputmode="tel"
+                         autocomplete="tel"
                          required
                          placeholder="+7 (___) ___-__-__"
-                         class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-5 outline-none transition-all font-bold text-sm md:text-base shadow-inner" />
+                         maxlength="18"
+                         @keydown="onPhoneKeydown"
+                         @input="onPhoneInput"
+                         :class="[
+                           'w-full bg-gray-50 border-2 focus:border-brand-blue focus:bg-white rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-5 outline-none transition-all font-bold text-sm md:text-base shadow-inner',
+                           formErrors.phone ? 'border-red-500 focus:border-red-500' : 'border-transparent'
+                         ]" />
+                  <p v-if="formErrors.phone" class="text-red-500 text-xs font-bold ml-4 md:ml-6">{{ formErrors.phone }}</p>
                 </div>
               </div>
               <div class="space-y-2 md:space-y-3">

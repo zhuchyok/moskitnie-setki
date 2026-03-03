@@ -1,14 +1,15 @@
 // handlers/content.rs
 
 use axum::{
-    extract::{State, Host},
+    extract::{State, Host, Query},
     Json,
 };
 use std::sync::Arc;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use crate::AppState;
 use crate::handlers::{ApiResult, ok, bad_request};
 use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize)]
 pub struct TenantConfig {
@@ -22,15 +23,30 @@ pub struct TenantConfig {
     pub legal: moskit_core::entity::DealerLegalInfo,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct TenantQuery {
+    pub dealer_id: Option<String>,
+}
+
 pub async fn get_tenant_config(
     State(state): State<Arc<AppState>>,
     Host(host): Host,
+    Query(query): Query<TenantQuery>,
 ) -> ApiResult<TenantConfig> {
     let repo = PostgresDealerRepository::new(state.pool.clone());
     
-    // Ищем дилера по домену
-    let dealer = repo.find_by_domain(&host).await
-        .map_err(|e| bad_request(&e.to_string()))?;
+    // 1. Пытаемся найти дилера по dealer_id из query-параметра (для предпросмотра)
+    let dealer = if let Some(id_str) = query.dealer_id {
+        if let Ok(id) = Uuid::parse_str(&id_str) {
+            repo.find_by_id(id).await.map_err(|e| bad_request(&e.to_string()))?
+        } else {
+            None
+        }
+    } else {
+        // 2. Иначе ищем по домену
+        repo.find_by_domain(&host).await
+            .map_err(|e| bad_request(&e.to_string()))?
+    };
 
     match dealer {
         Some(d) => {

@@ -23,8 +23,9 @@ impl DealerRepository for PostgresDealerRepository {
     async fn find_by_id(&self, id: Uuid) -> CoreResult<Option<Dealer>> {
         let dealer = sqlx::query_as::<_, Dealer>(
             r#"
-            SELECT id, name, city, phone, email, address, domain, margin_config, delivery_mode, payment_type, balance, 
-                   branding, contacts, legal_info, seo_config, is_active, created_at, updated_at
+            SELECT id, name, city, phone, email, address, domain, margin_config,
+                   delivery_mode::text as delivery_mode, payment_type::text as payment_type,
+                   balance, branding, contacts, legal_info, seo_config, is_active, created_at, updated_at
             FROM dealers
             WHERE id = $1
             "#,
@@ -40,8 +41,9 @@ impl DealerRepository for PostgresDealerRepository {
     async fn find_by_domain(&self, domain: &str) -> CoreResult<Option<Dealer>> {
         let dealer = sqlx::query_as::<_, Dealer>(
             r#"
-            SELECT id, name, city, phone, email, address, domain, margin_config, delivery_mode, payment_type, balance, 
-                   branding, contacts, legal_info, seo_config, is_active, created_at, updated_at
+            SELECT id, name, city, phone, email, address, domain, margin_config,
+                   delivery_mode::text as delivery_mode, payment_type::text as payment_type,
+                   balance, branding, contacts, legal_info, seo_config, is_active, created_at, updated_at
             FROM dealers
             WHERE domain = $1
             "#,
@@ -155,8 +157,9 @@ impl DealerRepository for PostgresDealerRepository {
     async fn list(&self, limit: usize, offset: usize) -> CoreResult<Vec<Dealer>> {
         let dealers = sqlx::query_as(
             r#"
-            SELECT id, name, city, phone, email, address, domain, margin_config, delivery_mode, payment_type, balance, 
-                   branding, contacts, legal_info, seo_config, is_active, created_at, updated_at
+            SELECT id, name, city, phone, email, address, domain, margin_config,
+                   delivery_mode::text as delivery_mode, payment_type::text as payment_type,
+                   balance, branding, contacts, legal_info, seo_config, is_active, created_at, updated_at
             FROM dealers
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
@@ -174,8 +177,9 @@ impl DealerRepository for PostgresDealerRepository {
     async fn list_active(&self) -> CoreResult<Vec<Dealer>> {
         let dealers = sqlx::query_as(
             r#"
-            SELECT id, name, city, phone, email, address, domain, margin_config, delivery_mode, payment_type, balance, 
-                   branding, contacts, legal_info, seo_config, is_active, created_at, updated_at
+            SELECT id, name, city, phone, email, address, domain, margin_config,
+                   delivery_mode::text as delivery_mode, payment_type::text as payment_type,
+                   balance, branding, contacts, legal_info, seo_config, is_active, created_at, updated_at
             FROM dealers
             WHERE is_active = true
             ORDER BY name

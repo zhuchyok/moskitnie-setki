@@ -4,7 +4,11 @@ export default defineNuxtConfig({
     extractCritical: true
   },
   compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
+  devtools: { enabled: false },
+  devServer: {
+    port: 3001,
+    host: 'localhost'
+  },
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
@@ -59,7 +63,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      routes: ['/', '/antimoshka', '/ultravyu', '/antikoshka', '/antipyl', '/vstavnye', '/remont', '/contacts', '/delivery', '/privacy', '/karta-sajta'],
+      routes: ['/', '/antimoshka', '/ultravyu', '/antikoshka', '/antipyl', '/vstavnye', '/remont', '/contacts', '/delivery', '/privacy', '/karta-sajta', '/dealers', '/admin'],
       failOnError: false
     }
   },

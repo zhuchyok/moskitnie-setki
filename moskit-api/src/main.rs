@@ -13,6 +13,7 @@ use sqlx::PgPool;
 use std::sync::Arc;
 
 mod handlers;
+mod npm;
 
 use tower_http::services::ServeDir;
 
@@ -95,6 +96,7 @@ async fn main() {
         .route("/api/v1/admin/orders", get(handlers::admin::list_all_orders))
         .route("/api/v1/admin/production/orders", get(handlers::admin::get_production_orders))
         .route("/api/v1/admin/orders/:id/status", put(handlers::admin::update_order_status))
+        .route("/api/v1/admin/dealers/:id/activate_domain", post(handlers::admin::activate_dealer_domain))
         // Управление ценами
         .route("/api/v1/admin/pricing", get(handlers::pricing::get_global_pricing))
         .route("/api/v1/admin/pricing", post(handlers::pricing::update_global_pricing))

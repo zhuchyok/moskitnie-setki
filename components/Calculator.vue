@@ -428,7 +428,8 @@ const submitOrder = async () => {
     total_price_value: store.totalPrice,
     total_order_value: store.allItemsWithInstallation ? 'Монтаж' : store.delivery,
     measurement: store.measurementSelected,
-    discount_type: store.discountType || undefined
+    discount_type: store.discountType || undefined,
+    dealer_email: tenant.config.contacts?.emails?.[0] || undefined
   }
   
   try {
@@ -556,7 +557,7 @@ const submitOrder = async () => {
       </div>
 
       <!-- Управление (Правая часть): отступ сверху как у левого (p-12); снизу увеличен под цену и кнопку (на VDS не перекрывает) -->
-      <div class="lg:w-8/12 px-10 md:px-16 pt-12 pb-14 lg:pb-16 flex flex-col justify-start min-w-0 overflow-hidden">
+      <div class="lg:w-8/12 px-10 md:px-16 pt-12 pb-8 lg:pb-8 flex flex-col justify-start min-w-0 overflow-hidden">
         <div class="flex items-center gap-5 mb-8">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-2xl transform -rotate-3" :style="{ backgroundColor: brandPrimary, boxShadow: `0 25px 50px -12px ${brandPrimary}4D` }">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -589,7 +590,7 @@ const submitOrder = async () => {
                     <button v-for="t in types" :key="t.id"
                             @click="selectType(t.id, t.name)"
                             :class="[
-                              'h-12 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center',
+                              'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center',
                               store.config.type === t.id 
                                 ? 'text-white border-transparent shadow-2xl transform -translate-y-1' 
                                 : 'bg-white text-gray-400 border-gray-100'
@@ -613,7 +614,7 @@ const submitOrder = async () => {
                       <button v-for="ft in frameTypes" :key="ft.id"
                               @click="selectFrameType(ft.id)"
                               :class="[
-                                'h-12 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap w-full flex items-center justify-center',
+                                'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap w-full flex items-center justify-center',
                                 store.config.frameType === ft.id 
                                   ? 'text-white border-transparent shadow-xl transform -translate-y-0.5' 
                                   : 'bg-white text-gray-400 border-gray-100'
@@ -644,7 +645,7 @@ const submitOrder = async () => {
                       <button v-for="color in colors" :key="color.id"
                               @click="selectColor(color.id)"
                               :class="[
-                                'h-12 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest whitespace-nowrap w-full flex items-center justify-center',
+                                'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest whitespace-nowrap w-full flex items-center justify-center',
                                 store.config.color === color.id 
                                   ? 'text-white border-transparent shadow-xl transform -translate-y-0.5' 
                                   : 'bg-white text-gray-400 border-gray-100'
@@ -748,7 +749,7 @@ const submitOrder = async () => {
                           <button v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
                                   @click="selectMeasurementMethod(m.id as any)"
                                   :class="[
-                                    'h-12 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center measurement-method-btn',
+                                    'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center measurement-method-btn',
                                     store.config.measurementMethod === m.id
                                       ? 'text-white border-transparent shadow-xl transform -translate-y-0.5'
                                       : 'bg-white text-gray-400 border-gray-100'
@@ -929,17 +930,17 @@ const submitOrder = async () => {
 
                 <div class="pt-4 flex flex-col sm:flex-row items-end justify-between gap-6">
                   <div class="text-center sm:text-left w-full sm:w-auto">
-                    <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-2">Итоговая цена</p>
+                    <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-1">Итоговая цена</p>
                     <div class="flex items-baseline justify-center sm:justify-start">
-                      <div class="inline-flex items-baseline gap-3 bg-white px-8 py-6 -ml-8 -mt-2 overflow-visible">
-                        <span class="text-5xl font-black leading-[1.2] tracking-normal whitespace-nowrap" :style="{ color: brandPrimary }">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
+                      <div class="inline-flex items-baseline gap-3 bg-white px-8 py-2 -ml-8 overflow-visible">
+                        <span class="text-5xl font-black leading-none tracking-normal whitespace-nowrap" :style="{ color: brandPrimary }">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
                         <span class="text-2xl font-black text-gray-200 uppercase leading-none self-baseline" style="font-size: 1.5rem; line-height: 1;">₽</span>
                       </div>
                     </div>
                   </div>
                   <button @click="handleAddToOrder()"
                           :class="[
-                            'w-full sm:w-auto font-black py-4 px-14 rounded-2xl transition-all shadow-xl active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap add-to-order-button border-2',
+                            'w-full sm:w-auto font-black py-3 px-14 rounded-2xl transition-all shadow-xl active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap add-to-order-button border-2',
                             isAdded ? 'text-white' : 'bg-brand-dark text-white border-transparent'
                           ]"
                           :style="[
@@ -957,10 +958,10 @@ const submitOrder = async () => {
           <div v-if="currentStep < 5" class="pt-10 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
             <!-- Цена в левом углу -->
             <div class="text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
-              <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-2">Предварительная цена</p>
+              <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-1">Предварительная цена</p>
               <div class="flex items-baseline justify-center sm:justify-start">
-                <div class="inline-flex items-baseline gap-3 bg-white px-8 py-6 -ml-8 -mt-2 overflow-visible">
-                  <span class="text-3xl font-black leading-[1.2] tracking-normal whitespace-nowrap" :style="{ color: brandPrimary }">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
+                <div class="inline-flex items-baseline gap-3 bg-white px-8 py-2 -ml-8 overflow-visible">
+                  <span class="text-3xl font-black leading-none tracking-normal whitespace-nowrap" :style="{ color: brandPrimary }">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
                   <span class="text-xl font-black text-gray-200 uppercase leading-none self-baseline">₽</span>
                 </div>
               </div>
@@ -970,7 +971,7 @@ const submitOrder = async () => {
           <div class="grid grid-cols-2 gap-4 w-full sm:w-auto order-1 sm:order-2 pb-6">
             <button v-if="currentStep > 1" 
                     @click="prevStep"
-                    class="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2 transition-colors py-4 px-6 border-2 border-gray-100 rounded-2xl nav-back-button"
+                    class="w-full text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-center gap-2 transition-colors py-3 px-6 border-2 border-gray-100 rounded-2xl nav-back-button"
                     :style="{ '--brand-primary': brandPrimary, '--hover-text-color': brandPrimary, '--hover-border-color': brandPrimary + '33' }">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
@@ -981,7 +982,7 @@ const submitOrder = async () => {
             <button @click="nextStep"
                     :disabled="currentStep === 3 && !store.config.measurementMethod"
                     :class="[
-                      'w-full font-black py-4 px-6 rounded-2xl transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-95 border-2 border-transparent',
+                      'w-full font-black py-3 px-6 rounded-2xl transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-95 border-2 border-transparent',
                       currentStep === 1 ? 'col-span-2' : '',
                       currentStep === 3 && !store.config.measurementMethod
                         ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'

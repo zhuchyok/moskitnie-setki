@@ -83,10 +83,10 @@ const faqItems = computed(() => [
 
 <template>
   <div>
-    <section class="py-10 bg-white">
+    <section class="pt-10 pb-4 bg-white">
       <div class="container mx-auto px-4">
-        <div class="flex flex-col lg:flex-row gap-12 items-stretch mb-10">
-          <div class="lg:w-5/12 flex flex-col justify-center">
+        <div class="flex flex-col lg:flex-row gap-12 items-stretch mb-8 min-h-[440px]">
+          <div class="lg:w-1/2 flex flex-col justify-center min-h-[440px]">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Вставные сетки <span class="text-brand-blue">VSN</span> — без сверления
             </h1>
@@ -117,20 +117,20 @@ const faqItems = computed(() => [
               </div>
             </div>
           </div>
-          <div class="lg:w-7/12 relative flex items-center justify-end">
-            <div class="relative w-full max-w-[740px]">
-              <HeroImage src="/upload/iblock/e09/hero-vstavnye.png" webp-src="/images/optimized/e09/hero-vstavnye.webp" alt="Простые замеры: ширина и высота проёма окна для вставной москитной сетки VSN" class="rounded-[3rem] shadow-2xl border-4 border-white w-full h-auto" :width="740" :height="400" loading="lazy" />
+          <div class="lg:w-1/2 relative flex items-center justify-end">
+            <div class="relative w-full max-w-[640px]">
+              <HeroImage src="/images/hero-vstavnaya-zamer.png" :alt="`Простые замеры: ширина и высота проёма окна для вставной москитной сетки VSN в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}`" class="rounded-[3rem] shadow-2xl border-4 border-white w-full h-auto" :width="640" :height="400" loading="lazy" />
               
               <!-- Текст поверх картинки -->
               <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 pr-[30%] md:pr-[35%]">
                 <div class="inline-flex flex-col items-stretch">
                   <div class="text-center">
-                    <p class="text-[clamp(1.3rem,5.5vw,2.5rem)] font-black leading-[0.9] uppercase tracking-[0.05em] opacity-90 flex justify-between" 
+                    <p class="text-[clamp(1rem,4vw,2.2rem)] font-black leading-[0.9] uppercase tracking-[0.05em] opacity-90 flex justify-between" 
                        style="font-family: 'Impact', 'Arial Black', sans-serif;"
                        :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
                       <span>П</span><span>Р</span><span>О</span><span>С</span><span>Т</span><span>О</span><span>&nbsp;</span><span>З</span><span>А</span><span>М</span><span>Е</span><span>Р</span><span>Я</span><span>Е</span><span>М</span>
                     </p>
-                    <p class="text-[clamp(1.3rem,5.5vw,2.5rem)] font-black leading-[0.9] uppercase tracking-[0.05em] opacity-90 mt-1 flex justify-between" 
+                    <p class="text-[clamp(1rem,4vw,2.2rem)] font-black leading-[0.9] uppercase tracking-[0.05em] opacity-90 mt-1 flex justify-between" 
                        style="font-family: 'Impact', 'Arial Black', sans-serif;"
                        :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
                       <span>Р</span><span>А</span><span>З</span><span>М</span><span>Е</span><span>Р</span><span>Ы</span><span>&nbsp;</span><span>П</span><span>Р</span><span>О</span><span>Е</span><span>М</span><span>А</span>

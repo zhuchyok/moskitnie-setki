@@ -4,6 +4,7 @@ use axum::{
 };
 use crate::handlers::{ok, ApiResult, bad_request};
 use crate::AppState;
+use crate::npm::NpmClient;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -577,4 +578,38 @@ pub async fn update_order_status(
         total_amount: updated.total_amount,
         created_at: updated.created_at.to_rfc3339(),
     })
+}
+
+pub async fn activate_dealer_domain(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> ApiResult<serde_json::Value> {
+    use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+    
+    let dealer_id = Uuid::parse_str(&id).map_err(|_| bad_request("Invalid UUID"))?;
+    let repo = PostgresDealerRepository::new(state.pool.clone());
+    
+    let dealer = repo.find_by_id(dealer_id).await
+        .map_err(|e| bad_request(&e.to_string()))?
+        .ok_or_else(|| bad_request("Dealer not found"))?;
+
+    let domain = dealer.domain.ok_or_else(|| bad_request("Dealer has no domain configured"))?;
+    
+    tracing::info!("Activating domain {} for dealer {}", domain, dealer_id);
+    
+    let npm = NpmClient::new();
+    match npm.create_proxy_host(&domain).await {
+        Ok(host_id) => {
+            tracing::info!("Domain {} activated successfully, NPM Host ID: {}", domain, host_id);
+            ok(serde_json::json!({ 
+                "success": true, 
+                "npm_host_id": host_id,
+                "message": format!("Домен {} успешно активирован в NPM", domain)
+            }))
+        },
+        Err(e) => {
+            tracing::error!("Failed to activate domain {} in NPM: {}", domain, e);
+            Err(bad_request(&format!("Ошибка NPM: {}", e)))
+        }
+    }
 }

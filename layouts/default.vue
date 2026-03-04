@@ -214,16 +214,18 @@ useHead({
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow">
-      <nav v-if="breadcrumbs.length > 1 && route.path !== '/'" class="container mx-auto px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500" aria-label="Хлебные крошки">
-        <ol class="flex flex-wrap items-center gap-1.5">
-          <li v-for="(item, i) in breadcrumbs" :key="item.path" class="flex items-center gap-1.5">
-            <template v-if="i > 0"><span aria-hidden="true">/</span></template>
-            <NuxtLink v-if="i < breadcrumbs.length - 1" :to="item.path" class="hover-brand-text transition-colors">{{ item.name }}</NuxtLink>
-            <span v-else class="text-brand-dark" aria-current="page">{{ item.name }}</span>
-          </li>
-        </ol>
-      </nav>
+    <main class="flex-grow relative">
+      <div v-if="breadcrumbs.length > 1 && route.path !== '/'" class="absolute top-0 left-0 right-0 z-20">
+        <nav class="container mx-auto px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500" aria-label="Хлебные крошки">
+          <ol class="flex flex-wrap items-center gap-1.5">
+            <li v-for="(item, i) in breadcrumbs" :key="item.path" class="flex items-center gap-1.5">
+              <template v-if="i > 0"><span aria-hidden="true">/</span></template>
+              <NuxtLink v-if="i < breadcrumbs.length - 1" :to="item.path" class="hover-brand-text transition-colors">{{ item.name }}</NuxtLink>
+              <span v-else class="text-brand-dark" aria-current="page">{{ item.name }}</span>
+            </li>
+          </ol>
+        </nav>
+      </div>
       <slot />
     </main>
 

@@ -42,6 +42,7 @@
   },
   "overrides": {
     "glob": "^11.0.0",
-    "@koa/router": "^15.0.0"
+    "@koa/router": "^15.0.0",
+    "esbuild": "0.24.2"
   }
 }

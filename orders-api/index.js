@@ -89,7 +89,8 @@ app.post('/api/orders', async (req, res) => {
       total_price_value: body.total_price_value,
       total_order_value: body.total_order_value ? String(body.total_order_value).trim() : undefined,
       measurement: body.measurement,
-      discount_type: body.discount_type
+      discount_type: body.discount_type,
+      dealer_email: body.dealer_email ? String(body.dealer_email).trim() : undefined
     }
 
     const required = ['formName', 'formPhone', 'list_order', 'total_price_value']
@@ -101,6 +102,10 @@ app.post('/api/orders', async (req, res) => {
 
     if (trimmed.formEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed.formEmail)) {
       return res.status(400).json({ statusMessage: 'Invalid email format' })
+    }
+
+    if (trimmed.dealer_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed.dealer_email)) {
+      console.warn(`Invalid dealer email format: ${trimmed.dealer_email}, falling back to default`)
     }
 
     const phoneNorm = normalizePhone(trimmed.formPhone)
@@ -147,9 +152,17 @@ app.post('/api/orders', async (req, res) => {
       </div>
     `
 
+    const recipients = []
+    if (trimmed.dealer_email) {
+      recipients.push(trimmed.dealer_email)
+    } else {
+      // Fallback if no dealer email provided
+      recipients.push(process.env.ORDER_EMAIL || 'info@setki21.ru')
+    }
+
     await transporter.sendMail({
       from: process.env.SMTP_USER,
-      to: process.env.ORDER_EMAIL || 'info@setki21.ru',
+      to: recipients.join(', '),
       subject: `Заказ №${Date.now()} - ${escapeHtml(trimmed.formName)}`,
       html: htmlContent,
       replyTo: trimmed.formEmail || trimmed.formPhone

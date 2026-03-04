@@ -29,13 +29,42 @@ useHead({ title })
 
 const isLoading = ref(true)
 const isSaving = ref(false)
+const isActivating = ref(false)
 const activeTab = ref('branding')
+
+const handleActivateDomain = async () => {
+  const dealerId = auth.user?.dealer_id
+  if (!dealerId || !form.domain) return
+  
+  isActivating.value = true
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    
+    const response = await $fetch(`/api/v1/admin/dealers/${dealerId}/activate_domain`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${auth.token}` },
+      baseURL: apiBase
+    }) as any
+    
+    if (response.success) {
+      showNotification(response.message || 'Домен успешно активирован')
+    }
+  } catch (e: any) {
+    console.error('Activation failed', e)
+    const msg = e.data?.message || 'Ошибка при активации домена'
+    showNotification(msg, 'error')
+  } finally {
+    isActivating.value = false
+  }
+}
 
 const form = reactive({
   name: '',
   city: '',
   phone: '',
   email: '',
+  domain: '',
   branding: {
     logo_url: '',
     primary_color: '#2196F3',
@@ -66,8 +95,6 @@ const fetchSettings = async () => {
     const config = useRuntimeConfig()
     const apiBase = config.public.apiUrl || 'http://localhost:8081'
     
-    // В реальности здесь должен быть эндпоинт для текущего дилера
-    // Для примера используем ID из профиля пользователя
     const dealerId = auth.user?.dealer_id
     if (!dealerId) return
 
@@ -182,13 +209,78 @@ onMounted(fetchSettings)
                   </div>
                 </div>
               </div>
+
+              <div class="space-y-2">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Email для уведомлений</label>
+                <input v-model="form.email" type="email" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="info@example.ru" />
+                <p class="text-[8px] text-gray-400 ml-4 uppercase">На этот адрес будут приходить заявки с сайта</p>
+              </div>
+
               <div class="space-y-2">
                 <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Краткое описание (подпись)</label>
                 <input v-model="form.branding.short_description" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
               </div>
+
               <div class="space-y-2">
                 <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Режим работы</label>
                 <input v-model="form.branding.working_hours" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Пн-Пт 9:00-18:00" />
+              </div>
+
+              <!-- Привязка домена (NPM + SSL) -->
+              <div v-if="form.domain" class="pt-10 border-t border-gray-100 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div class="bg-gradient-to-br from-white to-blue-50/30 p-8 md:p-10 rounded-[3rem] border-2 border-blue-100/50 shadow-xl relative overflow-hidden group">
+                  <!-- Декоративный элемент -->
+                  <div class="absolute top-0 right-0 w-32 h-32 bg-brand-blue/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-blue/10 transition-colors duration-500"></div>
+                  
+                  <div class="flex items-start gap-6 relative z-10">
+                    <div class="w-14 h-14 bg-brand-blue rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-blue/30 shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="text-xl font-black text-brand-dark uppercase tracking-tighter mb-2">Привязка домена</h3>
+                      <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mb-8 opacity-70">Настройка собственного адреса для вашего сайта</p>
+                      
+                      <div class="space-y-8">
+                        <!-- Шаг 1 -->
+                        <div class="space-y-4">
+                          <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-black text-brand-blue uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-lg">Шаг 1</span>
+                            <h4 class="text-[10px] font-black text-brand-dark uppercase tracking-widest">Настройка DNS</h4>
+                          </div>
+                          <div class="bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-blue-100 shadow-inner">
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Направьте домен на IP вашего сервера:</p>
+                            <div class="flex items-center gap-4">
+                              <code class="text-2xl font-black text-brand-blue tracking-tighter">45.10.43.248</code>
+                              <span class="text-[8px] font-black text-gray-300 uppercase tracking-widest">Создайте A-запись в панели регистратора</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Шаг 2 -->
+                        <div class="space-y-4">
+                          <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-black text-brand-blue uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-lg">Шаг 2</span>
+                            <h4 class="text-[10px] font-black text-brand-dark uppercase tracking-widest">Активация в системе</h4>
+                          </div>
+                          <button type="button" 
+                                  @click="handleActivateDomain"
+                                  :disabled="isActivating"
+                                  class="w-full bg-brand-dark text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-brand-dark/20 active:scale-[0.98] uppercase text-[10px] tracking-[0.2em] hover:bg-black group flex items-center justify-center gap-3 disabled:opacity-50">
+                            <span v-if="isActivating" class="animate-pulse">Активация...</span>
+                            <template v-else>
+                              <span class="group-hover:translate-x-1 transition-transform">Активировать сайт (NPM + SSL)</span>
+                              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </template>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -201,14 +293,6 @@ onMounted(fetchSettings)
                   <button @click="form.contacts.phones.splice(i, 1)" type="button" class="text-red-400 px-4 hover:scale-125 transition-transform">×</button>
                 </div>
                 <button @click="form.contacts.phones.push('')" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest ml-4 hover:underline">+ Добавить телефон</button>
-              </div>
-              <div class="space-y-4">
-                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Email адреса</label>
-                <div v-for="(e, i) in form.contacts.emails" :key="i" class="flex gap-2">
-                  <input v-model="form.contacts.emails[i]" type="email" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-                  <button @click="form.contacts.emails.splice(i, 1)" type="button" class="text-red-400 px-4 hover:scale-125 transition-transform">×</button>
-                </div>
-                <button @click="form.contacts.emails.push('')" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest ml-4 hover:underline">+ Добавить email</button>
               </div>
             </div>
 

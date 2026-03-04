@@ -1,0 +1,12 @@
+node_modules
+.nuxt
+.output
+.git
+target
+moskit-core/target
+moskit-api/target
+*.tar
+*.zip
+*.log
+.env*
+!.env.example

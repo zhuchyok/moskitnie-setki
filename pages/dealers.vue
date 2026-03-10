@@ -19,12 +19,15 @@ const showNotification = (message: string, type: 'success' | 'error' = 'success'
   }, 5000)
 }
 
+const tenant = useTenantStore()
+const defaultDealerName = computed(() => tenant.config.city?.includes('Чебоксары') ? 'Сетки 21' : 'Сетки Москитки')
+
 const requestURL = useRequestURL()
 const origin = requestURL?.origin || 'https://www.setki21.ru'
-const title = 'Дилерам — выгодное сотрудничество с Сетки 21'
-const description = 'Приглашаем дилеров, оконные компании и частных мастеров к сотрудничеству. Собственное производство москитных сеток в Чебоксарах, низкие цены, изготовление за 1 день.'
+const title = computed(() => `Дилерам — выгодное сотрудничество с ${tenant.config.dealer_name || defaultDealerName.value}`)
+const description = computed(() => `Приглашаем дилеров, оконные компании и частных мастеров к сотрудничеству. Собственное производство москитных сеток в ${tenant.config.city || 'Чебоксарах'}, низкие цены, изготовление за 1 день.`)
 const url = `${origin}/dealers`
-const image = `${origin}/images/logo_final_v58.png`
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
 useHead({
   title,
@@ -155,10 +158,10 @@ const handleAuth = async () => {
     <section class="bg-brand-dark text-white py-20 relative overflow-hidden">
       <div class="container mx-auto px-4 relative z-10 text-center">
         <h1 class="text-4xl md:text-6xl font-black mb-6 uppercase tracking-tighter text-white">
-          Партнерство на <span class="text-[#2A6AB2]">успех</span>
+          Партнерство на <span :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">успех</span>
         </h1>
         <p class="text-xl text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed">
-          Приглашаем оконные компании, строительные бригады и частных мастеров стать нашими дилерами в Чебоксарах и Новочебоксарске.
+          Приглашаем оконные компании, строительные бригады и частных мастеров стать нашими дилерами в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}.
         </p>
       </div>
       <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
@@ -229,15 +232,17 @@ const handleAuth = async () => {
                   <button @click="isLoginMode = true" 
                           :class="[
                             'flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
-                            isLoginMode ? 'bg-white text-brand-blue shadow-md' : 'text-gray-400 hover:text-brand-dark'
-                          ]">
+                            isLoginMode ? 'bg-white shadow-md' : 'text-gray-400 hover:text-brand-dark'
+                          ]"
+                          :style="isLoginMode ? { color: tenant.config.branding?.primary_color || '#2A6AB2' } : {}">
                     Вход
                   </button>
                   <button @click="isLoginMode = false" 
                           :class="[
                             'flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all',
-                            !isLoginMode ? 'bg-white text-brand-blue shadow-md' : 'text-gray-400 hover:text-brand-dark'
-                          ]">
+                            !isLoginMode ? 'bg-white shadow-md' : 'text-gray-400 hover:text-brand-dark'
+                          ]"
+                          :style="!isLoginMode ? { color: tenant.config.branding?.primary_color || '#2A6AB2' } : {}">
                     Регистрация
                   </button>
                 </div>
@@ -249,10 +254,11 @@ const handleAuth = async () => {
                 <!-- Регистрация: только уведомление (онлайн-регистрация временно недоступна) -->
                 <div v-if="!isLoginMode" class="space-y-6">
                   <div class="p-5 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-800 text-sm font-bold leading-relaxed">
-                    Регистрация дилеров временно доступна только через менеджера. Свяжитесь с нами по телефону или <a href="mailto:info@setki21.ru" class="underline hover:text-amber-900">info@setki21.ru</a> для оформления партнёрства.
+                    Регистрация дилеров временно доступна только через менеджера. Свяжитесь с нами по телефону или <a :href="'mailto:' + (tenant.config.email || 'info@setki21.ru')" class="underline hover:text-amber-900">{{ tenant.config.email || 'info@setki21.ru' }}</a> для оформления партнёрства.
                   </div>
                   <button type="button" @click="isLoginMode = true"
-                          class="w-full bg-brand-blue text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-brand-blue/30 active:scale-95 uppercase text-[10px] tracking-[0.2em] hover:bg-[#1e5a9a]">
+                          class="w-full text-white font-black py-5 rounded-2xl transition-all shadow-xl active:scale-95 uppercase text-[10px] tracking-[0.2em] hover:opacity-90"
+                          :style="{ backgroundColor: tenant.config.branding?.primary_color || '#2A6AB2', boxShadow: `0 20px 50px -10px ${(tenant.config.branding?.primary_color || '#2A6AB2')}66` }">
                     Уже есть доступ? Войти в кабинет
                   </button>
                 </div>
@@ -262,20 +268,17 @@ const handleAuth = async () => {
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Email</label>
                     <input v-model="form.email" type="email" required placeholder="info@example.ru"
-                           :class="[
-                             'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner',
-                             formErrors.email ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'
-                           ]" />
+                           class="w-full bg-gray-50 border-2 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner"
+                           :class="[formErrors.email ? 'border-red-500 focus:border-red-500' : 'border-transparent']"
+                           :style="!formErrors.email ? { '--tw-ring-color': tenant.config.branding?.primary_color || '#2A6AB2', 'focus-within': { borderColor: tenant.config.branding?.primary_color || '#2A6AB2' } } : {}" />
                     <p v-if="formErrors.email" class="text-red-500 text-[10px] font-bold ml-4">{{ formErrors.email }}</p>
                   </div>
 
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Пароль</label>
                     <input v-model="form.password" type="password" required placeholder="••••••••"
-                           :class="[
-                             'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner',
-                             formErrors.password ? 'border-red-500 focus:border-red-500' : 'border-transparent focus:border-brand-blue'
-                           ]" />
+                           class="w-full bg-gray-50 border-2 focus:bg-white rounded-2xl px-6 py-4 outline-none transition-all font-bold text-sm shadow-inner"
+                           :class="[formErrors.password ? 'border-red-500 focus:border-red-500' : 'border-transparent']" />
                     <p v-if="formErrors.password" class="text-red-500 text-[10px] font-bold ml-4">{{ formErrors.password }}</p>
                   </div>
 
@@ -285,7 +288,8 @@ const handleAuth = async () => {
 
                   <button type="submit" 
                           :disabled="isLoading"
-                          class="w-full bg-brand-blue text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-brand-blue/30 active:scale-95 uppercase text-[10px] tracking-[0.2em] mt-4 disabled:opacity-50">
+                          class="w-full text-white font-black py-5 rounded-2xl transition-all shadow-xl active:scale-95 uppercase text-[10px] tracking-[0.2em] mt-4 disabled:opacity-50"
+                          :style="{ backgroundColor: tenant.config.branding?.primary_color || '#2A6AB2', boxShadow: `0 20px 50px -10px ${(tenant.config.branding?.primary_color || '#2A6AB2')}66` }">
                     {{ isLoading ? 'Загрузка...' : 'Войти в кабинет' }}
                   </button>
                 </form>

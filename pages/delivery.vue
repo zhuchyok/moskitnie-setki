@@ -1,7 +1,9 @@
 <script setup lang="ts">
 const tenant = useTenantStore()
+const defaultDealerName = computed(() => tenant.config.city?.includes('Чебоксары') ? 'Сетки 21' : 'Сетки Москитки')
+
 const title = computed(() => `Доставка и замер москитных сеток — ${tenant.config.city || 'Чебоксары и Новочебоксарск'}`)
-const description = computed(() => `Доставка и замер москитных сеток по ${tenant.config.city || 'Чебоксарам и Новочебоксарску'}. ${tenant.config.dealer_name || 'Сетки 21'} — изготовление за 1 день.`)
+const description = computed(() => `Доставка и замер москитных сеток по ${tenant.config.city || 'Чебоксарам и Новочебоксарску'}. ${tenant.config.dealer_name || defaultDealerName.value} — изготовление за 1 день.`)
 const requestURL = useRequestURL()
 const url = requestURL?.origin ? `${requestURL.origin}/delivery` : 'https://www.setki21.ru/delivery'
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
@@ -13,7 +15,7 @@ const serviceSchema = computed(() => ({
   description: `Доставка москитных сеток по ${tenant.config.city || 'Чебоксарам и Новочебоксарску'}. Замер на месте.`,
   provider: {
     '@type': 'LocalBusiness',
-    name: tenant.config.dealer_name || 'Сетки 21',
+    name: tenant.config.dealer_name || defaultDealerName.value,
     image: image.value,
     telephone: tenant.config.phone || '+7 (8352) 38-14-20',
     address: {
@@ -53,7 +55,7 @@ useHead({
           </h1>
 
           <p class="text-center text-lg text-gray-600 font-medium mb-10 max-w-2xl mx-auto">
-            <strong>Доставка москитных сеток</strong> по {{ tenant.config.city || 'Чебоксарам и Новочебоксарску' }}. Замер — бесплатно при заказе. Изготовление за 1 день, самовывоз из офиса компании {{ tenant.config.dealer_name || 'Сетки 21' }} или доставка до адреса.
+            <strong>Доставка москитных сеток</strong> по {{ tenant.config.city || 'Чебоксарам и Новочебоксарску' }}. Замер — бесплатно при заказе. Изготовление за 1 день, самовывоз из офиса компании {{ tenant.config.dealer_name || defaultDealerName }} или доставка до адреса.
           </p>
 
           <div class="prose prose-gray max-w-2xl mx-auto space-y-6 text-gray-600 font-medium">
@@ -63,7 +65,7 @@ useHead({
             </p>
             <h2 class="text-xl font-black uppercase tracking-wider" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Замер</h2>
             <p>
-              Замер окна или балконной двери можно сделать самостоятельно (ширина и высота створки по внутреннему проёму) или заказать выезд специалиста {{ tenant.config.dealer_name || 'Сетки 21' }}. При заказе сетки замер на месте уточняется при согласовании.
+              Замер окна или балконной двери можно сделать самостоятельно (ширина и высота створки по внутреннему проёму) или заказать выезд специалиста {{ tenant.config.dealer_name || defaultDealerName }}. При заказе сетки замер на месте уточняется при согласовании.
             </p>
             <h2 class="text-xl font-black uppercase tracking-wider" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Самовывоз</h2>
             <p>

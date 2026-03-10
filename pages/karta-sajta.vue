@@ -1,23 +1,24 @@
 <script setup lang="ts">
-const store = useOrderStore()
+const tenant = useTenantStore()
+const defaultDealerName = computed(() => tenant.config.city?.includes('Чебоксары') ? 'Сетки 21' : 'Сетки Москитки')
 
 const requestURL = useRequestURL()
 const origin = requestURL?.origin || 'https://www.setki21.ru'
-const title = 'Карта сайта — Сетки 21'
-const description = 'Все страницы сайта Сетки 21: москитные сетки, антимошка, ультравью, антикошка, антипыль, вставные сетки, ремонт. Чебоксары и Новочебоксарск.'
+const title = computed(() => `Карта сайта — ${tenant.config.dealer_name || defaultDealerName.value}`)
+const description = computed(() => `Все страницы сайта ${tenant.config.dealer_name || defaultDealerName.value}: москитные сетки, антимошка, ультравью, антикошка, антипыль, вставные сетки, ремонт. ${tenant.config.city || 'Чебоксары и Новочебоксарск'}.`)
 const url = `${origin}/karta-sajta`
-const image = `${origin}/images/logo_final_v58.png`
-const keywords = 'карта сайта, сетки 21, москитные сетки чебоксары, новочебоксарск, разделы сайта'
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
+const keywords = computed(() => `карта сайта, ${tenant.config.dealer_name || defaultDealerName.value}, москитные сетки ${tenant.config.city || 'чебоксары'}, разделы сайта`)
 
-const webPageSchema = {
+const webPageSchema = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'WebPage',
-  name: title,
-  description,
+  name: title.value,
+  description: description.value,
   url,
-  publisher: { '@type': 'Organization', name: 'Сетки 21', url: origin },
+  publisher: { '@type': 'Organization', name: tenant.config.dealer_name || defaultDealerName.value, url: origin },
   inLanguage: 'ru-RU'
-}
+}))
 
 const pages = [
   { path: '/', name: 'Главная', desc: 'Рамочные москитные сетки, расчёт стоимости, заказ за 1 день' },
@@ -28,7 +29,7 @@ const pages = [
   { path: '/vstavnye', name: 'Вставная VSN', desc: 'Вставные москитные сетки в створку' },
   { path: '/remont', name: 'Ремонт', desc: 'Ремонт и замена москитных сеток' },
   { path: '/contacts', name: 'Контакты', desc: 'Адреса, телефон, режим работы' },
-  { path: '/delivery', name: 'Доставка и замер', desc: 'Доставка по Чебоксарам и Новочебоксарску' },
+  { path: '/delivery', name: 'Доставка и замер', desc: `Доставка по ${tenant.config.city || 'Чебоксарам и Новочебоксарску'}` },
   { path: '/privacy', name: 'Политика конфиденциальности', desc: 'Обработка персональных данных' },
 ]
 
@@ -48,7 +49,7 @@ useHead({
     { name: 'twitter:image', content: image },
   ],
   link: [{ rel: 'canonical', href: url }],
-  script: [{ type: 'application/ld+json', children: JSON.stringify(webPageSchema) }],
+  script: [{ type: 'application/ld+json', children: computed(() => JSON.stringify(webPageSchema.value)) }],
 })
 </script>
 
@@ -57,20 +58,23 @@ useHead({
     <section class="py-16 bg-white">
       <div class="container mx-auto px-4">
         <div class="bg-gray-50 rounded-[3rem] p-8 md:p-16 shadow-sm border border-gray-100">
-          <h1 class="text-2xl md:text-3xl font-black mb-12 text-brand-blue uppercase tracking-tight text-center leading-tight">
+          <h1 class="text-2xl md:text-3xl font-black mb-12 uppercase tracking-tight text-center leading-tight"
+              :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
             Карта сайта
           </h1>
 
           <div class="prose prose-blue max-w-none text-gray-600 space-y-10 font-medium text-sm md:text-base">
             <p class="text-center">
-              Все разделы сайта Сетки 21. Чебоксары и Новочебоксарск — производство и установка москитных сеток.
+              Все разделы сайта {{ tenant.config.dealer_name || defaultDealerName }}. {{ tenant.config.city || 'Чебоксары и Новочебоксарск' }} — производство и установка москитных сеток.
             </p>
 
             <div class="section">
-              <h2 class="text-xl font-black text-brand-blue uppercase tracking-wider mb-4">Разделы сайта</h2>
+              <h2 class="text-xl font-black uppercase tracking-wider mb-4"
+                  :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Разделы сайта</h2>
               <ul class="list-disc pl-6 space-y-3">
                 <li v-for="page in pages" :key="page.path">
-                  <NuxtLink :to="page.path" class="text-brand-blue underline hover:text-[#1e5a9a]">
+                  <NuxtLink :to="page.path" class="underline hover:opacity-80"
+                            :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
                     {{ page.name }}
                   </NuxtLink>
                   — {{ page.desc }}
@@ -78,13 +82,14 @@ useHead({
               </ul>
             </div>
 
-            <p class="text-xs text-gray-400 italic">
-              Для поисковых систем: <a href="/sitemap.xml" class="text-brand-blue underline" target="_blank" rel="noopener">sitemap.xml</a>
+            <p class="text-xs text-gray-400 italic text-center">
+              Для поисковых систем: <a href="/sitemap.xml" class="underline" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" target="_blank" rel="noopener">sitemap.xml</a>
             </p>
           </div>
 
           <div class="mt-16 text-center">
-            <NuxtLink to="/" class="inline-flex items-center gap-2 bg-brand-blue text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#1e5a9a] transition-all shadow-xl shadow-brand-blue/20 active:scale-95">
+            <NuxtLink to="/" class="inline-flex items-center gap-2 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl active:scale-95"
+                      :style="{ backgroundColor: tenant.config.branding?.primary_color || '#2A6AB2', boxShadow: `0 20px 50px -10px ${(tenant.config.branding?.primary_color || '#2A6AB2')}66` }">
               ← Вернуться на главную
             </NuxtLink>
           </div>

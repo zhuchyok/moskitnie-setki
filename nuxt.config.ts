@@ -77,6 +77,9 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_URL ? process.env.NUXT_PUBLIC_API_URL + '/api' : '/api'
     }
   },
+  build: {
+    transpile: ['vue-chartjs', 'chart.js']
+  },
   vite: {
     optimizeDeps: {
       include: ['vue-chartjs', 'chart.js']

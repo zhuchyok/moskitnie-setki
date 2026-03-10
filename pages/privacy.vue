@@ -1,20 +1,34 @@
 <script setup lang="ts">
-const store = useOrderStore()
+const tenant = useTenantStore()
 
-const title = 'Политика конфиденциальности — Сетки 21'
-const description = 'Политика обработки персональных данных компании Сетки 21. Информация о защите персональных данных клиентов.'
-const url = 'https://www.setki21.ru/privacy'
+const title = computed(() => `Политика конфиденциальности — ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => `Политика обработки персональных данных компании ${tenant.config.dealer_name || 'Сетки 21'}. Информация о защите персональных данных клиентов.`)
+const url = computed(() => {
+  if (import.meta.client) {
+    try {
+      // Декодируем Punycode (xn--...) в Unicode (кириллицу) для отображения
+      // Используем только hostname для текста ссылки, чтобы избежать длинных путей
+      const decodedHost = decodeURIComponent(window.location.hostname)
+      const protocol = window.location.protocol
+      return `${protocol}//${decodedHost}`
+    } catch (e) {
+      return window.location.origin
+    }
+  }
+  // На сервере (SSR) при генерации статики используем текущий домен
+  return 'https://сеткимоскитки.рф'
+})
 
 useHead({
-  title,
+  title: title.value,
   meta: [
-    { name: 'description', content: description },
+    { name: 'description', content: description.value },
     { name: 'robots', content: 'noindex, nofollow' },
-    { property: 'og:title', content: title },
-    { property: 'og:description', content: description },
-    { property: 'og:url', content: url },
+    { property: 'og:title', content: title.value },
+    { property: 'og:description', content: description.value },
+    { property: 'og:url', content: url.value },
   ],
-  link: [{ rel: 'canonical', href: url }],
+  link: [{ rel: 'canonical', href: url.value }],
   script: [
     {
       type: 'application/ld+json',
@@ -22,14 +36,14 @@ useHead({
         "@context": "https://schema.org",
         "@type": "WebPage",
         "name": "Политика конфиденциальности",
-        "description": "Политика обработки персональных данных компании Сетки 21",
+        "description": `Политика обработки персональных данных компании ${tenant.config.dealer_name || 'Сетки 21'}`,
         "publisher": {
           "@type": "Organization",
-          "name": "Сетки 21",
+          "name": tenant.config.dealer_name || 'Сетки 21',
           "address": {
             "@type": "PostalAddress",
-            "addressLocality": "Чебоксары",
-            "addressRegion": "Чувашская Республика"
+            "addressLocality": tenant.config.city || "Чебоксары",
+            "addressRegion": tenant.config.city?.includes('Чебоксары') ? "Чувашская Республика" : ""
           }
         }
       })
@@ -53,11 +67,17 @@ useHead({
               <p>
                 1.1. Настоящая Политика оператора в отношении обработки персональных данных (далее – Политика) разработана в целях обеспечения защиты прав и свобод субъектов персональных данных, а также в соответствии с требованиями Федерального закона РФ от 27.07.2006 №152-ФЗ «О персональных данных» и иных нормативных правовых актов.
               </p>
-              <p>
+              <p v-if="tenant.config.legal?.requisites">
+                1.2. Оператор – {{ tenant.config.legal.requisites.split('\n')[0] }}, реквизиты: {{ tenant.config.legal.requisites.replace(/\n/g, ', ') }}, e-mail: {{ tenant.config.email }}, телефон: {{ tenant.config.phone }}.
+              </p>
+              <p v-else-if="tenant.config.legal_info?.requisites">
+                1.2. Оператор – {{ tenant.config.legal_info.requisites.split('\n')[0] }}, реквизиты: {{ tenant.config.legal_info.requisites.replace(/\n/g, ', ') }}, e-mail: {{ tenant.config.email }}, телефон: {{ tenant.config.phone }}.
+              </p>
+              <p v-else>
                 1.2. Оператор – ООО «Бикос», ИНН 2130053014, ОГРН 1092130000995, юридический адрес: 428005, Чувашская Республика, г. Чебоксары, ул. Гражданская, д. 53, оф. 1, e-mail: info@setki21.ru, телефон: +7 (8352) 38-14-20.
               </p>
               <p>
-                1.3. Настоящая Политика применяется ко всей информации, которую Оператор может получить о пользователе во время использования сайта <a href="https://www.setki21.ru" class="text-brand-blue underline">https://www.setki21.ru</a> и его поддоменов, а также при взаимодействии по телефону и электронной почте.
+                1.3. Настоящая Политика применяется ко всей информации, которую Оператор может получить о пользователе во время использования сайта <a :href="url" class="text-brand-blue underline notranslate">{{ url }}</a> и его поддоменов, а также при взаимодействии по телефону и электронной почте.
               </p>
             </div>
 
@@ -158,7 +178,7 @@ useHead({
                 9.1. Пользователь вправе получать информацию об обработке своих персональных данных, требовать их уточнения, блокирования или уничтожения в случаях, если данные являются неполными, устаревшими, неточными, незаконно полученными или не являются необходимыми для заявленной цели обработки.
               </p>
               <p>
-                9.2. Для реализации своих прав пользователь может направить запрос по электронной почте: <a href="mailto:info@setki21.ru" class="text-brand-blue underline">info@setki21.ru</a>.
+                9.2. Для реализации своих прав пользователь может направить запрос по электронной почте: <a :href="`mailto:${tenant.config.email || 'info@setki21.ru'}`" class="text-brand-blue underline">{{ tenant.config.email || 'info@setki21.ru' }}</a>.
               </p>
               <p>
                 9.3. Запросы рассматриваются в срок не более 30 дней с момента поступления.
@@ -170,7 +190,17 @@ useHead({
 
             <div class="section bg-white p-8 rounded-3xl border border-gray-100">
               <h2 class="text-xl font-black text-brand-dark uppercase tracking-wider mb-4">10. Контактные данные оператора</h2>
-              <p class="text-sm leading-relaxed">
+              <div v-if="tenant.config.legal?.requisites" class="text-sm leading-relaxed whitespace-pre-line">
+                {{ tenant.config.legal.requisites }}<br>
+                Телефон: {{ tenant.config.phone }}<br>
+                E-mail: <a :href="`mailto:${tenant.config.email}`" class="text-brand-blue underline">{{ tenant.config.email }}</a>
+              </div>
+              <div v-else-if="tenant.config.legal_info?.requisites" class="text-sm leading-relaxed whitespace-pre-line">
+                {{ tenant.config.legal_info.requisites }}<br>
+                Телефон: {{ tenant.config.phone }}<br>
+                E-mail: <a :href="`mailto:${tenant.config.email}`" class="text-brand-blue underline">{{ tenant.config.email }}</a>
+              </div>
+              <p v-else class="text-sm leading-relaxed">
                 ООО «Бикос»<br>
                 Юридический адрес: 428005, Чувашская Республика, г. Чебоксары, ул. Гражданская, д. 53, оф. 1<br>
                 ИНН: 2130053014<br>
@@ -180,7 +210,7 @@ useHead({
                 E-mail: <a href="mailto:info@setki21.ru" class="text-brand-blue underline">info@setki21.ru</a>
               </p>
               <p class="mt-6 text-xs text-gray-400 italic">
-                Действующая редакция Политики опубликована на сайте https://www.setki21.ru/privacy. Оператор вправе вносить изменения в настоящую Политику.
+                Действующая редакция Политики опубликована на сайте <span class="notranslate">{{ url }}</span>. Оператор вправе вносить изменения в настоящую Политику.
               </p>
             </div>
           </div>

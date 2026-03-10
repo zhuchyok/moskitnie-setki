@@ -9,7 +9,8 @@ const title = computed(() => `Москитная сетка Антипыль (Po
 const description = computed(() => `Сетки для аллергиков Poll-Tex в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Нейлоновое полотно притягивает пыль и пыльцу. Чистый воздух в вашем доме.`)
 const keywords = computed(() => `антипыль, poll-tex, москитная сетка для аллергиков, ${tenant.config.city}, ${tenant.config.dealer_name}, чистый воздух, защита от пыльцы, нейлоновая сетка`)
 const url = 'https://www.setki21.ru/antipyl/'
-const image = computed(() => tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_new.png')
+const requestURL = useRequestURL()
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',

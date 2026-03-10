@@ -41,7 +41,7 @@ const fetchPricing = async () => {
   isLoading.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const response = await $fetch('/api/v1/admin/pricing', {
       baseURL: apiBase,
@@ -78,7 +78,7 @@ const handleSave = async () => {
   
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const response = await fetch(`${apiBase}/api/v1/admin/pricing`, {
       method: 'POST',
@@ -164,7 +164,7 @@ onMounted(fetchPricing)
         <button 
           @click="handleSave"
           :disabled="isSaving || isLoading"
-          class="bg-brand-blue text-white font-black py-3 px-8 rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-brand-blue/20 hover:scale-105 transition-transform disabled:opacity-50"
+          class="admin-btn-primary font-black py-3 px-8 rounded-xl text-[10px] uppercase tracking-widest hover:scale-105 transition-transform disabled:opacity-50"
         >
           {{ isSaving ? 'Сохранение...' : 'Сохранить изменения' }}
         </button>

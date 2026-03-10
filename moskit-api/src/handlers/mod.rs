@@ -4,10 +4,13 @@ use axum::{Json, response::IntoResponse, http::StatusCode};
 use serde::Serialize;
 
 pub mod auth;
+pub mod callback;
 pub mod dealer;
 pub mod admin;
 pub mod pricing;
 pub mod content;
+pub mod branch;
+pub mod cabinet;
 
 pub type ApiResult<T> = Result<Json<T>, ApiError>;
 

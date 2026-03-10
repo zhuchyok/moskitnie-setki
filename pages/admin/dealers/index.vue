@@ -35,6 +35,120 @@ const isModalOpen = ref(false)
 const isSaving = ref(false)
 const isActivating = ref(false)
 const activeTab = ref('basic')
+const transactions = ref([])
+const isTransactionsLoading = ref(false)
+const dealerUsers = ref([])
+const isUsersLoading = ref(false)
+const isTopUpModalOpen = ref(false)
+const topUpForm = reactive({
+  amount: 0,
+  description: ''
+})
+const isToppingUp = ref(false)
+const generatedPassword = ref('')
+const showPasswordModal = ref(false)
+const isDealerLoading = ref(false)
+const dealerBranches = ref<any[]>([])
+const isBranchesLoading = ref(false)
+
+const fetchTransactions = async (dealerId: string) => {
+  isTransactionsLoading.value = true
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || ''
+    const response = await $fetch(`/api/v1/admin/dealers/${dealerId}/transactions`, {
+      baseURL: apiBase,
+      headers: { 'Authorization': `Bearer ${auth.token}` }
+    }) as any
+    transactions.value = response
+  } catch (e) {
+    console.error('Failed to fetch transactions', e)
+  } finally {
+    isTransactionsLoading.value = false
+  }
+}
+
+const fetchDealerUsers = async (dealerId: string) => {
+  isUsersLoading.value = true
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || ''
+    const response = await $fetch(`/api/v1/admin/dealers/${dealerId}/users`, {
+      baseURL: apiBase,
+      headers: { 'Authorization': `Bearer ${auth.token}` }
+    }) as any
+    dealerUsers.value = response
+  } catch (e) {
+    console.error('Failed to fetch dealer users', e)
+  } finally {
+    isUsersLoading.value = false
+  }
+}
+
+const fetchDealerBranches = async (dealerId: string) => {
+  isBranchesLoading.value = true
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || ''
+    const response = await $fetch(`/api/v1/cabinet/${dealerId}/branches`, {
+      baseURL: apiBase,
+      headers: { 'Authorization': `Bearer ${auth.token}` }
+    }) as any[]
+    dealerBranches.value = response || []
+  } catch (e) {
+    console.error('Failed to fetch branches', e)
+    dealerBranches.value = []
+  } finally {
+    isBranchesLoading.value = false
+  }
+}
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'transactions' && form.id) {
+    fetchTransactions(form.id)
+  }
+  if (newTab === 'users' && form.id) {
+    fetchDealerUsers(form.id)
+  }
+  if (newTab === 'branches' && form.id) {
+    fetchDealerBranches(form.id)
+  }
+})
+
+const handleTopUp = async () => {
+  if (!form.id || topUpForm.amount <= 0) return
+  
+  isToppingUp.value = true
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || ''
+    
+    const response = await $fetch(`/api/v1/admin/dealers/${form.id}/balance`, {
+      method: 'POST',
+      baseURL: apiBase,
+      body: topUpForm,
+      headers: { 'Authorization': `Bearer ${auth.token}` }
+    }) as any
+    
+    if (response.success) {
+      showNotification(`Баланс пополнен на ${topUpForm.amount} ₽`)
+      isTopUpModalOpen.value = false
+      topUpForm.amount = 0
+      topUpForm.description = ''
+      // Обновляем баланс в форме и список транзакций
+      form.balance = response.new_balance
+      if (activeTab.value === 'transactions') {
+        fetchTransactions(form.id)
+      }
+      await fetchDealers()
+    }
+  } catch (e) {
+    console.error('Top up failed', e)
+    showNotification('Ошибка при пополнении баланса', 'error')
+  } finally {
+    isToppingUp.value = false
+  }
+}
 
 const handleActivateDomain = async () => {
   if (!form.id || !form.domain) return
@@ -42,7 +156,7 @@ const handleActivateDomain = async () => {
   isActivating.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const response = await $fetch(`/api/v1/admin/dealers/${form.id}/activate_domain`, {
       method: 'POST',
@@ -69,8 +183,12 @@ const form = reactive({
   phone: '',
   email: '',
   domain: '',
-  margin_percent: 1.30,
+  margin_percent: 30.0,
   is_active: true,
+  parent_id: null,
+  role: 'dealer',
+  credit_limit: 0,
+  balance: 0,
   branding: {
     logo_url: '',
     primary_color: '#2196F3',
@@ -99,7 +217,7 @@ const fetchDealers = async () => {
   isLoading.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     const response = await $fetch('/api/v1/admin/dealers', {
       baseURL: apiBase,
       headers: { 'Authorization': `Bearer ${auth.token}` }
@@ -119,8 +237,12 @@ const openCreateModal = () => {
   form.phone = ''
   form.email = ''
   form.domain = ''
-  form.margin_percent = 1.30
+  form.margin_percent = 30.0
   form.is_active = true
+  form.parent_id = null
+  form.role = 'dealer'
+  form.credit_limit = 0
+  form.balance = 0
   form.branding = { logo_url: '', primary_color: '#2196F3', short_description: '', full_description: '', working_hours: '' }
   form.contacts = { phones: [], emails: [], additional_cities: [] }
   form.legal_info = { requisites: '', privacy_policy_url: '', privacy_policy_text: '' }
@@ -128,43 +250,94 @@ const openCreateModal = () => {
   isModalOpen.value = true
 }
 
-const openEditModal = (dealer: any) => {
+// При открытии редактирования всегда подгружаем полные данные дилера с сервера, чтобы не затирать логотип и branding из устаревшего списка
+const openEditModal = async (dealer: any) => {
   form.id = dealer.id
-  form.name = dealer.name
-  form.city = dealer.city
-  form.phone = dealer.phone
-  form.email = dealer.email || ''
-  form.domain = dealer.domain || ''
-  form.margin_percent = dealer.margin_percent
-  form.is_active = dealer.is_active
-  form.branding = { ...dealer.branding }
-  form.contacts = { ...dealer.contacts }
-  form.legal_info = { ...dealer.legal_info }
-  form.seo_config = { ...dealer.seo_config }
   isModalOpen.value = true
+  isDealerLoading.value = true
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || ''
+    const full = await $fetch(`/api/v1/admin/dealers/${dealer.id}`, {
+      baseURL: apiBase,
+      headers: { Authorization: `Bearer ${auth.token}` }
+    }) as any
+    form.name = full.name
+    form.city = full.city
+    form.phone = full.phone
+    form.email = full.email || ''
+    form.domain = full.domain || ''
+    form.margin_percent = full.margin_percent
+    form.is_active = full.is_active
+    form.parent_id = full.parent_id
+    form.role = full.role
+    form.credit_limit = full.credit_limit
+    form.balance = full.balance || 0
+    form.branding = { ...full.branding, logo_url: full.branding?.logo_url ?? '' }
+    form.contacts = { ...full.contacts }
+    form.legal_info = { ...full.legal_info }
+    form.seo_config = { ...full.seo_config }
+  } catch (e) {
+    console.error('Failed to load dealer for edit', e)
+    // Fallback на данные из списка
+    form.name = dealer.name
+    form.city = dealer.city
+    form.phone = dealer.phone
+    form.email = dealer.email || ''
+    form.domain = dealer.domain || ''
+    form.margin_percent = dealer.margin_percent
+    form.is_active = dealer.is_active
+    form.parent_id = dealer.parent_id
+    form.role = dealer.role
+    form.credit_limit = dealer.credit_limit
+    form.balance = dealer.balance || 0
+    form.branding = { ...dealer.branding }
+    form.contacts = { ...dealer.contacts }
+    form.legal_info = { ...dealer.legal_info }
+    form.seo_config = { ...dealer.seo_config }
+  } finally {
+    isDealerLoading.value = false
+  }
 }
+
+// В админке логотип показываем по полному URL к API, чтобы /uploads/... отдавал moskit-api
+const displayLogoUrl = computed(() => {
+  const u = form.branding?.logo_url
+  if (!u) return ''
+  if (u.startsWith('http')) return u
+  const cfg = useRuntimeConfig()
+  const base = (cfg.public.apiUrl as string) || ''
+  return base ? base.replace(/\/$/, '') + u : u
+})
 
 const handleSave = async () => {
   isSaving.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const body = { ...form, domain: (form.domain && form.domain.trim()) || null }
+    let response: any
     if (form.id) {
-      await $fetch(`/api/v1/admin/dealers/${form.id}`, {
+      response = await $fetch(`/api/v1/admin/dealers/${form.id}`, {
         method: 'PUT',
         baseURL: apiBase,
         body,
         headers: { 'Authorization': `Bearer ${auth.token}` }
       })
     } else {
-      await $fetch('/api/v1/admin/dealers', {
+      response = await $fetch('/api/v1/admin/dealers', {
         method: 'POST',
         baseURL: apiBase,
         body,
         headers: { 'Authorization': `Bearer ${auth.token}` }
       })
+      
+      // Если это новый дилер и пришел пароль — показываем его
+      if (response.initial_password) {
+        generatedPassword.value = response.initial_password
+        showPasswordModal.value = true
+      }
     }
     
     await fetchDealers()
@@ -186,7 +359,7 @@ const handleLogoUpload = async (event: any) => {
 
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const response = await $fetch('/api/v1/admin/upload', {
       method: 'POST',
@@ -216,7 +389,7 @@ onMounted(fetchDealers)
         <div>
           <h2 class="text-2xl font-black text-brand-dark uppercase tracking-tighter">Список дилеров</h2>
         </div>
-        <button @click="openCreateModal" class="bg-brand-blue text-white font-black py-3 px-8 rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-brand-blue/20 hover:scale-105 transition-transform">
+        <button @click="openCreateModal" class="admin-btn-primary font-black py-3 px-8 rounded-xl text-[10px] uppercase tracking-widest hover:scale-105 transition-transform">
           Добавить дилера
         </button>
       </div>
@@ -274,19 +447,25 @@ onMounted(fetchDealers)
               <div>
                 <h3 class="text-2xl font-black text-brand-dark uppercase tracking-tighter">
                   {{ form.id ? 'Настройка дилера' : 'Новый дилер' }}
+                  <span v-if="isDealerLoading" class="text-brand-blue font-normal normal-case text-sm ml-2">Загрузка…</span>
                 </h3>
                 <p v-if="form.id" class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">ID: {{ form.id }}</p>
               </div>
-              <button @click="isModalOpen = false" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white shadow-lg text-gray-400 hover:text-brand-blue transition-all active:scale-95">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <button type="button" @click="isModalOpen = false" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border-2 border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-widest hover:border-brand-blue/30 hover:text-brand-blue transition-all active:scale-[0.98]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
+                Закрыть
               </button>
             </div>
 
             <!-- Tabs -->
             <div class="px-8 pt-6 flex gap-2 overflow-x-auto no-scrollbar">
               <button @click="activeTab = 'basic'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'basic' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Основное и Брендинг</button>
+              <button @click="activeTab = 'hierarchy'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'hierarchy' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Иерархия и Финансы</button>
+              <button @click="activeTab = 'users'" v-if="form.id" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'users' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Пользователи</button>
+              <button @click="activeTab = 'transactions'" v-if="form.id" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'transactions' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Транзакции</button>
+              <button @click="activeTab = 'branches'" v-if="form.id" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'branches' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Филиалы и домены</button>
               <button @click="activeTab = 'contacts'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'contacts' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Контакты</button>
               <button @click="activeTab = 'legal'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'legal' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Юр. данные</button>
             </div>
@@ -387,7 +566,7 @@ onMounted(fetchDealers)
                     <div class="space-y-2">
                       <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Логотип</label>
                       <div class="flex items-center gap-4 p-6 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 hover:border-brand-blue transition-colors relative group">
-                        <img v-if="form.branding.logo_url" :src="form.branding.logo_url" alt="Логотип дилера" class="h-16 w-16 object-contain rounded-xl shadow-sm bg-white p-2" />
+                        <img v-if="form.branding.logo_url" :src="displayLogoUrl" alt="Логотип дилера" class="h-16 w-16 object-contain rounded-xl shadow-sm bg-white p-2" />
                         <div v-else class="h-16 w-16 bg-gray-200 rounded-xl flex items-center justify-center text-2xl">🖼️</div>
                         <div class="flex-1">
                           <input type="file" @change="handleLogoUpload" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer" />
@@ -407,6 +586,131 @@ onMounted(fetchDealers)
                       <div class="space-y-2">
                         <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Режим работы</label>
                         <input v-model="form.branding.working_hours" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Пн-Пт 9:00-18:00" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Основная наценка (%)</label>
+                    <input v-model.number="form.margin_percent" type="number" step="0.1" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                  </div>
+                </div>
+
+                <div v-if="activeTab === 'hierarchy'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Роль в системе</label>
+                    <select v-model="form.role" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner">
+                      <option value="owner">Владелец (Owner)</option>
+                      <option value="director">Директор (Main Dealer)</option>
+                      <option value="manager">Менеджер</option>
+                      <option value="subdealer">Суб-дилер</option>
+                    </select>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Родительский дилер (Director)</label>
+                    <select v-model="form.parent_id" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner">
+                      <option :value="null">Нет (Главный)</option>
+                      <option v-for="d in dealers.filter(x => x.id !== form.id)" :key="d.id" :value="d.id">{{ d.name }}</option>
+                    </select>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Кредитный лимит (₽)</label>
+                    <input v-model.number="form.credit_limit" type="number" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                  </div>
+
+                  <!-- Баланс -->
+                  <div class="pt-6 border-t border-gray-100">
+                    <div class="bg-brand-dark/5 p-8 rounded-[2rem] border border-brand-dark/10">
+                      <div class="flex justify-between items-center mb-6">
+                        <div>
+                          <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Текущий баланс</p>
+                          <p class="text-3xl font-black text-brand-dark tracking-tighter">{{ form.balance?.toLocaleString() }} ₽</p>
+                        </div>
+                        <button type="button" @click="isTopUpModalOpen = true" class="admin-btn-primary font-black py-3 px-6 rounded-xl text-[10px] uppercase tracking-widest hover:scale-105 transition-transform">
+                          Пополнить
+                        </button>
+                      </div>
+                      <p class="text-[9px] text-gray-400 uppercase font-bold">Баланс используется для оплаты заказов. Если баланс + лимит < 0, создание заказов блокируется.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="activeTab === 'users'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div v-if="isUsersLoading" class="p-10 text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mx-auto"></div>
+                  </div>
+                  <div v-else-if="dealerUsers.length === 0" class="p-10 text-center text-gray-400 uppercase text-[10px] font-black tracking-widest">
+                    Пользователей не найдено
+                  </div>
+                  <div v-else class="space-y-3">
+                    <div v-for="user in dealerUsers" :key="user.id" class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                      <div>
+                        <p class="text-sm font-black text-brand-dark uppercase tracking-tight">{{ user.name }}</p>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{{ user.email }}</p>
+                      </div>
+                      <div class="text-right">
+                        <span class="px-3 py-1 bg-blue-50 text-brand-blue rounded-lg text-[10px] font-black uppercase tracking-widest">
+                          {{ user.role }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="text-[8px] text-gray-400 uppercase text-center px-10">
+                    При создании дилера автоматически создается один пользователь с ролью Dealer и указанным Email.
+                  </p>
+                </div>
+
+                <div v-if="activeTab === 'branches'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Филиалы и привязанные домены (настройка — в кабинете директора)</p>
+                  <div v-if="isBranchesLoading" class="p-10 text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mx-auto"></div>
+                  </div>
+                  <div v-else-if="dealerBranches.length === 0" class="p-10 text-center text-gray-400 uppercase text-[10px] font-black tracking-widest">
+                    Филиалов нет
+                  </div>
+                  <div v-else class="overflow-x-auto">
+                    <table class="w-full text-left border border-gray-100 rounded-2xl overflow-hidden">
+                      <thead class="bg-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        <tr>
+                          <th class="px-6 py-4">Филиал</th>
+                          <th class="px-6 py-4">Домен</th>
+                          <th class="px-6 py-4">Город</th>
+                        </tr>
+                      </thead>
+                      <tbody class="text-sm font-bold text-brand-dark divide-y divide-gray-100">
+                        <tr v-for="b in dealerBranches" :key="b.id" class="hover:bg-gray-50">
+                          <td class="px-6 py-4">{{ b.name }}</td>
+                          <td class="px-6 py-4 text-brand-blue">{{ b.domain || '—' }}</td>
+                          <td class="px-6 py-4 text-gray-600">{{ b.city || '—' }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div v-if="activeTab === 'transactions'" class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div v-if="isTransactionsLoading" class="p-10 text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mx-auto"></div>
+                  </div>
+                  <div v-else-if="transactions.length === 0" class="p-10 text-center text-gray-400 uppercase text-[10px] font-black tracking-widest">
+                    Транзакций пока нет
+                  </div>
+                  <div v-else class="space-y-3">
+                    <div v-for="tx in transactions" :key="tx.id" class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center">
+                      <div>
+                        <div class="flex items-center gap-2 mb-1">
+                          <span :class="['w-2 h-2 rounded-full', tx.amount > 0 ? 'bg-green-500' : 'bg-red-500']"></span>
+                          <p class="text-[10px] font-black text-brand-dark uppercase tracking-widest">
+                            {{ tx.type === 'deposit' ? 'Пополнение' : tx.type === 'order_payment' ? 'Оплата заказа' : tx.type }}
+                          </p>
+                        </div>
+                        <p class="text-xs text-gray-400 font-bold">{{ new Date(tx.created_at).toLocaleString() }}</p>
+                        <p v-if="tx.description" class="text-[10px] text-gray-500 mt-2 italic">{{ tx.description }}</p>
+                      </div>
+                      <div class="text-right">
+                        <p :class="['text-lg font-black tracking-tighter', tx.amount > 0 ? 'text-green-600' : 'text-red-600']">
+                          {{ tx.amount > 0 ? '+' : '' }}{{ tx.amount.toLocaleString() }} ₽
+                        </p>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Остаток: {{ tx.balance_after.toLocaleString() }} ₽</p>
                       </div>
                     </div>
                   </div>
@@ -443,17 +747,80 @@ onMounted(fetchDealers)
                   </div>
                 </div>
                 
-                <input v-model.number="form.margin_percent" type="hidden" />
               </form>
             </div>
 
             <!-- Footer -->
             <div class="p-8 border-t border-gray-50 bg-gray-50/30 flex gap-4">
               <button type="button" @click="isModalOpen = false" class="flex-1 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-white hover:shadow-lg transition-all active:scale-95">Отмена</button>
-              <button type="submit" form="dealerForm" :disabled="isSaving" class="flex-[2] bg-brand-blue text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-brand-blue/30 hover:shadow-brand-blue/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 active:scale-95">
+              <button type="submit" form="dealerForm" :disabled="isSaving" class="flex-[2] admin-btn-primary py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:-translate-y-0.5 transition-all disabled:opacity-50 active:scale-95">
                 {{ isSaving ? 'Сохранение...' : 'Сохранить изменения' }}
               </button>
             </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Модальное окно пополнения баланса -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showPasswordModal" class="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showPasswordModal = false"></div>
+          <div class="relative bg-white w-full max-w-md rounded-[3rem] shadow-2xl p-10 animate-in zoom-in-95 duration-300 text-center">
+            <div class="w-20 h-20 bg-green-50 text-green-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-100">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 class="text-2xl font-black text-brand-dark uppercase tracking-tighter mb-2">Дилер создан!</h3>
+            <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mb-8">Передайте эти данные дилеру для входа</p>
+            
+            <div class="bg-gray-50 p-8 rounded-[2rem] border-2 border-dashed border-gray-200 mb-8 space-y-4">
+              <div>
+                <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Логин (Email)</p>
+                <p class="text-lg font-black text-brand-dark">{{ form.email }}</p>
+              </div>
+              <div class="pt-4 border-t border-gray-100">
+                <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1">Временный пароль</p>
+                <p class="text-3xl font-black text-brand-blue tracking-widest">{{ generatedPassword }}</p>
+              </div>
+            </div>
+            
+            <button @click="showPasswordModal = false" class="w-full bg-brand-dark text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-brand-dark/20 hover:bg-black transition-all active:scale-95">
+              Я сохранил данные
+            </button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Модальное окно пополнения баланса -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="isTopUpModalOpen" class="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isTopUpModalOpen = false"></div>
+          <div class="relative bg-white w-full max-w-md rounded-[3rem] shadow-2xl p-10 animate-in zoom-in-95 duration-300">
+            <h3 class="text-2xl font-black text-brand-dark uppercase tracking-tighter mb-8 text-center">Пополнение баланса</h3>
+            
+            <form @submit.prevent="handleTopUp" class="space-y-6">
+              <div class="space-y-2">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Сумма (₽)</label>
+                <input v-model.number="topUpForm.amount" type="number" required min="1" step="0.01" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner text-2xl text-brand-blue" />
+              </div>
+              
+              <div class="space-y-2">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Комментарий</label>
+                <textarea v-model="topUpForm.description" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner resize-none" rows="3" placeholder="Например: Пополнение через кассу"></textarea>
+              </div>
+              
+              <div class="flex gap-4 pt-4">
+                <button type="button" @click="isTopUpModalOpen = false" class="flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-all">Отмена</button>
+                <button type="submit" :disabled="isToppingUp || topUpForm.amount <= 0" class="flex-[2] admin-btn-primary py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 active:scale-95">
+                  {{ isToppingUp ? 'Пополнение...' : 'Пополнить баланс' }}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </Transition>

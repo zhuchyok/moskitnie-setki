@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   # API Gateway (image: при деплое подставляется из tar, иначе собирается из build)
   api:
+    container_name: "${SETKI21_API_CONTAINER_NAME:-setki21-api-new}"
     image: moskit-api:latest
     build:
       context: .
@@ -11,28 +10,38 @@ services:
     ports:
       - "8083:8080"
     environment:
-      - RUST_LOG=info
-      - DATABASE_URL=postgres://moskit:password@postgres:5432/moskit
-      - POSTGRES_PASSWORD=password
-      - REDIS_URL=redis://redis:6379
+      - RUST_LOG=${RUST_LOG:-info}
+      - DATABASE_URL=${DATABASE_URL:-postgres://moskit:password@postgres:5432/moskit}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - PORT=${PORT:-8080}
+    volumes:
+      - "${SETKI21_UPLOADS_PATH:-/home/atra/setki21_uploads}:/app/uploads"
     depends_on:
       - postgres
       - redis
     restart: unless-stopped
 
   # Frontend (Nuxt)
-  # Для VDS: при сборке передать NUXT_PUBLIC_API_URL (публичный URL API для браузера), см. .env.deploy и scripts/deploy_moskit_api_vds.sh
+  # Для продакшена (VDS) при сборке ОБЯЗАТЕЛЬНО NUXT_PUBLIC_API_URL=https://www.setki21.ru — иначе в бандле apiUrl=localhost → мерцание/белый экран.
   web:
+    container_name: "${SETKI21_WEB_CONTAINER_NAME:-setki21-web-new}"
     build:
       context: .
       dockerfile: Dockerfile.web
       args:
-        NUXT_PUBLIC_API_URL: ${NUXT_PUBLIC_API_URL:-http://localhost:8083}
+        NUXT_PUBLIC_API_URL: ${NUXT_PUBLIC_API_URL:-https://www.setki21.ru}
     ports:
       - "3003:3000"
     environment:
-      - API_URL=http://api:8080
-      - NUXT_PUBLIC_API_URL=http://localhost:8083
+      - API_URL=${API_URL:-http://api:8080}
+      - NUXT_PUBLIC_API_URL=${NUXT_PUBLIC_API_URL:-https://www.setki21.ru}
+      # Тот же SMTP, что и для заказов сеток (Timeweb и др.): на VDS задать в .env
+      - SMTP_HOST=${SMTP_HOST:-smtp.timeweb.ru}
+      - SMTP_PORT=${SMTP_PORT:-465}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - CONTACT_EMAIL=${CONTACT_EMAIL:-info@setki21.ru}
     depends_on:
       - api
     restart: unless-stopped

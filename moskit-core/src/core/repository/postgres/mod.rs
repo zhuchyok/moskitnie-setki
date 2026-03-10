@@ -8,6 +8,7 @@ pub mod order;
 pub mod user;
 pub mod product;
 pub mod audit;
+pub mod settings;
 
 pub use dealer::PostgresDealerRepository;
 pub use department::PostgresDepartmentRepository;
@@ -15,6 +16,7 @@ pub use order::PostgresOrderRepository;
 pub use audit::PostgresAuditRepository;
 pub use user::PostgresUserRepository;
 pub use product::PostgresProductRepository;
+pub use settings::PostgresSettingsRepository;
 
 pub struct PostgresRepository {
     pool: PgPool,

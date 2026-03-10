@@ -19,10 +19,12 @@ const showNotification = (message: string, type: 'success' | 'error' = 'success'
   }, 5000)
 }
 
+const requestURL = useRequestURL()
+const origin = requestURL?.origin || 'https://www.setki21.ru'
 const title = 'Дилерам — выгодное сотрудничество с Сетки 21'
 const description = 'Приглашаем дилеров, оконные компании и частных мастеров к сотрудничеству. Собственное производство москитных сеток в Чебоксарах, низкие цены, изготовление за 1 день.'
-const url = 'https://www.setki21.ru/dealers'
-const image = 'https://www.setki21.ru/images/logo_final_v58.png'
+const url = `${origin}/dealers`
+const image = `${origin}/images/logo_final_v58.png`
 
 useHead({
   title,
@@ -96,7 +98,7 @@ const handleAuth = async () => {
   try {
     if (isLoginMode.value) {
       const config = useRuntimeConfig()
-      const apiBase = config.public.apiUrl || 'http://localhost:8081'
+      const apiBase = config.public.apiUrl || ''
       
       console.log('Attempting login to:', `${apiBase}/api/v1/auth/login`)
       

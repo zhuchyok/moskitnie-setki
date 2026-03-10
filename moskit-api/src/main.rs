@@ -5,12 +5,14 @@ use axum::{
     routing::{get, post, put},
     Router,
     extract::State,
-    http::{HeaderValue, Method},
+    http::Method,
 };
 use tower_http::cors::CorsLayer;
 use std::net::SocketAddr;
 use sqlx::PgPool;
 use std::sync::Arc;
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 
 mod handlers;
 mod npm;
@@ -19,6 +21,8 @@ use tower_http::services::ServeDir;
 
 pub struct AppState {
     pub pool: PgPool,
+    /// Порог баланса (₽), ниже которого в stats возвращается алерт «низкий баланс». Задаётся через env LOW_BALANCE_THRESHOLD (по умолчанию 5000).
+    pub low_balance_threshold: Decimal,
 }
 
 #[tokio::main]
@@ -60,7 +64,13 @@ async fn main() {
     };
     tracing::info!("Connected to database");
 
-    let state = Arc::new(AppState { pool });
+    let low_balance_threshold = std::env::var("LOW_BALANCE_THRESHOLD")
+        .ok()
+        .and_then(|s| s.parse::<Decimal>().ok())
+        .unwrap_or(dec!(5000.0));
+    tracing::info!("LOW_BALANCE_THRESHOLD = {}", low_balance_threshold);
+
+    let state = Arc::new(AppState { pool, low_balance_threshold });
 
     // Настройка CORS
     let cors = CorsLayer::new()
@@ -72,6 +82,8 @@ async fn main() {
     let app = Router::new()
         // Health check
         .route("/health", get(handlers::health))
+        // Обратный звонок: прокси в Nuxt (web), т.к. NPM направляет /api/* в moskit-api
+        .route("/api/callback", post(handlers::callback::proxy_callback))
         // Раздача статики (логотипы и т.д.)
         .nest_service("/uploads", ServeDir::new("uploads"))
         // Аутентификация
@@ -87,9 +99,14 @@ async fn main() {
         .route("/api/v1/admin/dealers", post(handlers::admin::create_dealer))
         .route("/api/v1/admin/dealers", get(handlers::admin::list_dealers))
         .route("/api/v1/admin/dealers/:id", axum::routing::get(handlers::admin::get_dealer).put(handlers::admin::update_dealer))
+        .route("/api/v1/admin/dealers/:id/balance", post(handlers::admin::update_dealer_balance))
+        .route("/api/v1/admin/dealers/:id/transactions", get(handlers::admin::list_dealer_transactions))
+        .route("/api/v1/admin/dealers/:id/users", get(handlers::admin::list_dealer_users))
+        .route("/api/v1/admin/dealers/:id/stats", get(handlers::admin::get_dealer_stats))
+        .route("/api/v1/admin/dealers/:id/stats/by_branch", get(handlers::admin::get_dealer_stats_by_branch))
+        .route("/api/v1/admin/dealers/:id/chart", get(handlers::admin::get_dealer_chart_stats))
         .route("/api/v1/admin/dealers/:dealer_id/departments", post(handlers::admin::create_department))
         .route("/api/v1/admin/dealers/:dealer_id/departments", get(handlers::admin::list_departments))
-        .route("/api/v1/admin/dealers/:dealer_id/stats", get(handlers::admin::get_dealer_stats))
         .route("/api/v1/admin/dealers/:dealer_id/audit", get(handlers::admin::list_audit_logs))
         .route("/api/v1/admin/upload", post(handlers::admin::upload_file))
         .route("/api/v1/admin/stats", get(handlers::admin::get_admin_stats))
@@ -97,6 +114,11 @@ async fn main() {
         .route("/api/v1/admin/production/orders", get(handlers::admin::get_production_orders))
         .route("/api/v1/admin/orders/:id/status", put(handlers::admin::update_order_status))
         .route("/api/v1/admin/dealers/:id/activate_domain", post(handlers::admin::activate_dealer_domain))
+        // Кабинет дилера (управление сетью)
+        .route("/api/v1/cabinet/:dealer_id/managers", get(handlers::cabinet::list_cabinet_users).post(handlers::cabinet::create_manager))
+        .route("/api/v1/cabinet/:dealer_id/subdealers", get(handlers::cabinet::list_subdealers).post(handlers::cabinet::create_subdealer))
+        .route("/api/v1/cabinet/:dealer_id/branches", get(handlers::cabinet::list_branches).post(handlers::cabinet::create_branch))
+        .route("/api/v1/cabinet/:dealer_id/branches/:branch_id", put(handlers::cabinet::update_branch).delete(handlers::cabinet::delete_branch))
         // Управление ценами
         .route("/api/v1/admin/pricing", get(handlers::pricing::get_global_pricing))
         .route("/api/v1/admin/pricing", post(handlers::pricing::update_global_pricing))

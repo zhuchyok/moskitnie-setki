@@ -24,9 +24,11 @@ impl OrderRepository for PostgresOrderRepository {
     async fn find_by_id(&self, id: Uuid) -> CoreResult<Option<Order>> {
         let order_row: Option<Order> = sqlx::query_as::<_, Order>(
             r#"
-            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, 
+            SELECT id, order_number, dealer_id, branch_id, client_name, client_phone, client_address, status, 
                    production_sub_status, installation_status, department_id,
-                   total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
+                   total_amount, dealer_cost, dealer_profit, 
+                   dealer_price_total, selling_price_total, potential_profit,
+                   comment, created_at, updated_at
             FROM orders WHERE id = $1
             "#,
         )
@@ -39,7 +41,7 @@ impl OrderRepository for PostgresOrderRepository {
             // Загрузка позиций
             let items = sqlx::query_as::<_, crate::core::entity::OrderItem>(
                 r#"
-                SELECT id, product_id, name, params, quantity, unit_price, total_price
+                SELECT id, product_id, name, params, quantity, unit_price, total_price, dealer_cost
                 FROM order_items WHERE order_id = $1
                 "#,
             )
@@ -58,9 +60,11 @@ impl OrderRepository for PostgresOrderRepository {
     async fn find_by_order_number(&self, order_number: &str) -> CoreResult<Option<Order>> {
         let order_row: Option<Order> = sqlx::query_as::<_, Order>(
             r#"
-            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, 
+            SELECT id, order_number, dealer_id, branch_id, client_name, client_phone, client_address, status, 
                    production_sub_status, installation_status, department_id,
-                   total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
+                   total_amount, dealer_cost, dealer_profit,
+                   dealer_price_total, selling_price_total, potential_profit,
+                   comment, created_at, updated_at
             FROM orders WHERE order_number = $1
             "#,
         )
@@ -72,7 +76,7 @@ impl OrderRepository for PostgresOrderRepository {
         if let Some(mut order) = order_row {
             let items = sqlx::query_as::<_, crate::core::entity::OrderItem>(
                 r#"
-                SELECT id, product_id, name, params, quantity, unit_price, total_price
+                SELECT id, product_id, name, params, quantity, unit_price, total_price, dealer_cost
                 FROM order_items WHERE order_id = $1
                 "#,
             )
@@ -91,9 +95,11 @@ impl OrderRepository for PostgresOrderRepository {
     async fn find_by_dealer(&self, dealer_id: Uuid) -> CoreResult<Vec<Order>> {
         let orders = sqlx::query_as::<_, Order>(
             r#"
-            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, 
+            SELECT id, order_number, dealer_id, branch_id, client_name, client_phone, client_address, status, 
                    production_sub_status, installation_status, department_id,
-                   total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
+                   total_amount, dealer_cost, dealer_profit,
+                   dealer_price_total, selling_price_total, potential_profit,
+                   comment, created_at, updated_at
             FROM orders WHERE dealer_id = $1
             ORDER BY created_at DESC
             "#,
@@ -111,15 +117,18 @@ impl OrderRepository for PostgresOrderRepository {
 
         sqlx::query(
             r#"
-            INSERT INTO orders (id, order_number, dealer_id, client_name, client_phone, client_address, status, 
+            INSERT INTO orders (id, order_number, dealer_id, branch_id, client_name, client_phone, client_address, status, 
                                production_sub_status, installation_status, department_id,
-                               total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+                               total_amount, dealer_cost, dealer_profit, 
+                               dealer_price_total, selling_price_total, potential_profit,
+                               comment, created_at, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
             "#,
         )
         .bind(order.id)
         .bind(&order.order_number)
         .bind(order.dealer_id)
+        .bind(order.branch_id)
         .bind(&order.client_name)
         .bind(&order.client_phone)
         .bind(&order.client_address)
@@ -130,6 +139,9 @@ impl OrderRepository for PostgresOrderRepository {
         .bind(order.total_amount)
         .bind(order.dealer_cost)
         .bind(order.dealer_profit)
+        .bind(order.dealer_price_total)
+        .bind(order.selling_price_total)
+        .bind(order.potential_profit)
         .bind(&order.comment)
         .bind(order.created_at)
         .bind(order.updated_at)
@@ -140,8 +152,8 @@ impl OrderRepository for PostgresOrderRepository {
         for item in order.items.iter() {
             sqlx::query(
                 r#"
-                INSERT INTO order_items (id, order_id, product_id, name, params, quantity, unit_price, total_price)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                INSERT INTO order_items (id, order_id, product_id, name, params, quantity, unit_price, total_price, dealer_cost)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 "#,
             )
             .bind(item.id)
@@ -152,6 +164,7 @@ impl OrderRepository for PostgresOrderRepository {
             .bind(item.quantity)
             .bind(item.unit_price)
             .bind(item.total_price)
+            .bind(item.dealer_cost)
             .execute(&mut *tx)
             .await
             .map_err(|e| CoreError::DatabaseError(e.to_string()))?;
@@ -193,9 +206,11 @@ impl OrderRepository for PostgresOrderRepository {
     async fn list(&self, limit: usize, offset: usize) -> CoreResult<Vec<Order>> {
         let orders = sqlx::query_as::<_, Order>(
             r#"
-            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status,
+            SELECT id, order_number, dealer_id, branch_id, client_name, client_phone, client_address, status,
                    production_sub_status, installation_status, department_id,
-                   total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
+                   total_amount, dealer_cost, dealer_profit,
+                   dealer_price_total, selling_price_total, potential_profit,
+                   comment, created_at, updated_at
             FROM orders
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
@@ -213,9 +228,11 @@ impl OrderRepository for PostgresOrderRepository {
     async fn list_by_status(&self, status: OrderStatus) -> CoreResult<Vec<Order>> {
         let orders = sqlx::query_as::<_, Order>(
             r#"
-            SELECT id, order_number, dealer_id, client_name, client_phone, client_address, status, 
+            SELECT id, order_number, dealer_id, branch_id, client_name, client_phone, client_address, status,
                    production_sub_status, installation_status, department_id,
-                   total_amount, dealer_cost, dealer_profit, comment, created_at, updated_at
+                   total_amount, dealer_cost, dealer_profit,
+                   dealer_price_total, selling_price_total, potential_profit,
+                   comment, created_at, updated_at
             FROM orders
             WHERE status = $1
             ORDER BY created_at DESC

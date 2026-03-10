@@ -1,6 +1,8 @@
 // entity/pricing.rs - Ценообразование
 
 use serde::{Deserialize, Serialize};
+use rust_decimal::Decimal;
+use rust_decimal_macros::dec;
 
 /// Конфигурация наценки дилера
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -9,10 +11,22 @@ pub struct MarginConfig {
     pub base_margin_percent: f64,
     /// Коэффициент города (1.0 - столица, 0.8 - регион)
     pub city_multiplier: f64,
+    /// Дополнительный коэффициент филиала/менеджера (напр. 1.05 = +5%)
+    pub branch_multiplier: f64,
     /// Скидки за объём
     pub volume_discounts: Vec<VolumeDiscount>,
     /// Наценки по категориям
     pub category_margins: std::collections::HashMap<String, f64>,
+}
+
+impl MarginConfig {
+    /// Получить множитель наценки
+    pub fn get_multiplier(&self) -> Decimal {
+        let base = Decimal::from_f64_retain(1.0 + (self.base_margin_percent / 100.0)).unwrap_or(dec!(1.3));
+        let city = Decimal::from_f64_retain(self.city_multiplier).unwrap_or(dec!(1.0));
+        let branch = Decimal::from_f64_retain(self.branch_multiplier).unwrap_or(dec!(1.0));
+        (base * city * branch).round_dp(4)
+    }
 }
 
 impl Default for MarginConfig {
@@ -20,6 +34,7 @@ impl Default for MarginConfig {
         Self {
             base_margin_percent: 30.0,
             city_multiplier: 1.0,
+            branch_multiplier: 1.0,
             volume_discounts: Vec::new(),
             category_margins: std::collections::HashMap::new(),
         }
@@ -33,30 +48,64 @@ pub struct VolumeDiscount {
     pub discount_percent: f64,
 }
 
+/// Элемент прайс-листа
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PricingItem {
+    pub id: String,
+    pub name: String,
+    pub price: Decimal,
+}
+
+/// Глобальная конфигурация цен
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct GlobalPricing {
+    pub mesh: Vec<PricingItem>,
+    pub profiles: Vec<PricingItem>,
+    pub components: Vec<PricingItem>,
+    pub services: Vec<PricingItem>,
+    pub markup: MarkupConfig,
+}
+
+/// Конфигурация наценок
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MarkupConfig {
+    pub dealer: Decimal,
+    pub client: Decimal,
+    pub manufacturing_base: Decimal,
+    pub manufacturing_percent: Decimal,
+    pub measurement_base: Decimal,
+    pub measurement_percent: Decimal,
+    #[serde(default)]
+    pub measurement_profit_factor: Decimal,
+    pub urgent_profit_factor: Decimal,
+    pub installation_profit_factor: Decimal,
+    pub delivery_profit_factor: Decimal,
+}
+
 /// Результат расчёта цены для дилера
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DealerPrice {
     /// Себестоимость для дилера
-    pub dealer_cost: f64,
+    pub dealer_cost: Decimal,
     /// Рекомендованная цена
-    pub suggested_price: f64,
+    pub suggested_price: Decimal,
     /// Цена которую выставил дилер
-    pub actual_price: f64,
+    pub actual_price: Decimal,
     /// Наценка дилера (%)
-    pub margin_percent: f64,
+    pub margin_percent: Decimal,
     /// Прибыль дилера
-    pub dealer_profit: f64,
+    pub dealer_profit: Decimal,
 }
 
 /// Конфигурация цены товара
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PriceConfig {
     /// Базовая цена (себестоимость)
-    pub base_price: f64,
+    pub base_price: Decimal,
     /// Цена для дилера (с наценкой производителя)
-    pub dealer_price: f64,
+    pub dealer_price: Decimal,
     /// Минимальная цена для дилера
-    pub min_dealer_price: f64,
+    pub min_dealer_price: Decimal,
     /// Наценка дилера по умолчанию (%)
-    pub default_dealer_margin: f64,
+    pub default_dealer_margin: Decimal,
 }

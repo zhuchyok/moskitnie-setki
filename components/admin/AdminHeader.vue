@@ -48,14 +48,16 @@ const isActive = (path: string) => {
           </p>
         </div>
         <div class="flex items-center gap-4">
-          <button 
+          <button
+            type="button"
             @click="handleLogout"
-            class="bg-gray-50 text-gray-400 hover:text-red-500 p-3 rounded-2xl transition-colors group relative"
+            class="admin-nav-link admin-logout-btn"
             title="Выйти"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
+            <span class="admin-nav-text">Выйти</span>
           </button>
         </div>
       </div>
@@ -91,6 +93,9 @@ const isActive = (path: string) => {
         <template v-if="auth.isDealer">
           <NuxtLink to="/admin" class="admin-nav-link" :class="{ 'active-link': route.path === '/admin' }">
             <span class="admin-nav-text">Мои заказы</span>
+          </NuxtLink>
+          <NuxtLink to="/cabinet" class="admin-nav-link" :class="{ 'active-link': isActive('/cabinet') }">
+            <span class="admin-nav-text">Кабинет директора</span>
           </NuxtLink>
           <NuxtLink to="/admin/calculator" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/calculator') }">
             <span class="admin-nav-text">Калькулятор</span>
@@ -173,5 +178,23 @@ const isActive = (path: string) => {
 .admin-nav-link.active-link:hover {
   transform: none !important;
   opacity: 1 !important;
+}
+
+/* Кнопка «Выйти» — тот же стиль, что и вкладки (не квадратная иконка) */
+.admin-logout-btn {
+  min-width: auto !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  gap: 0.5rem;
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-logout-btn:hover .admin-nav-text,
+.admin-logout-btn:hover {
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
 }
 </style>

@@ -144,6 +144,8 @@ use rust_decimal::Decimal;
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Dealer {
     pub id: Uuid,
+    pub parent_id: Option<Uuid>, // Родительский дилер (для иерархии)
+    pub role: String, // owner, director, manager, subdealer
     pub name: String,
     pub city: String,
     pub phone: String,
@@ -155,6 +157,7 @@ pub struct Dealer {
     pub delivery_mode: DeliveryMode,
     pub payment_type: PaymentType,
     pub balance: Decimal,
+    pub credit_limit: Decimal, // Лимит кредита для постоплаты
     #[sqlx(json)]
     pub branding: DealerBranding,
     #[sqlx(json)]
@@ -173,6 +176,8 @@ impl Dealer {
         let now = Utc::now();
         Self {
             id: Uuid::new_v4(),
+            parent_id: None,
+            role: "dealer".to_string(),
             name,
             city,
             phone,
@@ -183,6 +188,7 @@ impl Dealer {
             delivery_mode: DeliveryMode::SelfPickup,
             payment_type: PaymentType::Postpaid,
             balance: Decimal::ZERO,
+            credit_limit: Decimal::ZERO,
             branding: DealerBranding::default(),
             contacts: DealerContacts::default(),
             legal_info: DealerLegalInfo::default(),
@@ -192,6 +198,33 @@ impl Dealer {
             updated_at: now,
         }
     }
+}
+
+/// Филиал (сайт) дилера
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct DealerBranch {
+    pub id: Uuid,
+    pub dealer_id: Uuid,
+    pub name: String,
+    pub domain: Option<String>,
+    pub city: Option<String>,
+    pub margin_config: serde_json::Value,
+    pub is_active: bool,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Финансовая транзакция
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Transaction {
+    pub id: Uuid,
+    pub dealer_id: Uuid,
+    pub amount: Decimal,
+    pub balance_after: Decimal,
+    pub transaction_type: String, // deposit, withdrawal, order_payment, refund
+    pub order_id: Option<Uuid>,
+    pub description: Option<String>,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]

@@ -4,8 +4,9 @@ interface User {
   id: string
   email: string
   name: string
-  role: 'admin' | 'dealer'
+  role: 'admin' | 'dealer' | 'director' | 'manager' | 'subdealer'
   dealer_id?: string
+  parent_id?: string
 }
 
 export const useAuthStore = defineStore('auth', {

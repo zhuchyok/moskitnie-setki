@@ -4,7 +4,8 @@ const title = computed(() => `Ремонт москитных сеток в ${te
 const description = computed(() => `Профессиональный ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Замена полотна, ручек, уголков. Быстро, качественно, недорого.`)
 const keywords = computed(() => `ремонт сеток, замена полотна, москитная сетка ремонт, ${tenant.config.city}, ${tenant.config.dealer_name}, запчасти для сеток, перетяжка сетки, замена ручек`)
 const url = 'https://www.setki21.ru/remont/'
-const image = computed(() => tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_new.png')
+const requestURL = useRequestURL()
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const serviceSchema = computed(() => ({
   '@context': 'https://schema.org',

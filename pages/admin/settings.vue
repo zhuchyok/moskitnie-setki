@@ -67,7 +67,7 @@ const fetchSettings = async () => {
   isLoading.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     let dealerId = auth.user?.dealer_id
     if (!dealerId && auth.isAdmin) {
@@ -100,7 +100,7 @@ const handleSave = async () => {
   isSaving.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     let dealerId = auth.user?.dealer_id
     
     // Если мы админ и dealer_id почему-то нет, пробуем использовать ID производителя
@@ -173,7 +173,7 @@ const handleLogoUpload = async (event: any) => {
 
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const response = await $fetch('/api/v1/admin/upload', {
       method: 'POST',
@@ -387,7 +387,7 @@ onMounted(fetchSettings)
           </div>
 
           <div class="pt-10 border-t border-gray-50">
-            <button type="submit" :disabled="isSaving" class="w-full md:w-auto bg-brand-blue text-white font-black py-5 px-12 rounded-2xl text-[10px] uppercase tracking-widest shadow-2xl shadow-brand-blue/30 hover:scale-105 transition-all disabled:opacity-50">
+            <button type="submit" :disabled="isSaving" class="w-full md:w-auto admin-btn-primary font-black py-5 px-12 rounded-2xl text-[10px] uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-50">
               {{ isSaving ? 'Сохранение...' : 'Сохранить изменения' }}
             </button>
           </div>

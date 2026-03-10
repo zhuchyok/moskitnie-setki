@@ -20,7 +20,7 @@ const fetchProductionOrders = async () => {
   isLoading.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const response = await $fetch('/api/v1/admin/production/orders', {
       baseURL: apiBase,
@@ -47,7 +47,7 @@ const fetchProductionOrders = async () => {
 const updateSubStatus = async (orderId: string, newSubStatus: string) => {
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     await $fetch(`/api/v1/admin/orders/${orderId}/status`, {
       method: 'PUT',
@@ -68,7 +68,7 @@ const updateSubStatus = async (orderId: string, newSubStatus: string) => {
 const markReady = async (orderId: string) => {
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     await $fetch(`/api/v1/admin/orders/${orderId}/status`, {
       method: 'PUT',

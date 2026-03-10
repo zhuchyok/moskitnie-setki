@@ -1,13 +1,6 @@
-// Basic Service Worker for caching
-const CACHE_NAME = 'setki21-v1';
+// Basic Service Worker for caching (v2: не кэшируем HTML и favicon — у дилеров разный контент по одному URL)
+const CACHE_NAME = 'setki21-v2';
 const urlsToCache = [
-  '/',
-  '/antimoshka',
-  '/antikoshka',
-  '/antipyl',
-  '/vstavnye',
-  '/remont',
-  '/favicon.ico',
   '/robots.txt',
   '/sitemap.xml'
 ];
@@ -16,25 +9,27 @@ const urlsToCache = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        return cache.addAll(urlsToCache);
-      })
+      .then((cache) => cache.addAll(urlsToCache))
   );
+  self.skipWaiting();
 });
 
-// Fetch event - serve from cache first
+// Fetch: HTML и навигация — всегда из сети (фавикон/tenant по текущему домену)
 self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+  if (event.request.url.includes('/favicon') || event.request.url.includes('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version or fetch from network
-        return response || fetch(event.request);
-      }
-    )
+    caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });
 
-// Activate event - clean up old caches
+// Activate: удалить старые кэши (setki21-v1 и др.)
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -47,4 +42,5 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
+  self.clients.claim();
 });

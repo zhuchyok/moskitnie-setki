@@ -7,9 +7,17 @@ const auth = useAuthStore()
 const tenant = useTenantStore()
 const pricing = usePricingStore()
 
-// Инициализация при загрузке
+// Конфиг тенанта: на SSR — по Host из запроса (чтобы фавикон/лого дилера в первом HTML), на клиенте — по текущему origin
+const event = import.meta.server ? useRequestEvent() : null
+const ssrOrigin = event?.node?.req?.headers?.host
+  ? `${(event.node.req as any).headers['x-forwarded-proto'] === 'https' ? 'https' : 'http'}://${event.node.req.headers.host}`
+  : undefined
+// OG-image: от текущего origin + logo_url (аудит 2026-03-10), не хардкод www.setki21.ru
+const requestURL = useRequestURL()
+const siteOrigin = requestURL?.origin || ''
+
 const { data: tenantConfig } = await useAsyncData('tenant-config', async () => {
-  await tenant.fetchConfig()
+  await tenant.fetchConfig(ssrOrigin)
   return tenant.config
 })
 
@@ -20,8 +28,9 @@ const { data: pricingData } = await useAsyncData('pricing-config', async () => {
 
 onMounted(() => {
   auth.initAuth()
-  // Если по какой-то причине данные не загрузились в SSR (например, локальная разработка)
-  if (!tenant.isLoaded) {
+  // Всегда запрашиваем конфиг на клиенте: при статическом деплое payload из пререндера пустой,
+  // и только так для сайта дилера подставляется правильный tenant и фавикон
+  if (import.meta.client) {
     tenant.fetchConfig()
   }
   if (!pricing.pricing) {
@@ -30,18 +39,25 @@ onMounted(() => {
 })
 useHead({
   title: computed(() => tenant.config.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21'),
-  meta: computed(() => [
-    { name: 'description', content: tenant.config.seo?.description || '' },
-    { property: 'og:title', content: tenant.config.seo?.title || '' },
-    { property: 'og:description', content: tenant.config.seo?.description || '' },
-    { property: 'og:image', content: tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_final_v58.png' },
-    { name: 'twitter:image', content: tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_final_v58.png' }
-  ])
+  meta: computed(() => {
+    const ogImage = tenant.config.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png')
+    return [
+      { name: 'description', content: tenant.config.seo?.description || '' },
+      { property: 'og:title', content: tenant.config.seo?.title || '' },
+      { property: 'og:description', content: tenant.config.seo?.description || '' },
+      { property: 'og:image', content: ogImage },
+      { name: 'twitter:image', content: ogImage }
+    ]
+  })
 })
 </script>
 
 <template>
-  <div :class="{ 'opacity-0': !tenant.isLoaded }" class="transition-opacity duration-300">
+  <div
+    :class="{ 'opacity-0': !tenant.isLoaded }"
+    class="transition-opacity duration-300"
+    :style="{ '--brand-primary': tenant.config.branding?.primary_color || '#2A6AB2', '--brand-blue': tenant.config.branding?.primary_color || '#2A6AB2' }"
+  >
     <NuxtLayout>
       <NuxtPage :key="$route.fullPath" />
     </NuxtLayout>

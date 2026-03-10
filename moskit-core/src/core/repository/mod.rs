@@ -3,6 +3,7 @@
 use async_trait::async_trait;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use rust_decimal::Decimal;
 
 use crate::core::error::CoreResult;
 use crate::core::entity::*;
@@ -31,6 +32,13 @@ pub trait DealerRepository: Send + Sync {
     async fn delete(&self, id: Uuid) -> CoreResult<()>;
     async fn list(&self, limit: usize, offset: usize) -> CoreResult<Vec<Dealer>>;
     async fn list_active(&self) -> CoreResult<Vec<Dealer>>;
+    async fn find_branches_by_dealer(&self, dealer_id: Uuid) -> CoreResult<Vec<DealerBranch>>;
+    async fn create_branch(&self, branch: DealerBranch) -> CoreResult<DealerBranch>;
+    async fn update_branch(&self, branch: DealerBranch) -> CoreResult<DealerBranch>;
+    async fn delete_branch(&self, id: Uuid) -> CoreResult<()>;
+    async fn find_transactions_by_dealer(&self, dealer_id: Uuid, limit: usize, offset: usize) -> CoreResult<Vec<Transaction>>;
+    async fn create_transaction(&self, transaction: Transaction) -> CoreResult<Transaction>;
+    async fn update_balance(&self, dealer_id: Uuid, amount: Decimal, transaction_type: String, description: Option<String>, order_id: Option<Uuid>) -> CoreResult<Decimal>;
 }
 
 /// Трейт для работы с отделами дилеров
@@ -73,4 +81,11 @@ pub trait OrderRepository: Send + Sync {
 pub trait AuditRepository: Send + Sync {
     async fn log(&self, log: AuditLog) -> CoreResult<()>;
     async fn list_by_dealer(&self, dealer_id: Uuid, limit: usize, offset: usize) -> CoreResult<Vec<AuditLog>>;
+}
+
+/// Трейт для работы с глобальными настройками
+#[async_trait]
+pub trait SettingsRepository: Send + Sync {
+    async fn get_value(&self, key: &str) -> CoreResult<Option<serde_json::Value>>;
+    async fn set_value(&self, key: &str, value: serde_json::Value) -> CoreResult<()>;
 }

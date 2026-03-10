@@ -9,7 +9,8 @@ const title = computed(() => `Москитная сетка Ультравью �
 const description = computed(() => `Сетки Ультравью с повышенной прозрачностью и мелкой ячейкой в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от насекомых и пуха. Заказ за 2 дня.`)
 const keywords = computed(() => `ультравью, ultraview, москитная сетка, ${tenant.config.city}, ${tenant.config.dealer_name}, прозрачная сетка, защита от мошек, тонкая сетка`)
 const url = 'https://www.setki21.ru/ultravyu/'
-const image = computed(() => tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_new.png')
+const requestURL = useRequestURL()
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',

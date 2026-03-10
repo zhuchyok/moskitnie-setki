@@ -28,14 +28,14 @@ export default defineEventHandler(async (event) => {
 
     // В тестах или при отсутствии createTransporter (бандл) письмо не отправляем
     const nm = nodemailer?.default ?? nodemailer
-    const createTransporterFn = nm?.createTransporter
+    const createTransportFn = nm?.createTransport
     const transporter =
-      process.env.NODE_ENV === 'test' || typeof createTransporterFn !== 'function'
+      process.env.NODE_ENV === 'test' || typeof createTransportFn !== 'function'
         ? { sendMail: async () => {} }
-        : createTransporterFn.call(nm, {
-            host: process.env.SMTP_HOST || 'smtp.mail.ru',
-            port: 587,
-            secure: false,
+        : createTransportFn.call(nm, {
+            host: process.env.SMTP_HOST || 'smtp.timeweb.ru',
+            port: parseInt(process.env.SMTP_PORT || '465', 10),
+            secure: parseInt(process.env.SMTP_PORT || '465', 10) === 465,
             auth: {
               user: process.env.SMTP_USER,
               pass: process.env.SMTP_PASS

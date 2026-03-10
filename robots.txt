@@ -19,7 +19,6 @@ Allow: /upload/
 Allow: /images/optimized/
 
 # Запретить индексацию служебных директорий
-Disallow: /bitrix/
 Disallow: /_nuxt/
 Disallow: /ajax/
 Disallow: /*.php$

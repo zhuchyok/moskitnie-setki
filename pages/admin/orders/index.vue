@@ -20,7 +20,7 @@ const fetchOrders = async () => {
   isLoading.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     const endpoint = auth.isAdmin ? '/api/v1/admin/orders' : '/api/v1/dealer/orders'
     
     const response = await $fetch(endpoint, {

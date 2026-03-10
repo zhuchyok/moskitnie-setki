@@ -35,11 +35,11 @@ export const usePricingStore = defineStore('pricing', {
       this.isLoading = true
       try {
         const config = useRuntimeConfig()
-        const apiBase = config.public.apiUrl || 'http://localhost:8081'
-        const response = await $fetch<GlobalPricing>('/api/v1/pricing', {
+        const apiBase = (config.public as any).apiUrl || ''
+        const response = await ($fetch as any)('/api/v1/pricing', {
           baseURL: apiBase,
           timeout: 8000
-        })
+        }) as GlobalPricing
         this.pricing = response
         console.log('Global pricing loaded:', response)
       } catch (e) {

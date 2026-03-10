@@ -9,7 +9,8 @@ const title = computed(() => `Москитная сетка Антимошка �
 const description = computed(() => `Сетки Антимошка с уменьшенной ячейкой 0.8х0.8 мм в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от мелких насекомых и тополиного пуха.`)
 const keywords = computed(() => `антимошка, микромеш, москитная сетка, ${tenant.config.city}, ${tenant.config.dealer_name}, защита от мошек, мелкая сетка, micro mesh`)
 const url = 'https://www.setki21.ru/antimoshka/'
-const image = computed(() => tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_new.png')
+const requestURL = useRequestURL()
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',

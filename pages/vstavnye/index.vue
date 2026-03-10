@@ -9,7 +9,8 @@ const title = computed(() => tenant.config.seo?.title || `Вставные мо�
 const description = computed(() => tenant.config.seo?.description || `Инновационные вставные сетки VSN в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Не требуют сверления рамы, устанавливаются изнутри. Надежно, эстетично, безопасно. Закажите онлайн!`)
 const keywords = computed(() => tenant.config.seo?.keywords || `вставная сетка, vsn, москитная сетка без сверления, ${tenant.config.city}, внутренняя сетка, сетка в проем, установка без шурупов, ${tenant.config.dealer_name}`)
 const url = 'https://www.setki21.ru/vstavnye/'
-const image = computed(() => tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_new.png')
+const requestURL = useRequestURL()
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',

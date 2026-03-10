@@ -39,7 +39,7 @@ const handleActivateDomain = async () => {
   isActivating.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const response = await $fetch(`/api/v1/admin/dealers/${dealerId}/activate_domain`, {
       method: 'POST',
@@ -93,7 +93,7 @@ const fetchSettings = async () => {
   isLoading.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const dealerId = auth.user?.dealer_id
     if (!dealerId) return
@@ -115,7 +115,7 @@ const handleSave = async () => {
   isSaving.value = true
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     const dealerId = auth.user?.dealer_id
     
     await $fetch(`/api/v1/admin/dealers/${dealerId}`, {
@@ -143,7 +143,7 @@ const handleLogoUpload = async (event: any) => {
 
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     
     const response = await $fetch('/api/v1/admin/upload', {
       method: 'POST',

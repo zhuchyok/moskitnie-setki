@@ -1,10 +1,12 @@
 <script setup lang="ts">
 const store = useOrderStore()
 
+const requestURL = useRequestURL()
+const origin = requestURL?.origin || 'https://www.setki21.ru'
 const title = 'Карта сайта — Сетки 21'
 const description = 'Все страницы сайта Сетки 21: москитные сетки, антимошка, ультравью, антикошка, антипыль, вставные сетки, ремонт. Чебоксары и Новочебоксарск.'
-const url = 'https://www.setki21.ru/karta-sajta'
-const image = 'https://www.setki21.ru/images/logo_final_v58.png'
+const url = `${origin}/karta-sajta`
+const image = `${origin}/images/logo_final_v58.png`
 const keywords = 'карта сайта, сетки 21, москитные сетки чебоксары, новочебоксарск, разделы сайта'
 
 const webPageSchema = {
@@ -13,7 +15,7 @@ const webPageSchema = {
   name: title,
   description,
   url,
-  publisher: { '@type': 'Organization', name: 'Сетки 21', url: 'https://www.setki21.ru' },
+  publisher: { '@type': 'Organization', name: 'Сетки 21', url: origin },
   inLanguage: 'ru-RU'
 }
 

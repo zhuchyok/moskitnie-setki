@@ -2,8 +2,9 @@
 const tenant = useTenantStore()
 const title = computed(() => `Контакты — ${tenant.config.dealer_name || 'Сетки 21'}, ${tenant.config.city || 'Чебоксары и Новочебоксарск'}`)
 const description = computed(() => `Адреса офисов, телефон, режим работы компании ${tenant.config.dealer_name || 'Сетки 21'}. Замер и установка москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}.`)
-const url = 'https://www.setki21.ru/contacts'
-const image = computed(() => tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_final_v58.png')
+const requestURL = useRequestURL()
+const url = requestURL?.origin ? `${requestURL.origin}/contacts` : 'https://www.setki21.ru/contacts'
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
 const contactSchema = computed(() => ({
   '@context': 'https://schema.org',

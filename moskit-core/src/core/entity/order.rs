@@ -91,14 +91,16 @@ pub struct OrderItem {
     pub quantity: i32,
     pub unit_price: Decimal,
     pub total_price: Decimal,
+    pub dealer_cost: Decimal, // Себестоимость для дилера
 }
 
 /// Заказ
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Order {
     pub id: Uuid,
-    pub order_number: String,      // Человекочитаемый номер
-    pub dealer_id: Option<Uuid>,   // Дилер (None = производитель)
+    pub order_number: String,
+    pub dealer_id: Option<Uuid>,
+    pub branch_id: Option<Uuid>, // Филиал (сайт), с которого пришел заказ
     pub client_name: String,
     pub client_phone: String,
     pub client_address: Option<String>,
@@ -107,10 +109,13 @@ pub struct Order {
     pub status: OrderStatus,
     pub production_sub_status: Option<ProductionSubStatus>,
     pub installation_status: Option<InstallationStatus>,
-    pub total_amount: Decimal,
-    pub dealer_cost: Decimal,           // Себестоимость для дилера
-    pub dealer_profit: Decimal,         // Прибыль дилера
-    pub department_id: Option<Uuid>, // Отдел дилера
+    pub total_amount: Decimal, // Итоговая сумма для клиента
+    pub dealer_cost: Decimal, // Себестоимость для дилера (закупка)
+    pub dealer_profit: Decimal, // Прибыль дилера (total_amount - dealer_cost - доп. расходы)
+    pub dealer_price_total: Decimal, // "Замороженная" цена дилера в момент заказа
+    pub selling_price_total: Decimal, // "Замороженная" цена продажи в момент заказа
+    pub potential_profit: Decimal, // (Selling - Dealer - Service)
+    pub department_id: Option<Uuid>,
     pub installation_price: Option<Decimal>,
     pub delivery_price: Option<Decimal>,
     pub measurement_price: Option<Decimal>,
@@ -133,6 +138,7 @@ impl Order {
             id: Uuid::new_v4(),
             order_number: format!("MS-{}", chrono::Utc::now().format("%Y%m%d%H%M%S")),
             dealer_id,
+            branch_id: None,
             client_name,
             client_phone,
             client_address: None,
@@ -143,6 +149,9 @@ impl Order {
             total_amount,
             dealer_cost: Decimal::ZERO,
             dealer_profit: Decimal::ZERO,
+            dealer_price_total: Decimal::ZERO,
+            selling_price_total: Decimal::ZERO,
+            potential_profit: Decimal::ZERO,
             department_id: None,
             installation_price: None,
             delivery_price: None,

@@ -16,6 +16,64 @@ use rust_decimal_macros::dec;
 
 // --- Обработчики файлов ---
 
+#[derive(Debug, Deserialize)]
+pub struct UpdateBalanceRequest {
+    pub amount: Decimal,
+    pub description: Option<String>,
+}
+
+pub async fn update_dealer_balance(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+    Json(payload): Json<UpdateBalanceRequest>,
+) -> ApiResult<serde_json::Value> {
+    use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+    
+    let dealer_id = Uuid::parse_str(&id).map_err(|_| bad_request("Invalid UUID"))?;
+    let repo = PostgresDealerRepository::new(state.pool.clone());
+    
+    let new_balance = repo.update_balance(
+        dealer_id,
+        payload.amount,
+        "deposit".to_string(),
+        payload.description,
+        None
+    ).await.map_err(|e| bad_request(&e.to_string()))?;
+    
+    ok(serde_json::json!({
+        "success": true,
+        "new_balance": new_balance
+    }))
+}
+
+pub async fn list_dealer_transactions(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> ApiResult<Vec<moskit_core::entity::Transaction>> {
+    use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+    
+    let dealer_id = Uuid::parse_str(&id).map_err(|_| bad_request("Invalid UUID"))?;
+    let repo = PostgresDealerRepository::new(state.pool.clone());
+    
+    let transactions = repo.find_transactions_by_dealer(dealer_id, 100, 0)
+        .await.map_err(|e| bad_request(&e.to_string()))?;
+        
+    ok(transactions)
+}
+
+pub async fn list_dealer_users(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> ApiResult<Vec<moskit_core::entity::User>> {
+    use moskit_core::repository::{UserRepository, PostgresUserRepository};
+    
+    let dealer_id = Uuid::parse_str(&id).map_err(|_| bad_request("Invalid UUID"))?;
+    let repo = PostgresUserRepository::new(state.pool.clone());
+    
+    let users = repo.list_by_dealer(dealer_id).await.map_err(|e| bad_request(&e.to_string()))?;
+    ok(users)
+}
+
 pub async fn upload_file(
     State(state): State<Arc<AppState>>,
     mut multipart: Multipart,
@@ -54,11 +112,16 @@ pub struct CreateDealerRequest {
     pub email: Option<String>,
     pub domain: Option<String>,
     pub margin_percent: Option<f64>,
+    pub parent_id: Option<Uuid>,
+    pub role: Option<String>,
+    pub credit_limit: Option<Decimal>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct DealerResponse {
     pub id: String,
+    pub parent_id: Option<Uuid>,
+    pub role: String,
     pub name: String,
     pub city: String,
     pub phone: String,
@@ -69,36 +132,46 @@ pub struct DealerResponse {
     pub delivery_mode: String,
     pub payment_type: String,
     pub balance: Decimal,
+    pub credit_limit: Decimal,
     pub branding: moskit_core::entity::DealerBranding,
     pub contacts: moskit_core::entity::DealerContacts,
     pub legal_info: moskit_core::entity::DealerLegalInfo,
     pub seo_config: moskit_core::entity::DealerSeoConfig,
+    pub initial_password: Option<String>,
 }
 
 pub async fn create_dealer(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<CreateDealerRequest>
 ) -> ApiResult<DealerResponse> {
-    use moskit_core::entity::{Dealer, MarginConfig, DeliveryMode, PaymentType};
-    use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+    use moskit_core::entity::{Dealer, MarginConfig, DeliveryMode, PaymentType, User, UserRole};
+    use moskit_core::repository::{DealerRepository, PostgresDealerRepository, UserRepository, PostgresUserRepository};
+    use bcrypt::{hash, DEFAULT_COST};
+    use rand::{thread_rng, Rng};
+    use rand::distributions::Alphanumeric;
 
+    let dealer_id = Uuid::new_v4();
     let dealer = Dealer {
-        id: Uuid::new_v4(),
-        name: payload.name,
+        id: dealer_id,
+        parent_id: payload.parent_id,
+        role: payload.role.unwrap_or_else(|| "dealer".to_string()),
+        name: payload.name.clone(),
         city: payload.city,
         phone: payload.phone,
-        email: payload.email,
+        email: payload.email.clone(),
         address: None,
         domain: payload.domain,
         margin_config: MarginConfig {
-            base_margin_percent: payload.margin_percent.unwrap_or(1.30),
+            base_margin_percent: payload.margin_percent.unwrap_or(30.0),
             city_multiplier: 1.0,
+            branch_multiplier: 1.0,
             volume_discounts: vec![],
             category_margins: std::collections::HashMap::new(),
         },
         delivery_mode: DeliveryMode::SelfPickup,
         payment_type: PaymentType::Postpaid,
         balance: dec!(0.0),
+        credit_limit: payload.credit_limit.unwrap_or(dec!(0.0)),
         branding: Default::default(),
         contacts: Default::default(),
         legal_info: Default::default(),
@@ -114,8 +187,35 @@ pub async fn create_dealer(
         bad_request(&e.to_string())
     })?;
 
+    // Создаем пользователя для дилера, если указан email
+    let mut initial_password = None;
+    if let Some(email) = &payload.email {
+        let password: String = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(10)
+            .map(char::from)
+            .collect();
+        
+        let password_hash = hash(&password, DEFAULT_COST).map_err(|e| bad_request(&e.to_string()))?;
+        
+        let mut user = User::new(
+            email.clone(),
+            password_hash,
+            payload.name.clone(),
+            UserRole::Dealer
+        );
+        user.dealer_id = Some(dealer_id);
+        
+        let user_repo = PostgresUserRepository::new(state.pool.clone());
+        user_repo.create(user).await.map_err(|e| bad_request(&e.to_string()))?;
+        
+        initial_password = Some(password);
+    }
+
     ok(DealerResponse {
         id: created.id.to_string(),
+        parent_id: created.parent_id,
+        role: created.role,
         name: created.name,
         city: created.city,
         phone: created.phone,
@@ -126,10 +226,12 @@ pub async fn create_dealer(
         delivery_mode: created.delivery_mode.as_db_value().to_string(),
         payment_type: created.payment_type.as_db_value().to_string(),
         balance: created.balance,
+        credit_limit: created.credit_limit,
         branding: created.branding,
         contacts: created.contacts,
         legal_info: created.legal_info,
         seo_config: created.seo_config,
+        initial_password,
     })
 }
 
@@ -150,6 +252,8 @@ pub async fn get_dealer(
 
     ok(DealerResponse {
         id: dealer.id.to_string(),
+        parent_id: dealer.parent_id,
+        role: dealer.role,
         name: dealer.name,
         city: dealer.city,
         phone: dealer.phone,
@@ -160,10 +264,12 @@ pub async fn get_dealer(
         delivery_mode: dealer.delivery_mode.as_db_value().to_string(),
         payment_type: dealer.payment_type.as_db_value().to_string(),
         balance: dealer.balance,
+        credit_limit: dealer.credit_limit,
         branding: dealer.branding,
         contacts: dealer.contacts,
         legal_info: dealer.legal_info,
         seo_config: dealer.seo_config,
+        initial_password: None,
     })
 }
 
@@ -180,6 +286,8 @@ pub async fn list_dealers(
 
     let response = dealers.into_iter().map(|d| DealerResponse {
         id: d.id.to_string(),
+        parent_id: d.parent_id,
+        role: d.role,
         name: d.name,
         city: d.city,
         phone: d.phone,
@@ -190,10 +298,12 @@ pub async fn list_dealers(
         delivery_mode: d.delivery_mode.as_db_value().to_string(),
         payment_type: d.payment_type.as_db_value().to_string(),
         balance: d.balance,
+        credit_limit: d.credit_limit,
         branding: d.branding,
         contacts: d.contacts,
         legal_info: d.legal_info,
         seo_config: d.seo_config,
+        initial_password: None,
     }).collect();
 
     ok(response)
@@ -208,6 +318,9 @@ pub struct UpdateDealerRequest {
     pub domain: Option<String>,
     pub margin_percent: Option<f64>,
     pub is_active: Option<bool>,
+    pub parent_id: Option<Uuid>,
+    pub role: Option<String>,
+    pub credit_limit: Option<Decimal>,
     pub branding: Option<moskit_core::entity::DealerBranding>,
     pub contacts: Option<moskit_core::entity::DealerContacts>,
     pub legal_info: Option<moskit_core::entity::DealerLegalInfo>,
@@ -238,7 +351,19 @@ pub async fn update_dealer(
     if let Some(domain) = payload.domain { dealer.domain = Some(domain); }
     if let Some(margin) = payload.margin_percent { dealer.margin_config.base_margin_percent = margin; }
     if let Some(active) = payload.is_active { dealer.is_active = active; }
-    if let Some(branding) = payload.branding { dealer.branding = branding; }
+    if let Some(parent_id) = payload.parent_id { dealer.parent_id = Some(parent_id); }
+    if let Some(role) = payload.role { dealer.role = role; }
+    if let Some(credit_limit) = payload.credit_limit { dealer.credit_limit = credit_limit; }
+    // Слияние branding: не затирать logo_url и др., если в запросе пришли пустые значения (чтобы логотипы не слетали при сохранении других полей)
+    if let Some(b) = payload.branding {
+        if b.logo_url.as_ref().map_or(false, |s| !s.trim().is_empty()) {
+            dealer.branding.logo_url = b.logo_url;
+        }
+        if b.primary_color.is_some() { dealer.branding.primary_color = b.primary_color; }
+        if b.short_description.is_some() { dealer.branding.short_description = b.short_description; }
+        if b.full_description.is_some() { dealer.branding.full_description = b.full_description; }
+        if b.working_hours.is_some() { dealer.branding.working_hours = b.working_hours; }
+    }
     if let Some(contacts) = payload.contacts { dealer.contacts = contacts; }
     if let Some(legal) = payload.legal_info { dealer.legal_info = legal; }
     if let Some(seo) = payload.seo_config { dealer.seo_config = seo; }
@@ -250,6 +375,8 @@ pub async fn update_dealer(
 
     ok(DealerResponse {
         id: updated.id.to_string(),
+        parent_id: updated.parent_id,
+        role: updated.role,
         name: updated.name,
         city: updated.city,
         phone: updated.phone,
@@ -260,10 +387,12 @@ pub async fn update_dealer(
         delivery_mode: updated.delivery_mode.as_db_value().to_string(),
         payment_type: updated.payment_type.as_db_value().to_string(),
         balance: updated.balance,
+        credit_limit: updated.credit_limit,
         branding: updated.branding,
         contacts: updated.contacts,
         legal_info: updated.legal_info,
         seo_config: updated.seo_config,
+        initial_password: None,
     })
 }
 
@@ -345,18 +474,192 @@ pub async fn get_dealer_stats(
     Path(dealer_id): Path<String>,
     Query(query): Query<StatsRequest>,
 ) -> ApiResult<serde_json::Value> {
-    use moskit_core::repository::{OrderRepository, PostgresOrderRepository};
+    use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+    use sqlx::Row;
     
     let d_id = Uuid::parse_str(&dealer_id).map_err(|_| bad_request("Invalid Dealer UUID"))?;
-    let repo = PostgresOrderRepository::new(state.pool.clone());
     
-    let start = query.start_date.unwrap_or_else(|| Utc::now() - chrono::Duration::days(30));
+    let start = query.start_date.unwrap_or_else(|| {
+        let now = Utc::now();
+        Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).single().unwrap_or(now)
+    });
     let end = query.end_date.unwrap_or_else(Utc::now);
     
-    let stats = repo.get_stats(Some(d_id), start, end).await
-        .map_err(|e| bad_request(&e.to_string()))?;
+    let row = sqlx::query(
+        r#"
+        SELECT 
+            COUNT(*) as total_count,
+            COALESCE(SUM(total_amount), 0) as total_amount,
+            COALESCE(SUM(dealer_profit), 0) as total_profit,
+            COALESCE(SUM(potential_profit), 0) as potential_profit,
+            COALESCE(SUM(dealer_price_total), 0) as total_buy_price
+        FROM orders
+        WHERE (dealer_id = $1 OR dealer_id IN (SELECT id FROM dealers WHERE parent_id = $1))
+          AND created_at >= $2 AND created_at <= $3
+        "#
+    )
+    .bind(d_id)
+    .bind(start)
+    .bind(end)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(|e| bad_request(&e.to_string()))?;
+
+    let count: i64 = row.get("total_count");
+    let amount: Decimal = row.get("total_amount");
+    let profit: Decimal = row.get("total_profit");
+    let pot_profit: Decimal = row.get("potential_profit");
+    let buy_price: Decimal = row.get("total_buy_price");
+
+    let mut alerts: Vec<serde_json::Value> = Vec::new();
+    if let Ok(Some(dealer)) = PostgresDealerRepository::new(state.pool.clone()).find_by_id(d_id).await {
+        if dealer.balance < state.low_balance_threshold {
+            alerts.push(serde_json::json!({
+                "type": "low_balance",
+                "message": "Низкий баланс. Рекомендуем пополнить счёт.",
+                "balance": dealer.balance
+            }));
+        }
+    }
+
+    ok(serde_json::json!({
+        "count": count,
+        "total_sales": amount,
+        "total_profit": profit,
+        "potential_profit": pot_profit,
+        "total_buy_price": buy_price,
+        "period": {
+            "start": start,
+            "end": end
+        },
+        "alerts": alerts
+    }))
+}
+
+pub async fn get_dealer_chart_stats(
+    State(state): State<Arc<AppState>>,
+    Path(dealer_id): Path<String>,
+    Query(query): Query<StatsRequest>,
+) -> ApiResult<serde_json::Value> {
+    use sqlx::Row;
+    
+    let d_id = Uuid::parse_str(&dealer_id).map_err(|_| bad_request("Invalid Dealer UUID"))?;
+    
+    let start = query.start_date.unwrap_or_else(|| {
+        let now = Utc::now();
+        Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).single().unwrap_or(now)
+    });
+    let end = query.end_date.unwrap_or_else(Utc::now);
+    
+    let rows = sqlx::query(
+        r#"
+        SELECT 
+            DATE(created_at) as date,
+            COUNT(*) as count,
+            COALESCE(SUM(total_amount), 0) as amount,
+            COALESCE(SUM(dealer_profit), 0) as profit
+        FROM orders
+        WHERE (dealer_id = $1 OR dealer_id IN (SELECT id FROM dealers WHERE parent_id = $1))
+          AND created_at >= $2 AND created_at <= $3
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at)
+        "#
+    )
+    .bind(d_id)
+    .bind(start)
+    .bind(end)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(|e| bad_request(&e.to_string()))?;
+
+    let mut labels = Vec::new();
+    let mut sales_data = Vec::new();
+    let mut profit_data = Vec::new();
+
+    for row in rows {
+        let date: chrono::NaiveDate = row.get("date");
+        let amount: Decimal = row.get("amount");
+        let profit: Decimal = row.get("profit");
         
-    ok(stats)
+        labels.push(date.to_string());
+        sales_data.push(amount);
+        profit_data.push(profit);
+    }
+
+    ok(serde_json::json!({
+        "labels": labels,
+        "sales": sales_data,
+        "profit": profit_data
+    }))
+}
+
+/// Аналитика по филиалам: агрегаты продаж/прибыли по branch_id за период (для директора).
+pub async fn get_dealer_stats_by_branch(
+    State(state): State<Arc<AppState>>,
+    Path(dealer_id): Path<String>,
+    Query(query): Query<StatsRequest>,
+) -> ApiResult<serde_json::Value> {
+    use sqlx::Row;
+
+    let d_id = Uuid::parse_str(&dealer_id).map_err(|_| bad_request("Invalid Dealer UUID"))?;
+
+    let start = query.start_date.unwrap_or_else(|| {
+        let now = Utc::now();
+        Utc.with_ymd_and_hms(now.year(), now.month(), 1, 0, 0, 0).single().unwrap_or(now)
+    });
+    let end = query.end_date.unwrap_or_else(Utc::now);
+
+    let rows = sqlx::query(
+        r#"
+        SELECT 
+            o.branch_id,
+            b.name AS branch_name,
+            b.city AS branch_city,
+            COUNT(*) AS order_count,
+            COALESCE(SUM(o.total_amount), 0) AS total_sales,
+            COALESCE(SUM(o.dealer_profit), 0) AS total_profit,
+            COALESCE(SUM(o.potential_profit), 0) AS potential_profit,
+            COALESCE(SUM(o.dealer_price_total), 0) AS total_buy_price
+        FROM orders o
+        LEFT JOIN dealer_branches b ON b.id = o.branch_id
+        WHERE (o.dealer_id = $1 OR o.dealer_id IN (SELECT id FROM dealers WHERE parent_id = $1))
+          AND o.created_at >= $2 AND o.created_at <= $3
+        GROUP BY o.branch_id, b.name, b.city
+        ORDER BY total_sales DESC NULLS LAST
+        "#
+    )
+    .bind(d_id)
+    .bind(start)
+    .bind(end)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(|e| bad_request(&e.to_string()))?;
+
+    let by_branch: Vec<serde_json::Value> = rows.iter().map(|row| {
+        let branch_id: Option<Uuid> = row.get("branch_id");
+        let branch_name: Option<String> = row.get("branch_name");
+        let branch_city: Option<String> = row.get("branch_city");
+        let order_count: i64 = row.get("order_count");
+        let total_sales: Decimal = row.get("total_sales");
+        let total_profit: Decimal = row.get("total_profit");
+        let potential_profit: Decimal = row.get("potential_profit");
+        let total_buy_price: Decimal = row.get("total_buy_price");
+        serde_json::json!({
+            "branch_id": branch_id,
+            "branch_name": branch_name.unwrap_or_else(|| "Без филиала".to_string()),
+            "branch_city": branch_city,
+            "order_count": order_count,
+            "total_sales": total_sales,
+            "total_profit": total_profit,
+            "potential_profit": potential_profit,
+            "total_buy_price": total_buy_price,
+        })
+    }).collect();
+
+    ok(serde_json::json!({
+        "by_branch": by_branch,
+        "period": { "start": start, "end": end }
+    }))
 }
 
 pub async fn list_audit_logs(

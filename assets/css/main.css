@@ -81,26 +81,42 @@ h1, h2, h3 {
   @apply font-bold text-black;
 }
 
-/* Перебиваем Tailwind цвета на CSS переменную */
+/* Перебиваем Tailwind цвета на CSS переменную (fallback для админки, где --brand-primary может не быть задан) */
 .bg-brand-blue {
-  background-color: var(--brand-blue) !important;
+  background-color: var(--brand-primary, var(--brand-blue, #2A6AB2)) !important;
 }
 
 .text-brand-blue {
-  color: var(--brand-blue) !important;
+  color: var(--brand-primary, var(--brand-blue, #2A6AB2)) !important;
 }
 
 .border-brand-blue {
-  border-color: var(--brand-blue) !important;
+  border-color: var(--brand-primary, var(--brand-blue, #2A6AB2)) !important;
 }
 
 .accent-brand-blue {
-  accent-color: var(--brand-blue) !important;
+  accent-color: var(--brand-primary, var(--brand-blue, #2A6AB2)) !important;
 }
 
 .shadow-brand-blue\/20 {
-  --tw-shadow-color: var(--brand-blue);
+  --tw-shadow-color: var(--brand-primary, var(--brand-blue, #2A6AB2));
   --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+/* Основная кнопка в админке — явный цвет, не зависит от --brand-primary (нет «белых» кнопок).
+   Дублируем селектор для повышения специфичности над утилитами Tailwind. */
+.admin-btn-primary,
+button.admin-btn-primary,
+a.admin-btn-primary {
+  background-color: #2A6AB2 !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 25px -5px rgba(42, 106, 178, 0.3) !important;
+}
+.admin-btn-primary:hover,
+button.admin-btn-primary:hover,
+a.admin-btn-primary:hover {
+  background-color: #1e5a9a !important;
+  color: #ffffff !important;
 }
 

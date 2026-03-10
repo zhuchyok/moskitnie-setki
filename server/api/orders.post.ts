@@ -31,21 +31,23 @@ export default defineEventHandler(async (event) => {
       formComment: body.formComment ? String(body.formComment).trim() : undefined,
       list_order: String(body.list_order ?? '').trim(),
       total_price_value: body.total_price_value,
-      total_order_value: body.total_order_value ? String(body.total_order_value).trim() : undefined,
-      measurement: body.measurement,
-      discount_type: body.discount_type
-    }
+    total_order_value: body.total_order_value ? String(body.total_order_value).trim() : undefined,
+    measurement: body.measurement,
+    discount_type: body.discount_type,
+    dealer_id: body.dealer_id,
+    items: Array.isArray(body.items) ? body.items : []
+  }
 
-    // Валидация данных
-    const requiredFields = ['formName', 'formPhone', 'list_order', 'total_price_value']
-    for (const field of requiredFields) {
-      if (!trimmed[field as keyof typeof trimmed]) {
-        throw createError({
-          statusCode: 400,
-          statusMessage: `Missing required field: ${field}`
-        })
-      }
+  // Валидация данных
+  const requiredFields = ['formName', 'formPhone', 'list_order', 'total_price_value']
+  for (const field of requiredFields) {
+    if (!trimmed[field as keyof typeof trimmed] && field !== 'items' && field !== 'dealer_id') {
+      throw createError({
+        statusCode: 400,
+        statusMessage: `Missing required field: ${field}`
+      })
     }
+  }
 
     // Валидация email формата (если есть)
     if (trimmed.formEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed.formEmail)) {
@@ -64,11 +66,47 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Настройка SMTP
-    const transporter = nodemailer.createTransporter({
-      host: process.env.SMTP_HOST || 'smtp.mail.ru',
-      port: 587,
-      secure: false,
+    // 1. Сохранение в БД через moskit-api (ПЕРВООЧЕРЕДНО)
+    let orderIdFromDb = Date.now()
+    let orderNumberFromDb = `WEB-${orderIdFromDb}`
+
+    try {
+      const apiUrl = process.env.API_URL || 'http://moskit-api:8080'
+      const dbResponse: any = await $fetch(`${apiUrl}/api/v1/dealer/orders`, {
+        method: 'POST',
+        body: {
+          client_name: trimmed.formName,
+          client_phone: phoneNorm,
+          client_address: trimmed.formAddress,
+          dealer_id: trimmed.dealer_id,
+          items: trimmed.items.map((item: any) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            params: item.params
+          }))
+        }
+      })
+
+      if (dbResponse && dbResponse.order_id) {
+        orderIdFromDb = dbResponse.order_id
+        orderNumberFromDb = dbResponse.order_number || orderNumberFromDb
+      }
+    } catch (dbError: any) {
+      console.error('CRITICAL: Failed to save order to DB:', dbError)
+      // Если БД недоступна — прерываем процесс, чтобы не вводить в заблуждение
+      throw createError({
+        statusCode: 503,
+        statusMessage: 'Сервис временно недоступен. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.'
+      })
+    }
+
+    // 2. Настройка SMTP — тот же провайдер, что и для callback/contact (Timeweb: 465, secure)
+    const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10)
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.timeweb.ru',
+      port: smtpPort,
+      secure: smtpPort === 465,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
@@ -78,7 +116,7 @@ export default defineEventHandler(async (event) => {
     // Создание HTML письма (все пользовательские данные экранированы)
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2A6AB2;">Новый заказ на москитные сетки</h2>
+        <h2 style="color: #2A6AB2;">Новый заказ №${orderNumberFromDb}</h2>
 
         <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3>Контактные данные:</h3>
@@ -108,43 +146,29 @@ export default defineEventHandler(async (event) => {
         <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
         <p style="color: #666; font-size: 12px;">
           Заказ создан автоматически через сайт Сетки 21<br>
+          Номер в системе: ${orderNumberFromDb}<br>
           Время создания: ${new Date().toLocaleString('ru-RU')}
         </p>
       </div>
     `
 
     // Отправка email
+    // Приоритет: email дилера из конфига -> основной email дилера -> email из окружения -> дефолт
+    const recipientEmail = body.dealer_email || body.formDealerEmail || process.env.ORDER_EMAIL || 'info@setki21.ru'
+    
     await transporter.sendMail({
       from: process.env.SMTP_USER,
-      to: process.env.ORDER_EMAIL || 'info@setki21.ru',
-      subject: `Заказ №${Date.now()} - ${escapeHtml(trimmed.formName)}`,
+      to: recipientEmail,
+      subject: `Заказ №${orderNumberFromDb} - ${escapeHtml(trimmed.formName)}`,
       html: htmlContent,
       replyTo: trimmed.formEmail || trimmed.formPhone
     })
 
-    // Сохранение в БД через moskit-api
-    try {
-      const apiUrl = process.env.API_URL || 'http://moskit-api:8080'
-      await $fetch(`${apiUrl}/api/dealer/orders`, {
-        method: 'POST',
-        body: {
-          client_name: trimmed.formName,
-          client_phone: trimmed.formPhone,
-          client_address: trimmed.formAddress,
-          items: [], // TODO: Маппинг items из list_order если нужно детально
-          delivery: trimmed.total_order_value,
-          measurement: trimmed.measurement
-        }
-      })
-    } catch (dbError) {
-      console.error('Failed to save order to DB:', dbError)
-      // Не бросаем ошибку, так как email уже ушел
-    }
-
     return {
       success: true,
       message: 'Заказ успешно отправлен!',
-      orderId: Date.now()
+      orderId: orderIdFromDb,
+      orderNumber: orderNumberFromDb
     }
 
   } catch (error: any) {

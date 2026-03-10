@@ -8,8 +8,9 @@ onMounted(() => {
 const title = computed(() => tenant.config.seo?.title || `Москитные сетки на окна в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} — цены от 850 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
 const description = computed(() => tenant.config.seo?.description || `Производство и установка москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!`)
 const keywords = computed(() => tenant.config.seo?.keywords || `москитные сетки, москитная сетка, окна, ${tenant.config.city}, ${tenant.config.dealer_name}, заказать, купить, цена, установка, замер, производство, антикошка, антипыль, vsn`)
-const url = 'https://www.setki21.ru/'
-const image = computed(() => tenant.config.branding?.logo_url || 'https://www.setki21.ru/images/logo_final_v58.png')
+const requestURL = useRequestURL()
+const url = requestURL?.origin ? `${requestURL.origin}/` : 'https://www.setki21.ru/'
+const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
 const localBusinessSchema = computed(() => ({
   '@context': 'https://schema.org',
@@ -124,6 +125,13 @@ const workGallerySchema = computed(() => ({
     author: tenant.config.dealer_name
   }))
 }))
+
+const galleryImages = [
+  { src: '/images/works/work-2.jpg', alt: 'Москитная сетка на окне' },
+  { src: '/images/works/work-1.jpg', alt: 'Установка москитной сетки' },
+  { src: '/images/works/work-3.jpg', alt: 'Пример нашей работы' },
+  { src: '/images/works/work-4.jpg', alt: 'Готовая москитная сетка' }
+]
 
 useHead({
   link: [
@@ -251,8 +259,13 @@ const faqMain = computed(() => [
             <div class="relative z-10">
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Наши работы</h2>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-                <div v-for="i in 4" :key="i" class="aspect-square rounded-2xl overflow-hidden border-2 border-white/10 hover:border-brand-blue transition-colors cursor-zoom-in">
-                  <img :src="`/images/works/work-${i}.jpg`" :alt="`Пример установки москитной сетки ${tenant.config.dealer_name} в ${tenant.config.city}`" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" loading="lazy" />
+                <div v-for="(img, idx) in galleryImages" :key="idx" 
+                     class="aspect-square rounded-2xl overflow-hidden border-2 transition-colors cursor-zoom-in"
+                     :class="[tenant.config.branding?.primary_color ? '' : 'border-white/10 hover:border-brand-blue']"
+                     :style="{ borderColor: tenant.config.branding?.primary_color ? tenant.config.branding.primary_color + '1A' : '' }"
+                     @mouseover="$event.currentTarget.style.borderColor = tenant.config.branding?.primary_color || '#2A6AB2'"
+                     @mouseleave="$event.currentTarget.style.borderColor = tenant.config.branding?.primary_color ? tenant.config.branding.primary_color + '1A' : ''">
+                  <img :src="img.src" :alt="`${img.alt} ${tenant.config.dealer_name} в ${tenant.config.city}`" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" loading="lazy" />
                 </div>
               </div>
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки?</h2>

@@ -33,7 +33,7 @@ const fetchOrder = async () => {
   errorMessage.value = ''
   try {
     const config = useRuntimeConfig()
-    const apiBase = config.public.apiUrl || 'http://localhost:8081'
+    const apiBase = config.public.apiUrl || ''
     const list = await $fetch<any[]>(auth.isAdmin ? '/api/v1/admin/orders' : '/api/v1/dealer/orders', {
       baseURL: apiBase,
       headers: { 'Authorization': `Bearer ${auth.token}` }

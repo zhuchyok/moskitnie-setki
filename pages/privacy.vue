@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const tenant = useTenantStore()
 
-const title = computed(() => `Политика конфиденциальности — ${tenant.config.dealer_name || 'Сетки 21'}`)
-const description = computed(() => `Политика обработки персональных данных компании ${tenant.config.dealer_name || 'Сетки 21'}. Информация о защите персональных данных клиентов.`)
+const title = computed(() => `Политика конфиденциальности — ${tenant.config.dealer_name || 'Сетки Москитки'}`)
+const description = computed(() => `Политика обработки персональных данных компании ${tenant.config.dealer_name || 'Сетки Москитки'}. Информация о защите персональных данных клиентов.`)
 const url = computed(() => {
   if (import.meta.client) {
     try {
@@ -41,10 +41,10 @@ useHead({
         "@context": "https://schema.org",
         "@type": "WebPage",
         "name": "Политика конфиденциальности",
-        "description": `Политика обработки персональных данных компании ${tenant.config.dealer_name || 'Сетки 21'}`,
+        "description": `Политика обработки персональных данных компании ${tenant.config.dealer_name || 'Сетки Москитки'}`,
         "publisher": {
           "@type": "Organization",
-          "name": tenant.config.dealer_name || 'Сетки 21',
+          "name": tenant.config.dealer_name || 'Сетки Москитки',
           "address": {
             "@type": "PostalAddress",
             "addressLocality": tenant.config.city || "Чебоксары",

@@ -107,7 +107,7 @@ async function handleSubmit() {
     }
     if (props.toEmail) body.toEmail = props.toEmail
 
-    const response = await $fetch<{ success?: boolean; message?: string }>('/api_nuxt/callback', {
+    const response = await $fetch<{ success?: boolean; message?: string }>('/api/callback', {
       method: 'POST',
       body
     })

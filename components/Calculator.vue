@@ -450,7 +450,7 @@ const submitOrder = async () => {
   }
   
   try {
-    const response = await $fetch('/api/orders', {
+    const response = await $fetch('/api_nuxt/orders', {
       method: 'POST',
       body: orderData
     })

@@ -71,7 +71,7 @@ export default defineNuxtConfig({
     }
   },
   routeRules: {
-    '/sitemap.xml': { proxy: '/api/sitemap.xml' }
+    '/sitemap.xml': { proxy: '/api_nuxt/sitemap.xml' }
   },
   runtimeConfig: {
     public: {

@@ -20,3 +20,34 @@ export function validateContactBody(body: unknown): { ok: true } | { ok: false; 
   }
   return { ok: true }
 }
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/** Валидация для POST /api/callback: имя, телефон, обязательное согласие с политикой; опционально toEmail */
+export function validateCallbackBody(body: unknown): { ok: true; toEmail?: string } | { ok: false; statusCode: number; statusMessage: string } {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
+    return { ok: false, statusCode: 400, statusMessage: 'Name, phone and consent are required' }
+  }
+  const b = body as Record<string, unknown>
+  const { name, phone, agreePrivacy, toEmail } = b
+  if (!name || !phone) {
+    return { ok: false, statusCode: 400, statusMessage: 'Name and phone are required' }
+  }
+  const phoneNorm = String(phone).trim().replace(/\s/g, '')
+  if (!PHONE_REGEX.test(phoneNorm)) {
+    return { ok: false, statusCode: 400, statusMessage: 'Invalid phone format' }
+  }
+  if (agreePrivacy !== true) {
+    return { ok: false, statusCode: 400, statusMessage: 'Consent with privacy policy is required' }
+  }
+  if (toEmail !== undefined && toEmail !== null && toEmail !== '') {
+    const email = String(toEmail).trim()
+    if (!EMAIL_REGEX.test(email)) {
+      return { ok: false, statusCode: 400, statusMessage: 'Invalid toEmail format' }
+    }
+    return { ok: true, toEmail: email }
+  }
+  return { ok: true }
+}
+
+export { validateContactBody, validateCallbackBody }

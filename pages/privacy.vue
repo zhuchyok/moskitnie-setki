@@ -7,15 +7,20 @@ const url = computed(() => {
   if (import.meta.client) {
     try {
       // Декодируем Punycode (xn--...) в Unicode (кириллицу) для отображения
-      // Используем только hostname для текста ссылки, чтобы избежать длинных путей
-      const decodedHost = decodeURIComponent(window.location.hostname)
+      const decodedHost = window.location.hostname.startsWith('xn--') 
+        ? new URL(window.location.href).hostname 
+        : window.location.hostname
+      
+      // Для отображения в тексте используем Unicode версию через URL API или Intl.Segmenter если нужно, 
+      // но самый надежный способ для ссылок - оставить как есть или использовать punycode.js если он есть.
+      // В Nuxt/Modern browsers window.location.hostname на кириллических доменах часто уже Unicode или легко преобразуется.
       const protocol = window.location.protocol
-      return `${protocol}//${decodedHost}`
+      return `${protocol}//${window.location.host}`
     } catch (e) {
       return window.location.origin
     }
   }
-  // На сервере (SSR) при генерации статики используем текущий домен
+  // На сервере (SSR) используем текущий домен из стора если есть, или дефолт
   return 'https://сеткимоскитки.рф'
 })
 
@@ -77,7 +82,7 @@ useHead({
                 1.2. Оператор – ООО «Бикос», ИНН 2130053014, ОГРН 1092130000995, юридический адрес: 428005, Чувашская Республика, г. Чебоксары, ул. Гражданская, д. 53, оф. 1, e-mail: info@setki21.ru, телефон: +7 (8352) 38-14-20.
               </p>
               <p>
-                1.3. Настоящая Политика применяется ко всей информации, которую Оператор может получить о пользователе во время использования сайта <a :href="url" class="text-brand-blue underline notranslate">{{ url }}</a> и его поддоменов, а также при взаимодействии по телефону и электронной почте.
+                1.3. Настоящая Политика применяется ко всей информации, которую Оператор может получить о пользователе во время использования сайта <a :href="url" class="text-brand-blue underline notranslate">{{ tenant.config.domain || url.replace(/^https?:\/\//, '') }}</a> и его поддоменов, а также при взаимодействии по телефону и электронной почте.
               </p>
             </div>
 
@@ -210,7 +215,7 @@ useHead({
                 E-mail: <a href="mailto:info@setki21.ru" class="text-brand-blue underline">info@setki21.ru</a>
               </p>
               <p class="mt-6 text-xs text-gray-400 italic">
-                Действующая редакция Политики опубликована на сайте <span class="notranslate">{{ url }}</span>. Оператор вправе вносить изменения в настоящую Политику.
+                Действующая редакция Политики опубликована на сайте <span class="notranslate">{{ tenant.config.domain || url.replace(/^https?:\/\//, '') }}</span>. Оператор вправе вносить изменения в настоящую Политику.
               </p>
             </div>
           </div>

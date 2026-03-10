@@ -107,12 +107,12 @@ async function handleSubmit() {
     }
     if (props.toEmail) body.toEmail = props.toEmail
 
-    const data = await $fetch<{ success?: boolean; message?: string }>('/api/callback', {
+    const response = await $fetch<{ success?: boolean; message?: string }>('/api_nuxt/callback', {
       method: 'POST',
       body
     })
 
-    if (data?.success) {
+    if (response?.success) {
       submitSuccess.value = true
       form.name = ''
       form.phone = ''
@@ -124,7 +124,7 @@ async function handleSubmit() {
         isModalOpen.value = false
       }, 2000)
     } else {
-      submitError.value = (data as any)?.message || 'Ошибка отправки'
+      submitError.value = (response as any)?.message || 'Ошибка отправки'
     }
   } catch (e: any) {
     submitError.value = e?.data?.message || e?.message || 'Ошибка отправки. Попробуйте позже.'
@@ -164,7 +164,7 @@ function closeModal() {
             </div>
             <template v-else>
               <div class="mb-6 md:mb-8">
-                <h3 class="text-2xl md:text-3xl font-black text-brand-dark mb-2 uppercase tracking-tighter">Заказать обратный звонок</h3>
+                <h3 class="text-2xl md:text-3xl font-black text-brand-dark mb-2 uppercase tracking-tighter leading-tight">Заказать обратный звонок</h3>
                 <p class="text-gray-400 font-medium text-sm">Оставьте имя и телефон — перезвоним</p>
               </div>
 
@@ -203,7 +203,7 @@ function closeModal() {
                   <div class="relative flex items-center mt-1">
                     <input type="checkbox"
                            v-model="form.agree"
-                           class="peer appearance-none w-6 h-6 border-2 border-gray-100 rounded-lg checked:border-transparent transition-all shadow-sm"
+                           class="peer appearance-none w-6 h-6 border-2 border-gray-100 rounded-lg md:rounded-xl checked:border-transparent transition-all shadow-sm"
                            :style="{ backgroundColor: form.agree ? brandPrimary : 'transparent', borderColor: form.agree ? brandPrimary : '#f3f4f6' }" />
                     <svg xmlns="http://www.w3.org/2000/svg"
                          class="h-4 w-4 absolute left-1 text-white opacity-0 peer-checked:opacity-100 transition-all scale-50 peer-checked:scale-100"
@@ -236,3 +236,10 @@ function closeModal() {
     </div>
   </Teleport>
 </template>
+
+<style scoped>
+/* Fix for hover on buttons with dynamic colors */
+button:not([disabled]):not(.text-white):hover {
+  opacity: 0.9;
+}
+</style>

@@ -49,5 +49,3 @@ export function validateCallbackBody(body: unknown): { ok: true; toEmail?: strin
   }
   return { ok: true }
 }
-
-export { validateContactBody, validateCallbackBody }

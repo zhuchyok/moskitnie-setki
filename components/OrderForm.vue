@@ -35,6 +35,7 @@ const form = reactive({
 
 const tenant = useTenantStore()
 const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
+const brandPrimary = computed(() => tenant.config?.branding?.primary_color || '#2A6AB2')
 
 const formErrors = reactive<Record<string, string>>({ name: '', phone: '' })
 const PHONE_REGEX = /^\+7\s?\(\d{3,4}\)\s?\d{2,3}-\d{2}-\d{2}$|^\+7\d{10}$/
@@ -196,7 +197,8 @@ const closeModal = () => {
                   <input type="checkbox"
                          v-model="form.agree"
                          required
-                         class="peer appearance-none w-6 h-6 md:w-7 md:h-7 border-2 border-gray-100 rounded-lg md:rounded-xl checked:bg-brand-blue checked:border-brand-blue transition-all shadow-sm" />
+                         class="peer appearance-none w-6 h-6 md:w-7 md:h-7 border-2 border-gray-100 rounded-lg md:rounded-xl checked:border-transparent transition-all shadow-sm"
+                         :style="{ backgroundColor: form.agree ? brandPrimary : 'transparent', borderColor: form.agree ? brandPrimary : '#f3f4f6' }" />
                   <svg xmlns="http://www.w3.org/2000/svg"
                        class="h-4 w-4 md:h-5 md:w-5 absolute left-1 text-white opacity-0 peer-checked:opacity-100 transition-all scale-50 peer-checked:scale-100"
                        fill="none"
@@ -206,16 +208,17 @@ const closeModal = () => {
                   </svg>
                 </div>
                 <span class="text-[9px] md:text-[10px] text-gray-400 font-black leading-relaxed uppercase tracking-widest group-hover:text-gray-600 transition-colors">
-                  Я даю согласие на обработку моих персональных данных в соответствии с <NuxtLink :to="privacyPolicyUrl" class="text-brand-blue underline decoration-2 underline-offset-4">Политикой обработки данных</NuxtLink>
+                  Я даю согласие на обработку моих персональных данных в соответствии с <NuxtLink :to="privacyPolicyUrl" class="underline decoration-2 underline-offset-4" :style="{ color: brandPrimary }">Политикой обработки данных</NuxtLink>
                 </span>
               </label>
 
               <button type="submit"
                       :disabled="!form.agree"
+                      class="w-full font-black py-5 md:py-6 rounded-2xl md:rounded-[2rem] transition-all shadow-2xl active:scale-95 uppercase text-[10px] md:text-xs tracking-[0.3em] mt-4 md:mt-6"
                       :class="[
-                        'w-full font-black py-5 md:py-6 rounded-2xl md:rounded-[2rem] transition-all shadow-2xl active:scale-95 uppercase text-[10px] md:text-xs tracking-[0.3em] mt-4 md:mt-6',
-                        form.agree ? 'bg-brand-blue hover:bg-[#1e5a9a] text-white shadow-brand-blue/40' : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
-                      ]">
+                        form.agree ? 'text-white' : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
+                      ]"
+                      :style="form.agree ? { backgroundColor: brandPrimary, boxShadow: `0 20px 50px -10px ${brandPrimary}66` } : {}">
                 Заказать
               </button>
             </form>

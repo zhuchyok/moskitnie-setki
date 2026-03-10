@@ -140,11 +140,11 @@ useHead({
       children: JSON.stringify({
         "@context": "https://schema.org/",
         "@type": "Product",
-        "name": "Москитные сетки в Чебоксарах",
+        "name": `Москитные сетки в ${tenant.config.city || 'Чебоксарах'}`,
         "description": "Индивидуальный расчет стоимости москитных сеток: Антикошка, Антипыль, VSN. Изготовление от 1 дня.",
         "brand": {
           "@type": "Brand",
-          "name": "Сетки 21"
+          "name": tenant.config.dealer_name || (tenant.config.city?.includes('Чебоксары') ? 'Сетки 21' : 'Сетки Москитки')
         },
         "offers": {
           "@type": "AggregateOffer",
@@ -153,7 +153,7 @@ useHead({
           "priceCurrency": "RUB",
           "offerCount": "10",
           "availability": "https://schema.org/InStock",
-          "areaServed": "Чебоксары, Новочебоксарск"
+          "areaServed": tenant.config.city || "Чебоксары, Новочебоксарск"
         }
       })
     }

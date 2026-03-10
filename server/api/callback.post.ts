@@ -17,7 +17,9 @@ export default defineEventHandler(async (event) => {
       name: raw?.name ? String(raw.name).trim() : '',
       phone: raw?.phone ? String(raw.phone).trim() : '',
       agreePrivacy: raw?.agreePrivacy === true,
-      toEmail: raw?.toEmail ? String(raw.toEmail).trim() : ''
+      toEmail: raw?.toEmail ? String(raw.toEmail).trim() : '',
+      city: raw?.city ? String(raw.city).trim() : '',
+      domain: raw?.domain ? String(raw.domain).trim() : ''
     }
 
     const validation = validateCallbackBody({
@@ -70,6 +72,8 @@ export default defineEventHandler(async (event) => {
         <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <p><strong>Имя:</strong> ${escapeHtml(body.name)}</p>
           <p><strong>Телефон:</strong> ${escapeHtml(body.phone)}</p>
+          ${body.city ? `<p><strong>Город:</strong> ${escapeHtml(body.city)}</p>` : ''}
+          ${body.domain ? `<p><strong>Сайт:</strong> ${escapeHtml(body.domain)}</p>` : ''}
         </div>
         <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
         <p style="color: #666; font-size: 12px;">
@@ -78,10 +82,12 @@ export default defineEventHandler(async (event) => {
       </div>
     `
 
+    const subject = `Заявка на обратный звонок — ${body.city || ''} ${body.domain || ''}`.replace(/\s+/g, ' ').trim() || `Заявка на обратный звонок — ${escapeHtml(body.name)}`
+
     await transporter.sendMail({
       from: process.env.SMTP_USER,
       to: toEmail,
-      subject: `Заявка на обратный звонок — ${escapeHtml(body.name)}`,
+      subject: subject,
       html: htmlContent
     })
 

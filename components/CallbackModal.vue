@@ -101,7 +101,9 @@ async function handleSubmit() {
     const body: Record<string, string | boolean> = {
       name: form.name.trim(),
       phone: form.phone.trim(),
-      agreePrivacy: form.agree
+      agreePrivacy: form.agree,
+      city: tenant.config.city || '',
+      domain: tenant.config.domain || ''
     }
     if (props.toEmail) body.toEmail = props.toEmail
 

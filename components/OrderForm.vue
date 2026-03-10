@@ -114,7 +114,9 @@ const handleSubmit = () => {
     name: form.name.trim(),
     phone: form.phone.trim(),
     address: form.address.trim(),
-    comment: form.comment.trim()
+    comment: form.comment.trim(),
+    city: tenant.config.city || '',
+    domain: tenant.config.domain || ''
   })
   resetForm()
   isModalOpen.value = false

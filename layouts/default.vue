@@ -58,8 +58,19 @@ const closeMobileMenu = () => {
   mobileMenuOpen.value = false
 }
 
-// Хлебные крошки из текущего маршрута
-const BASE_URL = 'https://www.setki21.ru'
+// Модалка «Заказать обратный звонок»: у дилеров — на email дилера (contacts.emails[0] или основной email)
+const showCallbackModal = ref(false)
+const callbackToEmail = computed(() => {
+  const emails = tenant.config?.contacts?.emails
+  if (Array.isArray(emails) && emails.length > 0 && emails[0]) return String(emails[0]).trim()
+  const mainEmail = tenant.config?.email
+  if (mainEmail) return String(mainEmail).trim()
+  return undefined
+})
+
+// Хлебные крошки: текущий origin (аудит 2026-03-10 — не хардкод www.setki21.ru)
+const _requestURL = useRequestURL()
+const BASE_URL = _requestURL?.origin || 'https://www.setki21.ru'
 const pathNames: Record<string, string> = {
   '/': 'Главная',
   '/antimoshka': 'Антимошка',
@@ -96,21 +107,25 @@ const breadcrumbSchema = computed(() => ({
     item: `${BASE_URL}${item.path === '/' ? '' : item.path}`
   }))
 }))
+// Фавикон: favicon_url || logo_url (аудит 2026-03-10); абсолютный URL при SSR от текущего origin
+const requestURL = useRequestURL()
 useHead({
   script: computed(() => [
     { type: 'application/ld+json', children: JSON.stringify(breadcrumbSchema.value) }
   ]),
   link: computed(() => {
-    const logoUrl = tenant.config.branding?.logo_url || '/favicon.ico'
+    const rawUrl = tenant.config.branding?.favicon_url || tenant.config.branding?.logo_url || '/favicon.ico'
+    const origin = requestURL?.origin || (typeof window !== 'undefined' ? window.location.origin : '')
+    const logoUrl = rawUrl.startsWith('http') ? rawUrl : (origin ? origin.replace(/\/$/, '') + rawUrl : rawUrl)
     const isPng = logoUrl.toLowerCase().endsWith('.png')
-    // Используем dealer_id для стабильного кэширования фавикона, 
-    // чтобы при смене дилера он обновлялся, но не мерцал при каждом рендере
     const v = tenant.config.dealer_id || 'default'
-    const href = logoUrl.includes('?') ? `${logoUrl}&v=${v}` : `${logoUrl}?v=${v}`
-    
+    const hostSlug = typeof window !== 'undefined' ? window.location.hostname.replace(/\./g, '_') : (requestURL?.host || '').replace(/\./g, '_')
+    const q = logoUrl.includes('?') ? `&v=${v}&h=${hostSlug}` : `?v=${v}&h=${hostSlug}`
+    const href = logoUrl + q
+
     return [
       { key: 'favicon', rel: 'icon', type: isPng ? 'image/png' : 'image/x-icon', href },
-      { key: 'shortcut', rel: 'shortcut icon', href },
+      { key: 'shortcut', rel: 'shortcut icon', type: isPng ? 'image/png' : 'image/x-icon', href },
       { key: 'apple', rel: 'apple-touch-icon', href }
     ]
   })
@@ -123,36 +138,63 @@ useHead({
     <header class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
       <div class="container mx-auto px-4 py-3">
         <div class="flex flex-wrap justify-between items-center gap-4">
-            <!-- Logo Section -->
+            <!-- Logo Section: не показывать лого/название до загрузки конфига, чтобы на сайте дилера не мелькала «Сетки 21» -->
           <NuxtLink to="/" class="logo-link flex items-center gap-3 sm:gap-4 group min-w-0 flex-shrink-0" style="color: inherit; text-decoration: none">
-            <img :src="tenant.config.branding?.logo_url || '/images/logo_clean.png?v=2'" :alt="tenant.config.dealer_name || 'Сетки 21'" class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 object-contain transition-transform group-hover:scale-105" width="48" height="48" loading="eager" decoding="async" />
-            <div class="min-w-0" style="color: #333333">
-              <p class="text-base sm:text-lg md:text-xl font-black leading-none text-brand-blue tracking-tight uppercase m-0" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" :aria-label="tenant.config.dealer_name || 'Сетки 21'">{{ tenant.config.dealer_name || 'СЕТКИ 21' }}</p>
-              <p class="text-[9px] sm:text-[10px] uppercase tracking-widest font-bold mt-0.5" style="color: #9ca3af">
-                <span class="sm:hidden">Производство</span>
-                <span class="hidden sm:inline">{{ tenant.config.branding?.short_description || 'Производство замер монтаж от 1 дня' }}</span>
-              </p>
-            </div>
+            <template v-if="tenant.isLoaded">
+              <img :src="tenant.config.branding?.logo_url || '/images/logo_clean.png?v=2'" :alt="tenant.config.dealer_name || 'Сетки 21'" class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 object-contain transition-transform group-hover:scale-105" width="48" height="48" loading="eager" decoding="async" />
+              <div class="min-w-0" style="color: #333333">
+                <p class="text-base sm:text-lg md:text-xl font-black leading-none text-brand-blue tracking-tight uppercase m-0" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" :aria-label="tenant.config.dealer_name || 'Сетки 21'">{{ tenant.config.dealer_name || 'СЕТКИ 21' }}</p>
+                <p class="text-[9px] sm:text-[10px] uppercase tracking-widest font-bold mt-0.5" style="color: #9ca3af">
+                  <span class="sm:hidden">Производство</span>
+                  <span class="hidden sm:inline">{{ tenant.config.branding?.short_description || 'Производство замер монтаж от 1 дня' }}</span>
+                </p>
+              </div>
+            </template>
+            <template v-else>
+              <div class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 rounded-lg bg-gray-100 animate-pulse" aria-hidden="true" />
+              <div class="min-w-0 flex flex-col gap-1">
+                <div class="h-5 sm:h-6 w-24 sm:w-28 rounded bg-gray-100 animate-pulse" aria-hidden="true" />
+                <div class="h-3 w-32 sm:w-40 rounded bg-gray-50 animate-pulse" aria-hidden="true" />
+              </div>
+            </template>
           </NuxtLink>
 
-          <!-- Contact Section -->
+          <!-- Contact Section: плейсхолдер до загрузки конфига -->
           <div class="flex items-center gap-6" style="color: #333333">
-            <div class="hidden lg:block text-right">
-              <p class="text-[10px] font-bold uppercase mb-1" style="color: #9ca3af">Режим работы: {{ tenant.config.branding?.working_hours || 'Пн–Пт 10:00–18:00' }}</p>
-              <p class="text-sm font-bold">{{ tenant.config.city || 'Чебоксары и Новочебоксарск' }}</p>
-            </div>
-            <a
-              :href="'tel:' + (tenant.config.phone || '+78352381420').replace(/[^0-9+]/g, '')"
-              class="flex flex-col items-end group phone-link"
-              style="color: inherit; text-decoration: none"
-              :style="{ '--brand-primary': tenant.config.branding?.primary_color || '#2A6AB2' }"
-              @click="() => { try { (window as any).reachMetrikaGoal?.('CALL_CLICK') } catch (_) {} }"
-            >
-              <span class="text-xl font-black transition-colors leading-none phone-number" style="color: #333333">
-                {{ tenant.config.phone || '+7 (8352) 38-14-20' }}
-              </span>
-              <span class="text-[10px] font-bold border-b transition-all uppercase tracking-wider" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2', borderColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '4D' }">Заказать обратный звонок</span>
-            </a>
+            <template v-if="tenant.isLoaded">
+              <div class="hidden lg:block text-right">
+                <p class="text-[10px] font-bold uppercase mb-1" style="color: #9ca3af">Режим работы: {{ tenant.config.branding?.working_hours || 'Пн–Пт 10:00–18:00' }}</p>
+                <p class="text-sm font-bold">{{ tenant.config.city || 'Чебоксары и Новочебоксарск' }}</p>
+              </div>
+              <div class="flex flex-col items-end">
+                <a
+                  :href="'tel:' + (tenant.config.phone || '+78352381420').replace(/[^0-9+]/g, '')"
+                  class="phone-link block"
+                  style="color: inherit; text-decoration: none"
+                  :style="{ '--brand-primary': tenant.config.branding?.primary_color || '#2A6AB2' }"
+                  @click="() => { try { (window as any).reachMetrikaGoal?.('CALL_CLICK') } catch (_) {} }"
+                >
+                  <span class="text-xl font-black transition-colors leading-none phone-number" style="color: #333333">
+                    {{ tenant.config.phone || '+7 (8352) 38-14-20' }}
+                  </span>
+                </a>
+                <button
+                  type="button"
+                  class="text-[10px] font-bold border-b transition-all uppercase tracking-wider mt-0.5 hover:opacity-80"
+                  :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2', borderColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '4D' }"
+                  @click="showCallbackModal = true"
+                >
+                  Заказать обратный звонок
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <div class="hidden lg:block text-right">
+                <div class="h-3 w-28 rounded bg-gray-100 animate-pulse mb-1" aria-hidden="true" />
+                <div class="h-4 w-36 rounded bg-gray-100 animate-pulse" aria-hidden="true" />
+              </div>
+              <div class="h-8 w-32 rounded bg-gray-100 animate-pulse" aria-hidden="true" />
+            </template>
           </div>
         </div>
 
@@ -235,18 +277,28 @@ useHead({
         <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div class="col-span-1 md:col-span-2">
             <div class="flex items-center gap-4 mb-6">
-              <img :src="tenant.config.branding?.logo_url || '/images/logo_clean.png'" 
-                   :alt="tenant.config.dealer_name || 'Сетки 21'" 
-                   class="h-14 sm:h-16 w-auto object-contain bg-white/10 rounded-xl p-2" 
-                   @error="(e: any) => e.target.src = '/images/logo_clean.png'" />
-              <div>
-                <h3 class="text-xl md:text-2xl font-black text-white uppercase tracking-tight">{{ tenant.config.dealer_name || 'СЕТКИ 21' }}</h3>
-                <p class="text-[10px] text-white uppercase tracking-widest opacity-60">{{ tenant.config.branding?.short_description || 'Производство замер монтаж от 1 дня' }}</p>
-              </div>
+              <template v-if="tenant.isLoaded">
+                <img :src="tenant.config.branding?.logo_url || '/images/logo_clean.png'" 
+                     :alt="tenant.config.dealer_name || 'Сетки 21'" 
+                     class="h-14 sm:h-16 w-auto object-contain bg-white/10 rounded-xl p-2" 
+                     @error="(e: any) => e.target.src = '/images/logo_clean.png'" />
+                <div>
+                  <h3 class="text-xl md:text-2xl font-black text-white uppercase tracking-tight">{{ tenant.config.dealer_name || 'СЕТКИ 21' }}</h3>
+                  <p class="text-[10px] text-white uppercase tracking-widest opacity-60">{{ tenant.config.branding?.short_description || 'Производство замер монтаж от 1 дня' }}</p>
+                </div>
+              </template>
+              <template v-else>
+                <div class="h-14 sm:h-16 w-14 sm:w-16 rounded-xl bg-white/10 animate-pulse shrink-0" aria-hidden="true" />
+                <div class="flex flex-col gap-2">
+                  <div class="h-6 w-32 rounded bg-white/10 animate-pulse" aria-hidden="true" />
+                  <div class="h-3 w-48 rounded bg-white/10 animate-pulse" aria-hidden="true" />
+                </div>
+              </template>
             </div>
-            <p class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
+            <p v-if="tenant.isLoaded" class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
               {{ tenant.config.seo?.description || 'Изготовим москитные сетки на окна по индивидуальным размерам за 1 день. Используем только качественные комплектующие и металлический крепеж.' }}
             </p>
+            <div v-else class="h-12 w-full max-w-md rounded bg-white/5 animate-pulse" aria-hidden="true" />
           </div>
           <div>
             <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm" :style="{ borderColor: tenant.config.branding?.primary_color || '#2A6AB2' }">Продукция</h4>
@@ -272,7 +324,7 @@ useHead({
           </div>
         </div>
         <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-          <p>© {{ footerYear }} {{ tenant.config.dealer_name || 'Сетки 21' }}. Все права защищены.</p>
+          <p>© {{ footerYear }} {{ tenant.isLoaded ? (tenant.config.dealer_name || 'Сетки 21') : '…' }}. Все права защищены.</p>
           <div class="flex flex-wrap justify-center gap-6">
             <NuxtLink to="/contacts" class="hover:text-white transition-colors">Контакты</NuxtLink>
             <NuxtLink to="/delivery" class="hover:text-white transition-colors">Доставка и замер</NuxtLink>
@@ -355,6 +407,8 @@ useHead({
         </div>
       </div>
     </Transition>
+
+    <CallbackModal v-model:open="showCallbackModal" :to-email="callbackToEmail" />
   </div>
 </template>
 

@@ -10,8 +10,11 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# API URL для браузера (запросы с клиента идут на localhost:8083)
-ARG NUXT_PUBLIC_API_URL=http://localhost:8083
+# Явная установка vue-chartjs/chart.js (кабинет дилера), если Rollup не резолвит из node_modules
+RUN npm install vue-chartjs chart.js --no-save
+
+# API URL для браузера. Без продакшен-URL в бандле окажется localhost → мерцание/белый экран в проде.
+ARG NUXT_PUBLIC_API_URL=https://www.setki21.ru
 ENV NUXT_PUBLIC_API_URL=$NUXT_PUBLIC_API_URL
 
 # Build the application

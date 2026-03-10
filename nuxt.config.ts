@@ -51,6 +51,9 @@ export default defineNuxtConfig({
   tailwindcss: {
     cssPath: '~/assets/css/main.css',
     config: {
+      safelist: [
+        'admin-btn-primary',
+      ],
       theme: {
         extend: {
           colors: {
@@ -69,7 +72,14 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiUrl: process.env.NUXT_PUBLIC_API_URL || 'http://localhost:8081'
+      // Пустая строка = same-origin (/api на текущем домене). localhost fallback только для локальной разработки.
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || '',
+      apiBase: process.env.NUXT_PUBLIC_API_URL ? process.env.NUXT_PUBLIC_API_URL + '/api' : '/api'
+    }
+  },
+  vite: {
+    optimizeDeps: {
+      include: ['vue-chartjs', 'chart.js']
     }
   }
 })

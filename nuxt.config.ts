@@ -70,6 +70,9 @@ export default defineNuxtConfig({
       failOnError: false
     }
   },
+  routeRules: {
+    '/sitemap.xml': { proxy: '/api/sitemap.xml' }
+  },
   runtimeConfig: {
     public: {
       // Пустая строка = same-origin (/api на текущем домене). localhost fallback только для локальной разработки.

@@ -26,6 +26,8 @@ const submitSuccess = ref(false)
 
 const tenant = useTenantStore()
 const workingHoursText = computed(() => tenant.config?.branding?.working_hours?.trim() || 'Пн–Пт 10:00–18:00')
+// Ссылка на политику конфиденциальности из админки дилера (legal.privacy_policy_url) или дефолт /privacy
+const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
 
 const PHONE_REGEX = /^\+7\s?\(\d{3,4}\)\s?\d{2,3}-\d{2}-\d{2}$|^\+7\d{10}$/
 const PHONE_ALLOWED = /[\d+\s()\-]/g
@@ -207,7 +209,7 @@ function closeModal() {
                   </div>
                   <span class="text-[9px] md:text-[10px] text-gray-400 font-black leading-relaxed uppercase tracking-widest group-hover:text-gray-600 transition-colors">
                     Я даю согласие на обработку персональных данных в соответствии с
-                    <NuxtLink to="/privacy" class="text-brand-blue underline decoration-2 underline-offset-4" target="_blank">Политикой конфиденциальности</NuxtLink>
+                    <NuxtLink :to="privacyPolicyUrl" class="text-brand-blue underline decoration-2 underline-offset-4" target="_blank">Политикой конфиденциальности</NuxtLink>
                   </span>
                 </label>
 

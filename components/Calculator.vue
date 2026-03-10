@@ -4,6 +4,7 @@ const store = useOrderStore()
 const pricingStore = usePricingStore()
 const tenant = useTenantStore()
 const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2A6AB2')
+const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
 
 // По умолчанию при открытии калькулятора всегда выбрана доставка
 onMounted(() => {
@@ -429,7 +430,23 @@ const submitOrder = async () => {
     total_order_value: store.allItemsWithInstallation ? 'Монтаж' : store.delivery,
     measurement: store.measurementSelected,
     discount_type: store.discountType || undefined,
-    dealer_email: tenant.config.contacts?.emails?.[0] || undefined
+    dealer_id: tenant.config.dealer_id || undefined,
+    branch_id: tenant.config.branch_id || undefined,
+    dealer_email: tenant.config.contacts?.emails?.[0] || undefined,
+    formDealerEmail: tenant.config.email || undefined,
+    items: store.items.map(i => ({
+      name: i.typeName,
+      quantity: i.count,
+      price: i.price / i.count,
+      params: {
+        width: i.width,
+        height: i.height,
+        color: i.color,
+        mesh_type: i.type,
+        frame_type: i.frameTypeName,
+        measurement_method: i.measurementMethod
+      }
+    }))
   }
   
   try {
@@ -1295,7 +1312,7 @@ const submitOrder = async () => {
               </svg>
             </div>
             <span class="text-[10px] md:text-xs text-gray-400 font-black leading-none uppercase tracking-widest group-hover:text-gray-600 transition-colors">
-              Я подтверждаю корректность размеров и даю согласие на <NuxtLink to="/privacy" class="underline decoration-2 underline-offset-4" :style="{ color: brandPrimary }">обработку данных</NuxtLink>
+              Я подтверждаю корректность размеров и даю согласие на <NuxtLink :to="privacyPolicyUrl" class="underline decoration-2 underline-offset-4" :style="{ color: brandPrimary }">обработку данных</NuxtLink>
             </span>
           </label>
           <div class="flex flex-col sm:flex-row gap-4 pt-4">

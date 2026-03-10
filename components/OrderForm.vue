@@ -33,6 +33,9 @@ const form = reactive({
   agree: false
 })
 
+const tenant = useTenantStore()
+const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
+
 const formErrors = reactive<Record<string, string>>({ name: '', phone: '' })
 const PHONE_REGEX = /^\+7\s?\(\d{3,4}\)\s?\d{2,3}-\d{2}-\d{2}$|^\+7\d{10}$/
 const PHONE_ALLOWED = /[\d+\s()\-]/g
@@ -203,7 +206,7 @@ const closeModal = () => {
                   </svg>
                 </div>
                 <span class="text-[9px] md:text-[10px] text-gray-400 font-black leading-relaxed uppercase tracking-widest group-hover:text-gray-600 transition-colors">
-                  Я даю согласие ООО "Бикос" на обработку моих персональных данных в соответствии с <NuxtLink to="/privacy" class="text-brand-blue underline decoration-2 underline-offset-4">Политикой обработки данных</NuxtLink>
+                  Я даю согласие на обработку моих персональных данных в соответствии с <NuxtLink :to="privacyPolicyUrl" class="text-brand-blue underline decoration-2 underline-offset-4">Политикой обработки данных</NuxtLink>
                 </span>
               </label>
 

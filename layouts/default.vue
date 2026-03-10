@@ -68,6 +68,9 @@ const callbackToEmail = computed(() => {
   return undefined
 })
 
+// Ссылка на политику конфиденциальности из админки дилера (legal.privacy_policy_url) или дефолт /privacy
+const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
+
 // Хлебные крошки: текущий origin (аудит 2026-03-10 — не хардкод www.setki21.ru)
 const _requestURL = useRequestURL()
 const BASE_URL = _requestURL?.origin || 'https://www.setki21.ru'
@@ -328,7 +331,7 @@ useHead({
           <div class="flex flex-wrap justify-center gap-6">
             <NuxtLink to="/contacts" class="hover:text-white transition-colors">Контакты</NuxtLink>
             <NuxtLink to="/delivery" class="hover:text-white transition-colors">Доставка и замер</NuxtLink>
-            <NuxtLink to="/privacy" class="hover:text-white transition-colors">Политика конфиденциальности</NuxtLink>
+            <NuxtLink :to="privacyPolicyUrl" class="hover:text-white transition-colors">Политика конфиденциальности</NuxtLink>
             <NuxtLink to="/karta-sajta" class="hover:text-white transition-colors">Карта сайта</NuxtLink>
             <NuxtLink to="/admin/dealers" class="hover:text-white transition-colors">Дилерам</NuxtLink>
           </div>
@@ -363,7 +366,7 @@ useHead({
                 <b class="text-brand-dark">необходимые</b> (для работы сайта), 
                 <b class="text-brand-dark">аналитические</b> (для сбора статистики), 
                 <b class="text-brand-dark">маркетинговые</b> (для персонализации рекламы). 
-                Подробнее см. <NuxtLink to="/privacy" class="text-brand-blue font-bold underline decoration-2 underline-offset-4 hover-brand-text transition-colors" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Политику обработки персональных данных</NuxtLink>.
+                Подробнее см. <NuxtLink :to="privacyPolicyUrl" class="text-brand-blue font-bold underline decoration-2 underline-offset-4 hover-brand-text transition-colors" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Политику обработки персональных данных</NuxtLink>.
               </p>
               
               <!-- Чекбоксы и кнопки -->

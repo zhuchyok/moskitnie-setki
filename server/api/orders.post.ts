@@ -40,6 +40,12 @@ export default defineEventHandler(async (event) => {
       items: Array.isArray(body.items) ? body.items : []
     }
 
+    // Если branch_id не является валидным UUID, но передан (например, "Самовывоз Чебоксары"), 
+    // мы его очищаем, так как в БД это внешний ключ на таблицу dealer_branches.
+    if (body.branch_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.branch_id)) {
+      trimmed.branch_id = undefined
+    }
+
     console.log('Sending order to Rust API:', JSON.stringify({
       client_name: trimmed.formName,
       dealer_id: trimmed.dealer_id,

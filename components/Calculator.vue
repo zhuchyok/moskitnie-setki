@@ -196,18 +196,36 @@ const deliveries = computed(() => {
   const city = tenant.config.city || 'Чебоксары'
   const isChuvashia = city.includes('Чебоксары') || city.includes('Новочебоксарск')
   
-  if (isChuvashia) {
-    return [
-      { id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' },
-      { id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' },
-      { id: 'Доставка', name: 'Доставка Чебоксары и Новочебоксарск', price: store.deliveryPriceCalculated, icon: 'truck' }
-    ]
+  const options = []
+  
+  // Динамические пункты самовывоза из конфига (филиалы)
+  if (tenant.config.contacts?.branches?.length) {
+    tenant.config.contacts.branches.forEach(branch => {
+      options.push({
+        id: branch.id || branch.name,
+        name: `Самовывоз ${branch.name} ${branch.address}`,
+        price: 0,
+        icon: 'building'
+      })
+    })
+  } else if (isChuvashia) {
+    // Fallback для Чебоксар, если филиалы не заполнены
+    options.push({ id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' })
+    options.push({ id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' })
+  } else {
+    // Общий fallback
+    options.push({ id: 'Самовывоз', name: `Самовывоз ${city}`, price: 0, icon: 'building' })
   }
   
-  return [
-    { id: 'Самовывоз', name: `Самовывоз ${city}`, price: 0, icon: 'building' },
-    { id: 'Доставка', name: `Доставка ${city}`, price: store.deliveryPriceCalculated, icon: 'truck' }
-  ]
+  // Доставка всегда доступна
+  options.push({ 
+    id: 'Доставка', 
+    name: isChuvashia ? 'Доставка Чебоксары и Новочебоксарск' : `Доставка ${city}`, 
+    price: store.deliveryPriceCalculated, 
+    icon: 'truck' 
+  })
+  
+  return options
 })
 
 const urgentOrderOption = computed(() => {
@@ -420,7 +438,10 @@ const submitOrder = async () => {
   if (!form.agree) return
   if (!validateOrderForm()) return
 
-  const orderData = {
+    const branch = tenant.config.contacts?.branches?.find(b => b.id === store.delivery || b.name === store.delivery)
+    const branchId = branch?.id || tenant.config.branch_id || undefined
+
+    const orderData = {
     formName: form.name.trim(),
     formPhone: form.phone.trim(),
     formAddress: form.address.trim(),
@@ -431,7 +452,7 @@ const submitOrder = async () => {
     measurement: store.measurementSelected,
     discount_type: store.discountType || undefined,
     dealer_id: tenant.config.dealer_id || undefined,
-    branch_id: tenant.config.branch_id || undefined,
+    branch_id: branchId,
     dealer_email: tenant.config.contacts?.emails?.[0] || undefined,
     formDealerEmail: tenant.config.email || undefined,
     items: store.items.map(i => ({

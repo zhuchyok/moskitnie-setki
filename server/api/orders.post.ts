@@ -87,8 +87,9 @@ export default defineEventHandler(async (event) => {
           client_name: trimmed.formName,
           client_phone: phoneNorm,
           client_address: trimmed.formAddress,
-          dealer_id: trimmed.dealer_id,
-          items: trimmed.items.map((item: any) => ({
+      dealer_id: trimmed.dealer_id,
+      branch_id: trimmed.branch_id,
+      items: trimmed.items.map((item: any) => ({
             name: item.name,
             quantity: item.quantity,
             price: item.price,

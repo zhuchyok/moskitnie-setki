@@ -16,7 +16,8 @@ export const useTenantStore = defineStore('tenant', () => {
     },
     contacts: {
       phones: [],
-      emails: []
+      emails: [],
+      branches: [] as { id: string, name: string, address: string }[]
     },
     seo: {
       title: '',

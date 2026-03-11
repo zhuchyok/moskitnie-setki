@@ -442,6 +442,7 @@ const submitOrder = async () => {
         width: i.width,
         height: i.height,
         color: i.color,
+        color_id: i.color === 'КОРИЧНЕВАЯ' ? 2 : (i.color === 'АНТРАЦИТ' ? 3 : (i.color === 'RAL' ? 4 : 1)),
         mesh_type: i.type,
         frame_type: i.frameTypeName,
         measurement_method: i.measurementMethod
@@ -450,6 +451,7 @@ const submitOrder = async () => {
   }
   
   try {
+    // Используем относительный путь без лишних слешей
     const response = await $fetch('/api_nuxt/orders', {
       method: 'POST',
       body: orderData

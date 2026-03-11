@@ -31,12 +31,21 @@ export default defineEventHandler(async (event) => {
       formComment: body.formComment ? String(body.formComment).trim() : undefined,
       list_order: String(body.list_order ?? '').trim(),
       total_price_value: body.total_price_value,
-    total_order_value: body.total_order_value ? String(body.total_order_value).trim() : undefined,
-    measurement: body.measurement,
-    discount_type: body.discount_type,
-    dealer_id: body.dealer_id,
-    items: Array.isArray(body.items) ? body.items : []
-  }
+      total_order_value: body.total_order_value ? String(body.total_order_value).trim() : undefined,
+      measurement: body.measurement,
+      discount_type: body.discount_type,
+      // Валидация UUID: Rust API упадет с 400, если передать пустую строку или невалидный UUID
+      dealer_id: (body.dealer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.dealer_id)) ? body.dealer_id : undefined,
+      branch_id: (body.branch_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.branch_id)) ? body.branch_id : undefined,
+      items: Array.isArray(body.items) ? body.items : []
+    }
+
+    console.log('Sending order to Rust API:', JSON.stringify({
+      client_name: trimmed.formName,
+      dealer_id: trimmed.dealer_id,
+      branch_id: trimmed.branch_id,
+      items_count: trimmed.items.length
+    }))
 
   // Валидация данных
   const requiredFields = ['formName', 'formPhone', 'list_order', 'total_price_value']

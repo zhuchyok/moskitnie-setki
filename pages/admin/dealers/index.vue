@@ -214,6 +214,15 @@ const form = reactive({
   }
 })
 
+const addBranch = () => {
+  if (!form.contacts.branches) form.contacts.branches = []
+  form.contacts.branches.push({ 
+    id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(), 
+    name: '', 
+    address: '' 
+  })
+}
+
 const fetchDealers = async () => {
   isLoading.value = true
   try {
@@ -738,7 +747,7 @@ onMounted(fetchDealers)
                   <div class="pt-8 border-t border-gray-50 space-y-6">
                     <div class="flex justify-between items-center ml-4">
                       <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Пункты самовывоза (офисы)</label>
-                      <button @click="form.contacts.branches.push({ id: crypto.randomUUID(), name: '', address: '' })" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest hover:underline">+ Добавить офис</button>
+                      <button @click="addBranch" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest hover:underline">+ Добавить офис</button>
                     </div>
                     
                     <div v-if="!form.contacts.branches || form.contacts.branches.length === 0" class="p-10 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">

@@ -36,8 +36,6 @@ export default defineEventHandler(async (event) => {
       discount_type: body.discount_type,
       // Валидация UUID: Rust API упадет с 400, если передать пустую строку или невалидный UUID
       dealer_id: (body.dealer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.dealer_id)) ? body.dealer_id : undefined,
-      // Валидация UUID: Rust API упадет с 400, если передать пустую строку или невалидный UUID
-      dealer_id: (body.dealer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.dealer_id)) ? body.dealer_id : undefined,
       branch_id: (body.branch_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.branch_id)) ? body.branch_id : undefined,
       items: Array.isArray(body.items) ? body.items : []
     }

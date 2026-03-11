@@ -97,6 +97,7 @@ pub struct CreateOrderRequest {
 
 #[derive(Debug, Deserialize)]
 pub struct OrderItemRequest {
+    pub product_id: Option<Uuid>,
     pub name: String,
     pub quantity: i32,
     pub price: Decimal,
@@ -187,7 +188,7 @@ pub async fn create_order(
 
         items.push(OrderItem {
             id: Uuid::new_v4(),
-            product_id: Uuid::nil(),
+            product_id: item_req.product_id.unwrap_or_else(|| Uuid::parse_str("00000000-0000-0000-0000-000000000004").unwrap()),
             name: item_req.name,
             params,
             quantity: item_req.quantity,

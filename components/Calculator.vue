@@ -1307,7 +1307,7 @@ const submitOrder = async () => {
             </div>
           </div>
           <div v-if="store.delivery === 'Доставка' || store.hasItemsWithInstallation || store.measurementSelected" class="space-y-3">
-            <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Адрес</label>
+            <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Адрес (для замера или доставки)</label>
             <input v-model="form.address" type="text" placeholder="Город, улица, дом, кв"
                    :class="[
                      'w-full bg-gray-50 border-2 focus:bg-white rounded-2xl md:rounded-3xl px-8 py-5 outline-none transition-all font-bold text-base shadow-inner',
@@ -1315,8 +1315,8 @@ const submitOrder = async () => {
                    ]" />
             <p v-if="formErrors.address" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.address }}</p>
           </div>
-          <div v-else class="hidden">
-            <!-- Debug: delivery={{ store.delivery }}, hasWithInstallation={{ store.hasItemsWithInstallation }}, measurementSelected={{ store.measurementSelected }} -->
+          <div v-else class="p-4 bg-yellow-50 text-[10px] text-yellow-800 rounded-xl mb-4">
+            Debug: delivery={{ store.delivery }}, hasWithInstallation={{ store.hasItemsWithInstallation }}, measurementSelected={{ store.measurementSelected }}
           </div>
           <div class="space-y-3">
             <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Комментарий</label>

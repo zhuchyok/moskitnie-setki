@@ -1306,7 +1306,7 @@ const submitOrder = async () => {
               <p v-if="formErrors.phone" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.phone }}</p>
             </div>
           </div>
-          <div v-if="store.delivery === 'Доставка' || store.allItemsWithInstallation || store.measurementSelected" class="space-y-3">
+          <div v-if="store.delivery === 'Доставка' || store.hasItemsWithInstallation || store.measurementSelected" class="space-y-3">
             <label class="text-[10px] font-black text-gray-400 uppercase tracking-wider ml-4">Адрес</label>
             <input v-model="form.address" type="text" placeholder="Город, улица, дом, кв"
                    :class="[

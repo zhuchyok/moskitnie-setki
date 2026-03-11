@@ -193,13 +193,18 @@ export default defineEventHandler(async (event) => {
     // Приоритет: email дилера из конфига -> основной email дилера -> email из окружения -> дефолт
     const recipientEmail = body.dealer_email || body.formDealerEmail || process.env.ORDER_EMAIL || 'info@setki21.ru'
     
-    await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: recipientEmail,
-      subject: `Заказ №${orderNumberFromDb} - ${escapeHtml(trimmed.formName)}`,
-      html: htmlContent,
-      replyTo: trimmed.formEmail || trimmed.formPhone
-    })
+    try {
+      await transporter.sendMail({
+        from: process.env.SMTP_USER,
+        to: recipientEmail,
+        subject: `Заказ №${orderNumberFromDb} - ${escapeHtml(trimmed.formName)}`,
+        html: htmlContent,
+        replyTo: trimmed.formEmail || trimmed.formPhone
+      })
+    } catch (mailError) {
+      console.error('NON-CRITICAL: Failed to send order email:', mailError)
+      // Мы не бросаем ошибку здесь, так как заказ уже сохранен в БД
+    }
 
     return {
       success: true,

@@ -41,12 +41,21 @@ useHead({
   title: computed(() => tenant.config.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21'),
   meta: computed(() => {
     const ogImage = tenant.config.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png')
+    const faviconUrl = tenant.config.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
     return [
       { name: 'description', content: tenant.config.seo?.description || '' },
       { property: 'og:title', content: tenant.config.seo?.title || '' },
       { property: 'og:description', content: tenant.config.seo?.description || '' },
       { property: 'og:image', content: ogImage },
       { name: 'twitter:image', content: ogImage }
+    ]
+  }),
+  link: computed(() => {
+    const faviconUrl = tenant.config.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
+    return [
+      { rel: 'icon', type: 'image/x-icon', href: faviconUrl, dataHid: 'favicon' },
+      { rel: 'shortcut icon', type: 'image/x-icon', href: faviconUrl, dataHid: 'shortcut' },
+      { rel: 'apple-touch-icon', href: faviconUrl, dataHid: 'apple' }
     ]
   })
 })

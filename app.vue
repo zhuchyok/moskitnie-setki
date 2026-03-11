@@ -53,9 +53,9 @@ useHead({
   link: computed(() => {
     const faviconUrl = tenant.config.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
     return [
-      { rel: 'icon', type: 'image/x-icon', href: faviconUrl, dataHid: 'favicon' },
-      { rel: 'shortcut icon', type: 'image/x-icon', href: faviconUrl, dataHid: 'shortcut' },
-      { rel: 'apple-touch-icon', href: faviconUrl, dataHid: 'apple' }
+      { rel: 'icon', type: 'image/x-icon', href: faviconUrl },
+      { rel: 'shortcut icon', type: 'image/x-icon', href: faviconUrl },
+      { rel: 'apple-touch-icon', href: faviconUrl }
     ]
   })
 })

@@ -104,10 +104,14 @@ export default defineEventHandler(async (event) => {
       }
     } catch (dbError: any) {
       console.error('CRITICAL: Failed to save order to DB:', dbError)
-      // Если БД недоступна — прерываем процесс, чтобы не вводить в заблуждение
+      
+      // Если это ошибка бизнес-логики от Rust API (например, баланс), пробрасываем её текст
+      const remoteMessage = dbError.data?.message || dbError.message
+      const isBusinessError = dbError.statusCode === 400 || dbError.statusCode === 422
+
       throw createError({
-        statusCode: 503,
-        statusMessage: 'Сервис временно недоступен. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.'
+        statusCode: isBusinessError ? 400 : 503,
+        statusMessage: isBusinessError ? remoteMessage : 'Сервис временно недоступен. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.'
       })
     }
 

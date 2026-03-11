@@ -42,7 +42,8 @@ export default defineEventHandler(async (event) => {
 
     // Если branch_id не является валидным UUID, но передан (например, "Самовывоз Чебоксары"), 
     // мы его очищаем, так как в БД это внешний ключ на таблицу dealer_branches.
-    if (trimmed.branch_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed.branch_id)) {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (trimmed.branch_id && !uuidRegex.test(trimmed.branch_id)) {
       trimmed.branch_id = undefined
     }
 
@@ -92,7 +93,7 @@ export default defineEventHandler(async (event) => {
         client_phone: phoneNorm,
         client_address: trimmed.formAddress,
         dealer_id: trimmed.dealer_id,
-        branch_id: trimmed.branch_id,
+        branch_id: (trimmed.branch_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed.branch_id)) ? trimmed.branch_id : null,
         items: trimmed.items.map((item: any) => ({
           name: item.name,
           quantity: item.quantity,

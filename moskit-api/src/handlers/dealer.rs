@@ -197,7 +197,8 @@ pub async fn create_order(
         });
     }
 
-    // --- ПРОВЕРКА БАЛАНСА ---
+    // --- ПРОВЕРКА БАЛАНСА (ОТКЛЮЧЕНА ДЛЯ ЗАЯВОК) ---
+    /*
     if let Some(ref d) = dealer {
         if d.payment_type == PaymentType::Prepaid {
             if d.balance < total_dealer_cost {
@@ -209,6 +210,7 @@ pub async fn create_order(
             }
         }
     }
+    */
 
     let mut order = Order::new(
         payload.dealer_id,
@@ -235,7 +237,8 @@ pub async fn create_order(
     let order_repo = PostgresOrderRepository::new(state.pool.clone());
     let created = order_repo.create(order).await.map_err(|e| bad_request(&e.to_string()))?;
 
-    // --- ОБНОВЛЕНИЕ БАЛАНСА И ЛОГ ТРАНЗАКЦИИ ---
+    // --- ОБНОВЛЕНИЕ БАЛАНСА ПРИ СОЗДАНИИ ОТКЛЮЧЕНО (ПЕРЕНЕСЕНО В СТАТУС CONFIRMED) ---
+    /*
     if let Some(mut d) = dealer {
         let old_balance = d.balance;
         d.balance -= total_dealer_cost;
@@ -253,6 +256,7 @@ pub async fn create_order(
         };
         dealer_repo.create_transaction(transaction).await.map_err(|e| bad_request(&e.to_string()))?;
     }
+    */
 
     ok(serde_json::json!({ 
         "status": "created",

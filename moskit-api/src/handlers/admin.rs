@@ -859,6 +859,50 @@ pub async fn update_order_status(
         return Err(bad_request(&format!("Cannot transition from {:?} to {:?}", order.status, new_status)));
     }
 
+    // --- ЛОГИКА ОПЛАТЫ ПРИ ПОДТВЕРЖДЕНИИ ---
+    if (new_status == OrderStatus::Confirmed || new_status == OrderStatus::InProduction) && order.status == OrderStatus::New {
+        if let Some(dealer_id) = order.dealer_id {
+            use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+            use moskit_core::entity::{PaymentType, Transaction};
+            
+            let dealer_repo = PostgresDealerRepository::new(state.pool.clone());
+            let dealer = dealer_repo.find_by_id(dealer_id).await
+                .map_err(|e| bad_request(&e.to_string()))?
+                .ok_or_else(|| bad_request("Dealer not found"))?;
+
+            let total_cost = order.dealer_cost;
+
+            // Проверка лимита
+            if dealer.payment_type == PaymentType::Prepaid {
+                if dealer.balance < total_cost {
+                    return Err(bad_request("Недостаточно средств на балансе дилера для запуска в производство."));
+                }
+            } else if dealer.payment_type == PaymentType::Postpaid {
+                if dealer.balance + dealer.credit_limit < total_cost {
+                    return Err(bad_request("Превышен кредитный лимит дилера. Запуск в производство невозможен."));
+                }
+            }
+
+            // Списание средств
+            let mut updated_dealer = dealer.clone();
+            updated_dealer.balance -= total_cost;
+            dealer_repo.update(updated_dealer.clone()).await.map_err(|e| bad_request(&e.to_string()))?;
+
+            // Лог транзакции
+            let transaction = Transaction {
+                id: Uuid::new_v4(),
+                dealer_id: dealer.id,
+                amount: -total_cost,
+                balance_after: updated_dealer.balance,
+                transaction_type: "order_payment".to_string(),
+                order_id: Some(order.id),
+                description: Some(format!("Оплата заказа №{}", order.order_number)),
+                created_at: Utc::now(),
+            };
+            dealer_repo.create_transaction(transaction).await.map_err(|e| bad_request(&e.to_string()))?;
+        }
+    }
+
     order.status = new_status;
     if let Some(c) = payload.comment {
         order.comment = Some(c);

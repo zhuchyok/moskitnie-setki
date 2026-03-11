@@ -49,7 +49,8 @@ const form = reactive({
   contacts: {
     phones: [],
     emails: [],
-    additional_cities: []
+    additional_cities: [],
+    branches: [] as { id: string, name: string, address: string }[]
   },
   legal_info: {
     requisites: '',
@@ -128,7 +129,8 @@ const handleSave = async () => {
       contacts: {
         phones: Array.isArray(form.contacts.phones) ? form.contacts.phones.filter(p => p) : [],
         emails: Array.isArray(form.contacts.emails) ? form.contacts.emails.filter(e => e) : [],
-        additional_cities: Array.isArray(form.contacts.additional_cities) ? form.contacts.additional_cities.filter(c => c) : []
+        additional_cities: Array.isArray(form.contacts.additional_cities) ? form.contacts.additional_cities.filter(c => c) : [],
+        branches: Array.isArray(form.contacts.branches) ? form.contacts.branches.filter(b => b.name && b.address) : []
       },
       legal_info: {
         requisites: form.legal_info.requisites || null,
@@ -354,6 +356,36 @@ onMounted(fetchSettings)
                 <button @click="form.contacts.emails.splice(i, 1)" type="button" class="text-red-400 px-4 hover:scale-125 transition-transform">×</button>
               </div>
               <button @click="form.contacts.emails.push('')" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest ml-4 hover:underline">+ Добавить email</button>
+            </div>
+
+            <div class="pt-8 border-t border-gray-50 space-y-6">
+              <div class="flex justify-between items-center ml-4">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Пункты самовывоза (офисы)</label>
+                <button @click="form.contacts.branches.push({ id: crypto.randomUUID(), name: '', address: '' })" type="button" class="text-[10px] font-black text-brand-blue uppercase tracking-widest hover:underline">+ Добавить офис</button>
+              </div>
+              
+              <div v-if="form.contacts.branches.length === 0" class="p-10 text-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-100">
+                <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Офисы не добавлены. Будет использоваться город по умолчанию.</p>
+              </div>
+
+              <div v-for="(branch, i) in form.contacts.branches" :key="branch.id || i" class="bg-gray-50 p-6 rounded-3xl space-y-4 relative group">
+                <button @click="form.contacts.branches.splice(i, 1)" type="button" class="absolute top-4 right-4 text-red-400 opacity-0 group-hover:opacity-100 transition-all hover:scale-125">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v2m3 3h.01" />
+                  </svg>
+                </button>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-2">
+                    <label class="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-2">Название (например: Офис Центр)</label>
+                    <input v-model="branch.name" type="text" class="w-full bg-white border-2 border-transparent focus:border-brand-blue rounded-xl px-4 py-3 outline-none font-bold text-sm shadow-sm" placeholder="Название офиса" />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[8px] font-black text-gray-400 uppercase tracking-widest ml-2">Адрес</label>
+                    <input v-model="branch.address" type="text" class="w-full bg-white border-2 border-transparent focus:border-brand-blue rounded-xl px-4 py-3 outline-none font-bold text-sm shadow-sm" placeholder="ул. Ленина, д. 1" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

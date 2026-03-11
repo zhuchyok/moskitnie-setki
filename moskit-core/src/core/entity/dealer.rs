@@ -123,6 +123,14 @@ pub struct DealerContacts {
     pub phones: Vec<String>,
     pub emails: Vec<String>,
     pub additional_cities: Vec<String>,
+    pub branches: Option<Vec<BranchInfo>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BranchInfo {
+    pub id: String,
+    pub name: String,
+    pub address: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

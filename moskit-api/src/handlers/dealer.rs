@@ -156,6 +156,8 @@ pub async fn create_order(
     for item_req in payload.items {
         let params = item_req.params.clone().unwrap_or_else(|| serde_json::json!({}));
         
+        tracing::info!("Processing item: name={}, product_id={:?}", item_req.name, item_req.product_id);
+
         let (dealer_cost, unit_price) = if let (Some(w), Some(h), Some(m), Some(f), Some(c)) = (
             params.get("width").and_then(|v| v.as_u64()),
             params.get("height").and_then(|v| v.as_u64()),

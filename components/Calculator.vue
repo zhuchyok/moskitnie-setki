@@ -192,41 +192,37 @@ const selectColor = (id: number) => {
   store.updateConfig({ color: id })
 }
 
-const deliveries = computed(() => {
-  const city = tenant.config.city || 'Чебоксары'
-  const isChuvashia = city.includes('Чебоксары') || city.includes('Новочебоксарск')
-  
-  const options = []
-  
-  // Динамические пункты самовывоза из конфига (филиалы)
-  if (tenant.config.contacts?.branches?.length) {
-    tenant.config.contacts.branches.forEach(branch => {
-      options.push({
-        id: branch.id || branch.name,
-        name: `Самовывоз ${branch.name} ${branch.address}`,
-        price: 0,
-        icon: 'building'
+  const deliveries = computed(() => {
+    const city = tenant.config.city || 'Чебоксары'
+    const isChuvashia = city.includes('Чебоксары') || city.includes('Новочебоксарск')
+    
+    const options = []
+    
+    // Динамические пункты самовывоза из конфига (филиалы)
+    if (tenant.config.contacts?.branches?.length) {
+      tenant.config.contacts.branches.forEach(branch => {
+        options.push({
+          id: branch.id || branch.name,
+          name: `Самовывоз ${branch.name} ${branch.address}`,
+          price: 0,
+          icon: 'building'
+        })
       })
+    } else {
+      // Если филиалы не заполнены — используем город из основной админки (tenant.config.city)
+      options.push({ id: 'Самовывоз', name: `Самовывоз ${city}`, price: 0, icon: 'building' })
+    }
+    
+    // Доставка всегда доступна
+    options.push({ 
+      id: 'Доставка', 
+      name: isChuvashia ? 'Доставка Чебоксары и Новочебоксарск' : `Доставка ${city}`, 
+      price: store.deliveryPriceCalculated, 
+      icon: 'truck' 
     })
-  } else if (isChuvashia) {
-    // Fallback для Чебоксар, если филиалы не заполнены
-    options.push({ id: 'Оф.Чебоксары', name: 'Самовывоз Чебоксары Гражданская 53', price: 0, icon: 'building' })
-    options.push({ id: 'Оф.Новочебоксарск', name: 'Самовывоз Новочебоксарск Винокурова 109', price: 0, icon: 'building' })
-  } else {
-    // Общий fallback
-    options.push({ id: 'Самовывоз', name: `Самовывоз ${city}`, price: 0, icon: 'building' })
-  }
-  
-  // Доставка всегда доступна
-  options.push({ 
-    id: 'Доставка', 
-    name: isChuvashia ? 'Доставка Чебоксары и Новочебоксарск' : `Доставка ${city}`, 
-    price: store.deliveryPriceCalculated, 
-    icon: 'truck' 
+    
+    return options
   })
-  
-  return options
-})
 
 const urgentOrderOption = computed(() => {
   // Рассчитываем цену срочности для отображения в кнопке

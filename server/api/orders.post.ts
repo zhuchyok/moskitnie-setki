@@ -94,12 +94,24 @@ export default defineEventHandler(async (event) => {
         client_address: trimmed.formAddress,
         dealer_id: trimmed.dealer_id,
         branch_id: (trimmed.branch_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed.branch_id)) ? trimmed.branch_id : null,
-        items: trimmed.items.map((item: any) => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          params: item.params
-        }))
+        items: trimmed.items.map((item: any) => {
+          // Маппинг типов сеток на ID продуктов из базы данных
+          let productId = '00000000-0000-0000-0000-000000000004' // Default: Стандартная сетка
+          const meshType = item.params?.mesh_type || ''
+          
+          if (meshType === 'antikoshka') {
+            productId = '00000000-0000-0000-0000-000000000005'
+          }
+          // Можно добавить другие типы, когда они появятся в БД
+
+          return {
+            product_id: productId,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            params: item.params
+          }
+        })
       }
 
       console.log('FINAL PAYLOAD TO RUST:', JSON.stringify(orderPayload))

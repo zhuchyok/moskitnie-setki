@@ -36,13 +36,15 @@ export default defineEventHandler(async (event) => {
       discount_type: body.discount_type,
       // Валидация UUID: Rust API упадет с 400, если передать пустую строку или невалидный UUID
       dealer_id: (body.dealer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.dealer_id)) ? body.dealer_id : undefined,
+      // Валидация UUID: Rust API упадет с 400, если передать пустую строку или невалидный UUID
+      dealer_id: (body.dealer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.dealer_id)) ? body.dealer_id : undefined,
       branch_id: (body.branch_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.branch_id)) ? body.branch_id : undefined,
       items: Array.isArray(body.items) ? body.items : []
     }
 
     // Если branch_id не является валидным UUID, но передан (например, "Самовывоз Чебоксары"), 
     // мы его очищаем, так как в БД это внешний ключ на таблицу dealer_branches.
-    if (body.branch_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.branch_id)) {
+    if (trimmed.branch_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed.branch_id)) {
       trimmed.branch_id = undefined
     }
 
@@ -87,21 +89,25 @@ export default defineEventHandler(async (event) => {
 
     try {
       const apiUrl = process.env.API_URL || 'http://moskit-api:8080'
+      const orderPayload = {
+        client_name: trimmed.formName,
+        client_phone: phoneNorm,
+        client_address: trimmed.formAddress,
+        dealer_id: trimmed.dealer_id,
+        branch_id: trimmed.branch_id,
+        items: trimmed.items.map((item: any) => ({
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          params: item.params
+        }))
+      }
+
+      console.log('FINAL PAYLOAD TO RUST:', JSON.stringify(orderPayload))
+
       const dbResponse: any = await $fetch(`${apiUrl}/api/v1/dealer/orders`, {
         method: 'POST',
-        body: {
-          client_name: trimmed.formName,
-          client_phone: phoneNorm,
-          client_address: trimmed.formAddress,
-      dealer_id: trimmed.dealer_id,
-      branch_id: trimmed.branch_id,
-      items: trimmed.items.map((item: any) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            params: item.params
-          }))
-        }
+        body: orderPayload
       })
 
       if (dbResponse && dbResponse.order_id) {

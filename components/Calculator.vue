@@ -19,12 +19,13 @@ watch(() => pricingStore.pricing, (newPricing) => {
 }, { immediate: true })
 
 // Способ получения: обязателен, если в заказе есть сетки без монтажа (все без монтажа или смешанный заказ)
-const deliveryOptionIds = ['Оф.Чебоксары', 'Оф.Новочебоксарск', 'Доставка']
 const deliveryRequired = computed(() => store.items.length > 0 && store.hasItemsWithoutInstallation)
 const deliverySelected = computed(() => {
   if (!deliveryRequired.value) return true
   if (store.isMixedOrder) return true
-  return deliveryOptionIds.includes(store.delivery)
+  
+  // Проверяем, что выбранный ID доставки есть в списке доступных опций
+  return deliveries.value.some(d => d.id === store.delivery)
 })
 const canSubmitOrder = computed(() => 
   deliverySelected.value && 

@@ -400,6 +400,8 @@ function validateOrderForm(): boolean {
   let valid = true
   const name = form.name.trim()
   const phone = form.phone.trim()
+  const address = form.address.trim()
+
   if (!name) {
     formErrors.name = 'Введите имя'
     valid = false
@@ -411,6 +413,14 @@ function validateOrderForm(): boolean {
     formErrors.phone = 'Формат: +7 (XXX) XXX-XX-XX'
     valid = false
   }
+
+  // Адрес обязателен, если выбрана доставка, замер или есть товары с монтажом
+  const isAddressRequired = store.delivery === 'Доставка' || store.hasItemsWithInstallation || store.measurementSelected
+  if (isAddressRequired && !address) {
+    formErrors.address = 'Введите адрес для доставки или замера'
+    valid = false
+  }
+
   return valid
 }
 

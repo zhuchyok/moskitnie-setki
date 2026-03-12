@@ -316,9 +316,9 @@ const saveHeight = () => {
 }
 
 const measurementMethods = [
-  { id: 'stvorka', name: 'По створке окна', desc: 'Измерили внутреннюю сторону закрытой створки. Мы автоматически уменьшили размер на 5 мм для получения точных габаритов готового изделия.' },
-  { id: 'proem', name: 'По проему', desc: 'Измерили открытый проем от края до края резинки. Мы автоматически увеличили размер на 50 мм для получения габаритов готовой сетки.' },
-  { id: 'old_mesh', name: 'По старой сетке', desc: 'Вы указали точные размеры готового изделия. Изготовим сетку строго по этим параметрам без дополнительных корректировок.' }
+  { id: 'stvorka', name: 'По створке окна', desc: 'ИЗМЕРИЛИ ВНУТРЕННЮЮ СТОРОНУ ЗАКРЫТОЙ СТВОРКИ. <br/>МЫ АВТОМАТИЧЕСКИ УМЕНЬШИЛИ РАЗМЕР НА 5 ММ ДЛЯ ПОЛУЧЕНИЯ ТОЧНЫХ ГАБАРИТОВ ГОТОВОГО ИЗДЕЛИЯ.' },
+  { id: 'proem', name: 'По проему', desc: 'ИЗМЕРИЛИ ОТКРЫТЫЙ ПРОЕМ ОТ КРАЯ ДО КРАЯ РЕЗИНКИ. <br/>МЫ АВТОМАТИЧЕСКИ УВЕЛИЧИЛИ РАЗМЕР НА 50 ММ ДЛЯ ПОЛУЧЕНИЯ ГАБАРИТОВ ГОТОВОЙ СЕТКИ.' },
+  { id: 'old_mesh', name: 'По старой сетке', desc: 'ВЫ УКАЗАЛИ ТОЧНЫЕ РАЗМЕРЫ ГОТОВОГО ИЗДЕЛИЯ. <br/>ИЗГОТОВИМ СЕТКУ СТРОГО ПО ЭТИМ ПАРАМЕТРАМ БЕЗ ДОПОЛНИТЕЛЬНЫХ КОРРЕКТИРОВОК.' }
 ]
 
 const selectMeasurementMethod = (id: 'stvorka' | 'proem' | 'old_mesh') => {
@@ -811,10 +811,10 @@ const submitOrder = async () => {
                       </div>
                       <p class="text-[11px] font-bold leading-tight uppercase tracking-wider" :style="{ color: brandPrimary }">
                         <template v-if="store.config.frameType === 'vstavnaya' && store.config.measurementMethod === 'proem'">
-                          Измерили открытый проем от края до края резинки. Мы автоматически увеличили размер на 17 мм по ширине и 12 мм по высоте.
+                          ИЗМЕРИЛИ ОТКРЫТЫЙ ПРОЕМ ОТ КРАЯ ДО КРАЯ РЕЗИНКИ. <br/>МЫ АВТОМАТИЧЕСКИ УВЕЛИЧИЛИ РАЗМЕР НА 17 ММ ПО ШИРИНЕ И 12 ММ ПО ВЫСОТЕ.
                         </template>
                         <template v-else>
-                          {{ measurementMethods.find(m => m.id === store.config.measurementMethod)?.desc }}
+                          <span v-html="measurementMethods.find(m => m.id === store.config.measurementMethod)?.desc"></span>
                         </template>
                       </p>
                     </div>

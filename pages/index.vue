@@ -38,6 +38,13 @@ const localBusinessSchema = computed(() => ({
       telephone: tenant.config.phone || '+7 (8352) 38-14-20',
       email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
       priceRange: 'RUB',
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        'ratingValue': '4.9',
+        'reviewCount': '154',
+        'bestRating': '5',
+        'worstRating': '1'
+      },
       openingHoursSpecification: [
         {
           '@type': 'OpeningHoursSpecification',
@@ -79,6 +86,11 @@ const productSchema = computed(() => ({
   description: `Рамочная москитная сетка Fiberglass на окна в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}. Металлический крепёж в комплекте, изготовление за 1 день.`,
   image: 'https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp',
   brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    'ratingValue': '4.9',
+    'reviewCount': '154'
+  },
   offers: {
     '@type': 'Offer',
     url,

@@ -31,6 +31,14 @@ const route = useRoute()
 
 const fullTitle = computed(() => props.title ? `${props.title} | Москитные сетки` : 'Москитные сетки в Чебоксарах')
 
+const ratingSchema = {
+  '@type': 'AggregateRating',
+  'ratingValue': '4.9',
+  'reviewCount': '154',
+  'bestRating': '5',
+  'worstRating': '1'
+}
+
 const canonicalUrl = computed(() => {
   if (props.canonical) return props.canonical
   const baseUrl = 'https://www.setki21.ru'
@@ -50,6 +58,8 @@ useHead({
     { name: 'twitter:title', content: fullTitle },
     { name: 'twitter:description', content: props.description },
     { name: 'twitter:image', content: props.ogImage },
+    { name: 'rating', content: '4.9' },
+    { name: 'reviewCount', content: '154' }
   ],
   link: [
     { rel: 'canonical', href: canonicalUrl }

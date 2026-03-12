@@ -54,9 +54,9 @@ const faqSchema = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: [
-    { '@type': 'Question', name: 'Что можно отремонтировать в москитной сетке?', acceptedAnswer: { '@type': 'Answer', text: 'Замена полотна (стандарт, Ультравью, Антикошка, Антипыль), замена ручек (металлических или силиконовых), замена уголков. Если рамка цела — ремонт дешевле новой сетки.' } },
-    { '@type': 'Question', name: `Сколько занимает ремонт в ${tenant.config.city}?`, acceptedAnswer: { '@type': 'Answer', text: `За 3 дня. Вы можете обратиться в наш офис в ${tenant.config.city} и забрать готовую сетку в кратчайшие сроки.` } },
-    { '@type': 'Question', name: 'Нужно ли привозить сетку в офис?', acceptedAnswer: { '@type': 'Answer', text: `Да. Ремонт делаем в офисе компании ${tenant.config.dealer_name || 'Сетки 21'}. Цена от 100 ₽ за замену ручек, от 400 ₽ за замену полотна.` } }
+    { '@type': 'Question', name: `Что можно отремонтировать в москитной сетке в ${tenant.config.city || 'Чебоксарах'}?`, acceptedAnswer: { '@type': 'Answer', text: 'Замена полотна (стандарт, Ультравью, Антикошка, Антипыль), замена ручек (металлических или силиконовых), замена уголков. Если рамка цела — ремонт дешевле новой сетки.' } },
+    { '@type': 'Question', name: `Сколько занимает ремонт в ${tenant.config.city || 'Чебоксарах'}?`, acceptedAnswer: { '@type': 'Answer', text: `За 3 дня. Вы можете обратиться в наш офис в ${tenant.config.city || 'Чебоксарах'} и забрать готовую сетку в кратчайшие сроки.` } },
+    { '@type': 'Question', name: `Нужно ли привозить сетку в офис ${tenant.config.dealer_name || 'Сетки 21'}?`, acceptedAnswer: { '@type': 'Answer', text: `Да. Ремонт делаем в офисе компании ${tenant.config.dealer_name || 'Сетки 21'}. Цена от 100 ₽ за замену ручек, от 400 ₽ за замену полотна.` } }
   ]
 }))
 

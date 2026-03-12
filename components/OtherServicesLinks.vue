@@ -32,7 +32,7 @@ const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2
     :style="{ '--brand-primary': brandPrimary }"
   >
     <h2 class="text-xl md:text-2xl font-black mb-6 uppercase tracking-tight text-gray-500 text-center">
-      Другие услуги
+      Также в {{ tenant.config.city || 'Чебоксарах' }} заказывают
     </h2>
     <nav class="flex flex-wrap justify-center gap-3">
       <NuxtLink

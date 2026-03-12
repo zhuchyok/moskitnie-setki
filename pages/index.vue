@@ -208,6 +208,7 @@ const faqMain = computed(() => [
               <HeroImage
                 src="/images/hero-zamer-common.png"
                 :alt="`Как замерить рамочную москитную сетку на пластиковом окне в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} — производство ${tenant.config.dealer_name || 'Сетки 21'}`"
+                :title="`Замер москитной сетки в ${tenant.config.city || 'Чебоксарах'}`"
                 class="rounded-[3rem] shadow-2xl border-4 border-white w-full h-auto"
                 :width="640"
                 :height="400"
@@ -277,7 +278,11 @@ const faqMain = computed(() => [
                      :style="{ borderColor: tenant.config.branding?.primary_color ? tenant.config.branding.primary_color + '1A' : '' }"
                      @mouseover="$event.currentTarget.style.borderColor = tenant.config.branding?.primary_color || '#2A6AB2'"
                      @mouseleave="$event.currentTarget.style.borderColor = tenant.config.branding?.primary_color ? tenant.config.branding.primary_color + '1A' : ''">
-                  <img :src="img.src" :alt="`${img.alt} ${tenant.config.dealer_name} в ${tenant.config.city}`" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" loading="lazy" />
+                  <img :src="img.src" 
+                       :alt="`${img.alt} ${tenant.config.dealer_name || 'Сетки 21'} в ${tenant.config.city || 'Чебоксарах'}`" 
+                       :title="`Работа компании ${tenant.config.dealer_name || 'Сетки 21'} в ${tenant.config.city || 'Чебоксарах'}`"
+                       class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" 
+                       loading="lazy" />
                 </div>
               </div>
               <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки?</h2>

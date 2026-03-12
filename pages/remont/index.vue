@@ -133,7 +133,10 @@ const faqItems = computed(() => [
           </div>
           <div class="lg:w-1/2 relative flex items-center justify-end">
             <div class="relative w-full max-w-[640px]">
-              <HeroImage src="/images/hero-remont-new.png" alt="Простые замеры: ширина и высота сетки для ремонта москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}" class="rounded-[3rem] shadow-2xl border-4 border-white w-full h-auto" :width="640" :height="400" loading="lazy" />
+              <HeroImage src="/images/hero-remont-new.png" 
+                         :alt="`Простые замеры: ширина и высота сетки для ремонта москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}`" 
+                         :title="`Ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах'}`"
+                         class="rounded-[3rem] shadow-2xl border-4 border-white w-full h-auto" :width="640" :height="400" loading="lazy" />
               
               <!-- Текст поверх картинки -->
               <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 pr-[30%] md:pr-[35%]">

@@ -135,6 +135,7 @@ const faqItems = computed(() => [
               <HeroImage
                 src="/images/hero-zamer-common.png"
                 :alt="`Как замерить москитную сетку Антимошка на пластиковом окне в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}`"
+                :title="`Сетка Антимошка в ${tenant.config.city || 'Чебоксарах'}`"
                 class="rounded-[3rem] shadow-2xl border-4 border-white w-full h-auto"
                 :width="640"
                 :height="400"

@@ -85,17 +85,14 @@ const handleAddToOrder = () => {
   store.addToOrder()
   isAdded.value = true
   
-  // Переходим к первому шагу и скроллим вверх
-  setTimeout(() => {
-    currentStep.value = 1
-    nextTick(() => {
-      calculatorRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }, 800) // Небольшая задержка, чтобы пользователь увидел статус "Добавлено"
+  // Сбрасываем калькулятор на первый шаг в фоне
+  currentStep.value = 1
 
+  // Скроллим только к списку заказа, чтобы пользователь видел результат
   nextTick(() => {
     orderBlockRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
+  
   setTimeout(() => {
     isAdded.value = false
   }, 1000)

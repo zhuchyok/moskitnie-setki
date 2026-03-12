@@ -3,15 +3,16 @@ const tenant = useTenantStore()
 const title = computed(() => `Ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах'} — цены от 100 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
 const description = computed(() => `Профессиональный ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Замена полотна, ручек, уголков. Быстро, качественно, недорого.`)
 const keywords = computed(() => `ремонт сеток, замена полотна, москитная сетка ремонт, ${tenant.config.city}, ${tenant.config.dealer_name}, запчасти для сеток, перетяжка сетки, замена ручек`)
-const url = 'https://www.setki21.ru/remont/'
+
 const requestURL = useRequestURL()
+const url = computed(() => requestURL?.origin ? `${requestURL.origin}/remont/` : 'https://www.setki21.ru/remont/')
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const serviceSchema = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'Service',
-  name: 'Ремонт москитных сеток',
-  description: `Замена комплектующих и полотна москитных сеток в ${tenant.config.city}`,
+  name: `Ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах'}`,
+  description: `Замена комплектующих и полотна москитных сеток в ${tenant.config.city || 'Чебоксарах'}`,
   provider: {
     '@type': 'LocalBusiness',
     name: tenant.config.dealer_name || 'Сетки 21',
@@ -23,6 +24,13 @@ const serviceSchema = computed(() => ({
       streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
       addressLocality: tenant.config.city || 'Чебоксары',
       addressCountry: 'RU'
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      'ratingValue': '4.9',
+      'reviewCount': '154',
+      'bestRating': '5',
+      'worstRating': '1'
     }
   },
   areaServed: [{ '@type': 'City', name: tenant.config.city || 'Чебоксары' }],

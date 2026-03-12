@@ -8,20 +8,21 @@ onMounted(() => {
 const title = computed(() => `Москитная сетка Антимошка в ${tenant.config.city || 'Чебоксарах'} — цены от 1000 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
 const description = computed(() => `Сетки Антимошка с уменьшенной ячейкой 0.8х0.8 мм в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от мелких насекомых и тополиного пуха.`)
 const keywords = computed(() => `антимошка, микромеш, москитная сетка, ${tenant.config.city}, ${tenant.config.dealer_name}, защита от мошек, мелкая сетка, micro mesh`)
-const url = 'https://www.setki21.ru/antimoshka/'
+
 const requestURL = useRequestURL()
+const url = computed(() => requestURL?.origin ? `${requestURL.origin}/antimoshka/` : 'https://www.setki21.ru/antimoshka/')
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
-  name: 'Москитная сетка Антимошка',
-  description: `Эффективная москитная сетка для защиты от комаров и мошек в ${tenant.config.city}`,
+  name: `Москитная сетка Антимошка в ${tenant.config.city || 'Чебоксарах'}`,
+  description: `Эффективная москитная сетка для защиты от комаров и мошек в ${tenant.config.city || 'Чебоксарах'}`,
   image: image.value,
   brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
   offers: {
     '@type': 'Offer',
-    url,
+    url: url.value,
     email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
     priceCurrency: 'RUB',
     price: '1000',
@@ -37,10 +38,21 @@ const productSchema = computed(() => ({
         streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
         addressLocality: tenant.config.city || 'Чебоксары',
         addressCountry: 'RU'
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        'ratingValue': '4.9',
+        'reviewCount': '154',
+        'bestRating': '5',
+        'worstRating': '1'
       }
     }
   },
-  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.7', reviewCount: '94' }
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    'ratingValue': '4.9',
+    'reviewCount': '154'
+  }
 }))
 
 const faqSchema = computed(() => ({

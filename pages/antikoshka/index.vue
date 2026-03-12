@@ -8,20 +8,21 @@ onMounted(() => {
 const title = computed(() => `Москитная сетка Антикошка в ${tenant.config.city || 'Чебоксарах'} — цены от 1300 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
 const description = computed(() => `Усиленные москитные сетки Антикошка (Pet Screen) в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Выдерживают когти кошек, прочное полотно, металлический крепеж.`)
 const keywords = computed(() => `антикошка, москитная сетка антикошка, ${tenant.config.city}, ${tenant.config.dealer_name}, pet screen, защита животных, цена, купить, сетка на окна от кошек`)
-const url = 'https://www.setki21.ru/antikoshka/'
+
 const requestURL = useRequestURL()
+const url = computed(() => requestURL?.origin ? `${requestURL.origin}/antikoshka/` : 'https://www.setki21.ru/antikoshka/')
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'Product',
-  name: 'Москитная сетка Антикошка',
-  description: `Усиленная москитная сетка для защиты от кошек в ${tenant.config.city}`,
+  name: `Москитная сетка Антикошка в ${tenant.config.city || 'Чебоксарах'}`,
+  description: `Усиленная москитная сетка для защиты от кошек в ${tenant.config.city || 'Чебоксарах'}`,
   image: image.value,
   brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
   offers: {
     '@type': 'Offer',
-    url,
+    url: url.value,
     email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
     priceCurrency: 'RUB',
     price: '1300',
@@ -37,10 +38,21 @@ const productSchema = computed(() => ({
         streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
         addressLocality: tenant.config.city || 'Чебоксары',
         addressCountry: 'RU'
+      },
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        'ratingValue': '4.9',
+        'reviewCount': '154',
+        'bestRating': '5',
+        'worstRating': '1'
       }
     }
   },
-  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '89' }
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    'ratingValue': '4.9',
+    'reviewCount': '154'
+  }
 }))
 
 const faqSchema = computed(() => ({

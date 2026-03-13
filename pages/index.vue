@@ -345,6 +345,8 @@ const faqMain = computed(() => [
               </li>
             </ul>
           </section>
+          
+          <Reviews />
 
           <OtherServicesLinks exclude="/" />
       </div>

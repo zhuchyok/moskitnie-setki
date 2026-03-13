@@ -262,6 +262,8 @@ const faqItems = computed(() => [
             </li>
             </ul>
           </section>
+          
+          <Reviews />
 
           <OtherServicesLinks exclude="/remont" />
       </div>

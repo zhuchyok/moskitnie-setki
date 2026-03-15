@@ -269,84 +269,86 @@ const faqMain = computed(() => [
             </div>
           </div>
 
-          <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
-            <div class="relative z-10">
-              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Наши работы</h2>
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-                <div v-for="(img, idx) in galleryImages" :key="idx" 
-                     class="aspect-square rounded-2xl overflow-hidden border-2 transition-colors cursor-zoom-in"
-                     :class="[tenant.config.branding?.primary_color ? '' : 'border-white/10 hover:border-brand-blue']"
-                     :style="{ borderColor: tenant.config.branding?.primary_color ? tenant.config.branding.primary_color + '1A' : '' }"
-                     @mouseover="$event.currentTarget.style.borderColor = tenant.config.branding?.primary_color || '#2A6AB2'"
-                     @mouseleave="$event.currentTarget.style.borderColor = tenant.config.branding?.primary_color ? tenant.config.branding.primary_color + '1A' : ''">
-                  <img :src="img.src" 
-                       :alt="`${img.alt} ${tenant.config.dealer_name || 'Сетки 21'} в ${tenant.config.city || 'Чебоксарах'}`" 
-                       :title="`Работа компании ${tenant.config.dealer_name || 'Сетки 21'} в ${tenant.config.city || 'Чебоксарах'}`"
-                       class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" 
-                       loading="lazy" />
+            <div class="bg-brand-dark rounded-[3rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
+              <div class="relative z-10">
+                <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Наши работы</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                  <div v-for="(img, idx) in galleryImages" :key="idx" 
+                       class="aspect-square rounded-2xl overflow-hidden border-2 transition-colors cursor-zoom-in"
+                       :class="[tenant.config.branding?.primary_color ? '' : 'border-white/10 hover:border-brand-blue']"
+                       :style="{ borderColor: tenant.config.branding?.primary_color ? tenant.config.branding.primary_color + '1A' : '' }"
+                       @mouseover="$event.currentTarget.style.borderColor = tenant.config.branding?.primary_color || '#2A6AB2'"
+                       @mouseleave="$event.currentTarget.style.borderColor = tenant.config.branding ? tenant.config.branding.primary_color + '1A' : ''">
+                    <img :src="img.src" 
+                         :alt="`${img.alt} ${tenant.config.dealer_name || 'Сетки 21'} в ${tenant.config.city || 'Чебоксарах'}`" 
+                         :title="`Работа компании ${tenant.config.dealer_name || 'Сетки 21'} в ${tenant.config.city || 'Чебоксарах'}`"
+                         class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" 
+                         loading="lazy" />
+                  </div>
                 </div>
-              </div>
-              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки?</h2>
+                <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки?</h2>
 
-              <div class="grid md:grid-cols-3 gap-12">
-                <div class="text-center md:text-left group">
-                  <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Прочная алюминиевая рамка окрашена порошковой краской. Не выгорает и не ржавеет.</p>
-                </div>
-                <div class="text-center md:text-left group">
-                  <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Защита</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Помогает задержать тополиный пух, уличную пыль и пыльцу растений, что важно для аллергиков.</p>
-                </div>
-                <div class="text-center md:text-left group">
-                  <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">03</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Безопасность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Москитные сетки могут служить защитой от случайного выпадения из окон предметов домашнего обихода.</p>
+                <div class="grid md:grid-cols-3 gap-12">
+                  <div class="text-center md:text-left group">
+                    <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Прочная алюминиевая рамка окрашена порошковой краской. Не выгорает и не ржавеет.</p>
+                  </div>
+                  <div class="text-center md:text-left group">
+                    <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Защита</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Помогает задержать тополиный пух, уличную пыль и пыльцу растений, что важно для аллергиков.</p>
+                  </div>
+                  <div class="text-center md:text-left group">
+                    <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">03</div>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Безопасность</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Москитные сетки могут служить защитой от случайного выпадения из окон предметов домашнего обихода.</p>
+                  </div>
                 </div>
               </div>
+              <div class="absolute top-0 right-0 w-[40rem] h-[40rem] rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" :style="{ backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '1A' }" style="will-change: filter; transform: translateZ(0);"></div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" :style="{ backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '1A' }" style="will-change: filter; transform: translateZ(0);"></div>
-          </div>
 
-          <SeoTextBlock :title="`Москитные сетки в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}`" class="mt-20">
-            <p>
-              <strong>{{ tenant.config.dealer_name || 'Сетки 21' }}</strong> — производство и установка москитных сеток в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Рамочные сетки на окна и балконные двери, металлический крепёж в комплекте, изготовление за 1 день. В каталоге: стандартная сетка Fiberglass, <NuxtLink to="/antimoshka" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антимошка</NuxtLink> (мелкая ячейка от мошек и пуха), <NuxtLink to="/ultravyu" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Ультравью</NuxtLink> (прозрачность и защита), <NuxtLink to="/antikoshka" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антикошка</NuxtLink> (усиленная для питомцев), <NuxtLink to="/antipyl" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антипыль</NuxtLink> (для аллергиков), <NuxtLink to="/vstavnye" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">вставные сетки VSN</NuxtLink> без сверления.
-            </p>
-            <p>
-              Замер по {{ tenant.config.city || 'Чебоксарам и Новочебоксарске' }}, доставка и самовывоз. <NuxtLink to="/remont" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Ремонт сеток</NuxtLink> — замена полотна, ручек, уголков от 100 ₽.
-            </p>
-            <p>
-              Цены на москитные сетки в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }} — от 850 ₽ за рамочную. Режим работы: {{ tenant.config.branding?.working_hours || 'Пн–Пт 10:00–18:00' }}. Звоните {{ tenant.config.phone || '+7 (8352) 38-14-20' }} или оставьте заявку через калькулятор — перезвоним и согласуем замер или самовывоз. <NuxtLink to="/contacts" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Контакты</NuxtLink>, <NuxtLink to="/delivery" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">доставка и замер</NuxtLink>.
-            </p>
-          </SeoTextBlock>
-          <section class="mt-20 pt-16 border-t border-gray-200">
-            <h2 class="text-2xl md:text-3xl font-black mb-10 uppercase tracking-tight text-brand-dark text-center">Часто задаваемые вопросы</h2>
-            <ul class="space-y-4">
-              <li v-for="(item, i) in faqMain" :key="i" class="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
-                <button
-                  type="button"
-                  class="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-gray-100/50 transition-colors"
-                  :aria-expanded="openFaq === i"
-                  @click="openFaq = openFaq === i ? null : i"
-                >
-                  <h3 class="font-black uppercase tracking-wider text-base" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">{{ item.q }}</h3>
-                  <span class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-transform duration-200" 
-                        :style="{ backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '1A', color: tenant.config.branding?.primary_color || '#2A6AB2' }"
-                        :class="{ 'rotate-180': openFaq === i }">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </button>
-                <div v-show="openFaq === i" class="px-6 pb-6 pt-0">
-                  <p class="text-gray-600 text-base font-medium leading-relaxed text-justify">{{ item.a }}</p>
-                </div>
-              </li>
-            </ul>
-          </section>
+            <SeoTextBlock :title="`Москитные сетки в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}`" class="mt-20">
+              <p>
+                <strong>{{ tenant.config.dealer_name || 'Сетки 21' }}</strong> — производство и установка москитных сеток в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Рамочные сетки на окна и балконные двери, металлический крепёж в комплекте, изготовление от 1 дня. В каталоге: стандартная сетка Fiberglass, <NuxtLink to="/antimoshka" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антимошка</NuxtLink> (мелкая ячейка от мошек и пуха), <NuxtLink to="/ultravyu" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Ультравью</NuxtLink> (прозрачность и защита), <NuxtLink to="/antikoshka" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антикошка</NuxtLink> (усиленная для питомцев), <NuxtLink to="/antipyl" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антипыль</NuxtLink> (для аллергиков), <NuxtLink to="/vstavnye" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">вставные сетки VSN</NuxtLink> без сверления.
+              </p>
+              <p>
+                Замер по {{ tenant.config.city || 'Чебоксарам и Новочебоксарске' }}, доставка и самовывоз. <NuxtLink to="/remont" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Ремонт сеток</NuxtLink> — замена полотна, ручек, уголков от 100 ₽.
+              </p>
+              <p>
+                Цены на москитные сетки в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }} — от 850 ₽ за рамочную. Режим работы: {{ tenant.config.branding?.working_hours || 'Пн–Пт 10:00–18:00' }}. Звоните {{ tenant.config.phone || '+7 (8352) 38-14-20' }} или оставьте заявку через калькулятор — перезвоним и согласуем замер или самовывоз. <NuxtLink to="/contacts" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Контакты</NuxtLink>, <NuxtLink to="/delivery" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">доставка и замер</NuxtLink>.
+              </p>
+            </SeoTextBlock>
+            <section class="mt-20 pt-16 border-t border-gray-200">
+              <h2 class="text-2xl md:text-3xl font-black mb-10 uppercase tracking-tight text-brand-dark text-center">Часто задаваемые вопросы</h2>
+              <ul class="space-y-4">
+                <li v-for="(item, i) in faqMain" :key="i" class="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                  <button
+                    type="button"
+                    class="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-gray-100/50 transition-colors"
+                    :aria-expanded="openFaq === i"
+                    @click="openFaq = openFaq === i ? null : i"
+                  >
+                    <h3 class="font-black uppercase tracking-wider text-base" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">{{ item.q }}</h3>
+                    <span class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-transform duration-200" 
+                          :style="{ backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '1A', color: tenant.config.branding?.primary_color || '#2A6AB2' }"
+                          :class="{ 'rotate-180': openFaq === i }">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </span>
+                  </button>
+                  <div v-show="openFaq === i" class="px-6 pb-6 pt-0">
+                    <p class="text-gray-600 text-base font-medium leading-relaxed text-justify">{{ item.a }}</p>
+                  </div>
+                </li>
+              </ul>
+            </section>
           
-          <Reviews />
+          <div class="reviews-wrapper">
+            <Reviews />
+          </div>
 
           <OtherServicesLinks exclude="/" />
       </div>

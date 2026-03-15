@@ -145,6 +145,8 @@ pub struct DealerSeoConfig {
     pub title_template: Option<String>, // Например: "Москитные сетки в {city} - {dealer_name}"
     pub description_template: Option<String>,
     pub keywords: Option<String>,
+    pub verification_tag: Option<String>,
+    pub analytics_code: Option<String>,
 }
 
 use rust_decimal::Decimal;

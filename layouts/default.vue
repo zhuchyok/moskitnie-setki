@@ -116,20 +116,21 @@ useHead({
   script: computed(() => [
     { type: 'application/ld+json', children: JSON.stringify(breadcrumbSchema.value) }
   ]),
-  link: computed(() => {
+    link: computed(() => {
     const rawUrl = tenant.config.branding?.favicon_url || tenant.config.branding?.logo_url || '/favicon.ico'
     const origin = requestURL?.origin || (typeof window !== 'undefined' ? window.location.origin : '')
     const logoUrl = rawUrl.startsWith('http') ? rawUrl : (origin ? origin.replace(/\/$/, '') + rawUrl : rawUrl)
     const isPng = logoUrl.toLowerCase().endsWith('.png')
+    const isSvg = logoUrl.toLowerCase().endsWith('.svg')
     const v = tenant.config.dealer_id || 'default'
     const hostSlug = typeof window !== 'undefined' ? window.location.hostname.replace(/\./g, '_') : (requestURL?.host || '').replace(/\./g, '_')
     const q = logoUrl.includes('?') ? `&v=${v}&h=${hostSlug}` : `?v=${v}&h=${hostSlug}`
     const href = logoUrl + q
 
     return [
-      { key: 'favicon', rel: 'icon', type: isPng ? 'image/png' : 'image/x-icon', href },
-      { key: 'shortcut', rel: 'shortcut icon', type: isPng ? 'image/png' : 'image/x-icon', href },
-      { key: 'apple', rel: 'apple-touch-icon', href }
+      { key: 'favicon', rel: 'icon', type: isSvg ? 'image/svg+xml' : (isPng ? 'image/png' : 'image/x-icon'), sizes: isSvg ? 'any' : '120x120', href },
+      { key: 'shortcut', rel: 'shortcut icon', type: isSvg ? 'image/svg+xml' : (isPng ? 'image/png' : 'image/x-icon'), href },
+      { key: 'apple', rel: 'apple-touch-icon', sizes: '180x180', href }
     ]
   })
 })
@@ -299,7 +300,7 @@ useHead({
               </template>
             </div>
             <p v-if="tenant.isLoaded" class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
-              {{ tenant.config.seo?.description || 'Изготовим москитные сетки на окна по индивидуальным размерам за 1 день. Используем только качественные комплектующие и металлический крепеж.' }}
+              Заказать москитные сетки в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }} от производителя {{ tenant.config.dealer_name || 'Москитные сетки 21' }}. Изготовление от 1 дня, металлический крепеж, замер и установка. Рамочные, Антикошка, Антипыль, Ультравью, вставные VSN.
             </p>
             <div v-else class="h-12 w-full max-w-md rounded bg-white/5 animate-pulse" aria-hidden="true" />
           </div>
@@ -314,15 +315,23 @@ useHead({
           <div>
             <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm" :style="{ borderColor: tenant.config.branding?.primary_color || '#2A6AB2' }">Контакты</h4>
             <div class="space-y-4 text-sm text-gray-400 font-medium">
-              <p v-if="tenant.config.city">📍 {{ tenant.config.city }}</p>
+              <template v-if="tenant.config.contacts?.branches?.length">
+                <div v-for="branch in tenant.config.contacts.branches" :key="branch.id" class="mb-4 last:mb-0">
+                  <p v-if="branch.name" class="text-white font-bold text-xs uppercase tracking-wider mb-1">{{ branch.name }}</p>
+                  <p>📍 {{ branch.address }}</p>
+                </div>
+              </template>
+              <p v-else-if="tenant.config.city">📍 {{ tenant.config.city }}</p>
               <p v-else>📍 Чебоксары, ул. Гражданская, 53, оф.1</p>
+
               <p v-if="tenant.config.branding?.working_hours">🕐 {{ tenant.config.branding.working_hours }}</p>
               <p v-else>🕐 Пн–Пт 10:00–18:00</p>
               <p v-if="tenant.config.phone">📞 {{ tenant.config.phone }}</p>
               <p v-else>📞 +7 (8352) 38-14-20</p>
-              <p v-if="tenant.config.contacts?.emails?.length">✉️ <a :href="'mailto:' + tenant.config.contacts.emails[0]" class="hover:text-white transition-colors">{{ tenant.config.contacts.emails[0] }}</a></p>
+              <p v-if="tenant.config.email">✉️ <a :href="'mailto:' + tenant.config.email" class="hover:text-white transition-colors">{{ tenant.config.email }}</a></p>
+              <p v-else-if="tenant.config.contacts?.emails?.length">✉️ <a :href="'mailto:' + tenant.config.contacts.emails[0]" class="hover:text-white transition-colors">{{ tenant.config.contacts.emails[0] }}</a></p>
               <p v-else>✉️ <a href="mailto:info@setki21.ru" class="hover:text-white transition-colors">info@setki21.ru</a></p>
-              <p class="text-gray-500 text-xs">Работаем по {{ tenant.config.city || 'Чебоксарам и Новочебоксарску' }}</p>
+              <p class="text-gray-500 text-xs">Работаем по {{ tenant.config.city || 'Чебоксарам и Новочебоксарске' }}</p>
             </div>
           </div>
         </div>

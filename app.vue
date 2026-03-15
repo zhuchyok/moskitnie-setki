@@ -6,13 +6,15 @@ import { usePricingStore } from '~/stores/pricing'
 const auth = useAuthStore()
 const tenant = useTenantStore()
 const pricing = usePricingStore()
+const route = useRoute()
 
 // Конфиг тенанта: на SSR — по Host из запроса (чтобы фавикон/лого дилера в первом HTML), на клиенте — по текущему origin
 const event = import.meta.server ? useRequestEvent() : null
 const ssrOrigin = event?.node?.req?.headers?.host
   ? `${(event.node.req as any).headers['x-forwarded-proto'] === 'https' ? 'https' : 'http'}://${event.node.req.headers.host}`
   : undefined
-// OG-image: от текущего origin + logo_url (аудит 2026-03-10), не хардкод www.setki21.ru
+
+// OG-image и Canonical: от текущего origin (аудит 2026-03-10), не хардкод www.setki21.ru
 const requestURL = useRequestURL()
 const siteOrigin = requestURL?.origin || ''
 
@@ -26,6 +28,13 @@ const { data: pricingData } = await useAsyncData('pricing-config', async () => {
   return pricing.pricing
 })
 
+// Вычисляем канонический URL для текущей страницы
+const canonicalUrl = computed(() => {
+  const origin = siteOrigin || 'https://www.setki21.ru'
+  const path = route.path.replace(/\/$/, '') || '/'
+  return `${origin}${path === '/' ? '' : path}`
+})
+
 onMounted(() => {
   auth.initAuth()
   // Всегда запрашиваем конфиг на клиенте: при статическом деплое payload из пререндера пустой,
@@ -37,26 +46,43 @@ onMounted(() => {
     pricing.fetchPricing()
   }
 })
+
 useHead({
   title: computed(() => tenant.config.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21'),
   meta: computed(() => {
     const ogImage = tenant.config.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png')
-    const faviconUrl = tenant.config.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
     return [
       { name: 'description', content: tenant.config.seo?.description || '' },
       { property: 'og:title', content: tenant.config.seo?.title || '' },
       { property: 'og:description', content: tenant.config.seo?.description || '' },
       { property: 'og:image', content: ogImage },
-      { name: 'twitter:image', content: ogImage }
+      { name: 'twitter:image', content: ogImage },
+      { name: 'robots', content: 'index, follow' },
+      ...(tenant.config.seo?.verification_tag ? [{
+        name: 'verification',
+        content: tenant.config.seo.verification_tag
+      }] : [])
     ]
   }),
   link: computed(() => {
     const faviconUrl = tenant.config.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
     return [
+      { rel: 'canonical', href: canonicalUrl.value },
       { rel: 'icon', type: 'image/x-icon', href: faviconUrl },
       { rel: 'shortcut icon', type: 'image/x-icon', href: faviconUrl },
       { rel: 'apple-touch-icon', href: faviconUrl }
     ]
+  }),
+  script: computed(() => {
+    const scripts = []
+    if (tenant.config.seo?.analytics_code) {
+      scripts.push({
+        innerHTML: tenant.config.seo.analytics_code,
+        type: 'text/javascript',
+        body: true
+      })
+    }
+    return scripts
   })
 })
 </script>
@@ -95,5 +121,4 @@ body {
 .btn-secondary {
   @apply bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-bold py-3 px-6 rounded-full transition-all;
 }
-
 </style>

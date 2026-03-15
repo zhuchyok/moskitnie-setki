@@ -366,7 +366,13 @@ pub async fn update_dealer(
     }
     if let Some(contacts) = payload.contacts { dealer.contacts = contacts; }
     if let Some(legal) = payload.legal_info { dealer.legal_info = legal; }
-    if let Some(seo) = payload.seo_config { dealer.seo_config = seo; }
+    if let Some(seo) = payload.seo_config {
+        if let Some(title) = seo.title_template { dealer.seo_config.title_template = Some(title); }
+        if let Some(desc) = seo.description_template { dealer.seo_config.description_template = Some(desc); }
+        if let Some(kw) = seo.keywords { dealer.seo_config.keywords = Some(kw); }
+        if let Some(vt) = seo.verification_tag { dealer.seo_config.verification_tag = Some(vt); }
+        if let Some(ac) = seo.analytics_code { dealer.seo_config.analytics_code = Some(ac); }
+    }
 
     let updated = repo.update(dealer).await.map_err(|e| {
         tracing::error!(dealer_id = %dealer_id, error = %e, "admin update_dealer update: DB error");

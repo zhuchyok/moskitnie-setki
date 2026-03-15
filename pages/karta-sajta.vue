@@ -54,47 +54,52 @@ useHead({
 </script>
 
 <template>
-  <div>
-    <section class="py-16 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="bg-gray-50 rounded-[3rem] p-8 md:p-16 shadow-sm border border-gray-100">
-          <h1 class="text-2xl md:text-3xl font-black mb-12 uppercase tracking-tight text-center leading-tight"
-              :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
-            Карта сайта
-          </h1>
+  <div class="bg-gray-50 min-h-screen pb-20">
+    <!-- Hero Section -->
+    <section class="bg-brand-dark text-white py-20 relative overflow-hidden">
+      <div class="container mx-auto px-4 relative z-10 text-center">
+        <h1 class="text-4xl md:text-6xl font-black mb-6 uppercase tracking-tighter text-white">
+          Карта <span :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">сайта</span>
+        </h1>
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto font-medium leading-relaxed">
+          Удобная навигация по всем разделам и услугам компании {{ tenant.config.dealer_name || defaultDealerName }}.
+        </p>
+      </div>
+      <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]"></div>
+    </section>
 
-          <div class="prose prose-blue max-w-none text-gray-600 space-y-10 font-medium text-sm md:text-base">
-            <p class="text-center">
-              Все разделы сайта {{ tenant.config.dealer_name || defaultDealerName }}. {{ tenant.config.city || 'Чебоксары и Новочебоксарск' }} — производство и установка москитных сеток.
+    <div class="container mx-auto px-4 -mt-10 relative z-20">
+      <div class="bg-white p-10 md:p-16 rounded-[3rem] shadow-xl border border-gray-100">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <NuxtLink v-for="page in pages" :key="page.path" :to="page.path"
+                    class="group p-8 rounded-[2rem] border border-gray-50 bg-gray-50/30 hover:bg-white hover:shadow-2xl hover:border-transparent transition-all duration-500 flex flex-col h-full">
+            <h3 class="text-xl font-black text-brand-dark mb-4 uppercase tracking-tight group-hover:text-brand-blue transition-colors"
+                :style="{ '--hover-color': tenant.config.branding?.primary_color || '#2A6AB2' }">
+              {{ page.name }}
+            </h3>
+            <p class="text-gray-500 font-medium text-sm leading-relaxed flex-grow">
+              {{ page.desc }}
             </p>
-
-            <div class="section">
-              <h2 class="text-xl font-black uppercase tracking-wider mb-4"
-                  :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Разделы сайта</h2>
-              <ul class="list-disc pl-6 space-y-3">
-                <li v-for="page in pages" :key="page.path">
-                  <NuxtLink :to="page.path" class="underline hover:opacity-80"
-                            :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
-                    {{ page.name }}
-                  </NuxtLink>
-                  — {{ page.desc }}
-                </li>
-              </ul>
+            <div class="mt-6 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-brand-blue transition-colors"
+                 :style="{ '--hover-color': tenant.config.branding?.primary_color || '#2A6AB2' }">
+              Перейти
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </div>
+          </NuxtLink>
+        </div>
 
-            <p class="text-xs text-gray-400 italic text-center">
-              Для поисковых систем: <a href="/sitemap.xml" class="underline" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" target="_blank" rel="noopener">sitemap.xml</a>
-            </p>
-          </div>
-
-          <div class="mt-16 text-center">
-            <NuxtLink to="/" class="inline-flex items-center gap-2 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl active:scale-95"
-                      :style="{ backgroundColor: tenant.config.branding?.primary_color || '#2A6AB2', boxShadow: `0 20px 50px -10px ${(tenant.config.branding?.primary_color || '#2A6AB2')}66` }">
-              ← Вернуться на главную
-            </NuxtLink>
-          </div>
+        <div class="mt-16 pt-10 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">
+            Технический файл: <a href="/sitemap.xml" class="underline hover:text-brand-dark transition-colors" target="_blank" rel="noopener">sitemap.xml</a>
+          </p>
+          <NuxtLink to="/" class="inline-flex items-center gap-3 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 hover:opacity-90"
+                    :style="{ backgroundColor: tenant.config.branding?.primary_color || '#2A6AB2', boxShadow: `0 20px 50px -10px ${(tenant.config.branding?.primary_color || '#2A6AB2')}66` }">
+            ← На главную
+          </NuxtLink>
         </div>
       </div>
-    </section>
+    </div>
   </div>
 </template>

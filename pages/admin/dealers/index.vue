@@ -210,7 +210,9 @@ const form = reactive({
   seo_config: {
     title_template: '',
     description_template: '',
-    keywords: ''
+    keywords: '',
+    verification_tag: '',
+    analytics_code: ''
   }
 })
 
@@ -256,7 +258,7 @@ const openCreateModal = () => {
   form.branding = { logo_url: '', primary_color: '#2196F3', short_description: '', full_description: '', working_hours: '' }
   form.contacts = { phones: [], emails: [], additional_cities: [] }
   form.legal_info = { requisites: '', privacy_policy_url: '', privacy_policy_text: '' }
-  form.seo_config = { title_template: '', description_template: '', keywords: '' }
+  form.seo_config = { title_template: '', description_template: '', keywords: '', verification_tag: '', analytics_code: '' }
   isModalOpen.value = true
 }
 
@@ -483,6 +485,7 @@ onMounted(fetchDealers)
               <button @click="activeTab = 'branches'" v-if="form.id" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'branches' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Филиалы и домены</button>
               <button @click="activeTab = 'contacts'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'contacts' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Контакты</button>
               <button @click="activeTab = 'legal'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'legal' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">Юр. данные</button>
+              <button @click="activeTab = 'seo'" :class="['text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-xl transition-all whitespace-nowrap', activeTab === 'seo' ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' : 'text-gray-400 hover:bg-gray-50']">SEO и Аналитика</button>
             </div>
             
             <!-- Content -->
@@ -789,6 +792,33 @@ onMounted(fetchDealers)
                       <div :class="['absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-300', form.is_active ? 'left-7' : 'left-1']"></div>
                     </div>
                     <label class="text-xs font-black uppercase tracking-widest text-brand-dark cursor-pointer">Активный партнер</label>
+                  </div>
+                </div>
+
+                <div v-if="activeTab === 'seo'" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Шаблон Title</label>
+                    <input v-model="form.seo_config.title_template" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" placeholder="Москитные сетки в {city} - {dealer_name}" />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Шаблон Description</label>
+                    <textarea v-model="form.seo_config.description_template" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner resize-none" rows="3"></textarea>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Keywords</label>
+                    <input v-model="form.seo_config.keywords" type="text" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                  </div>
+                  <div class="pt-6 border-t border-gray-100 space-y-8">
+                    <div class="space-y-2">
+                      <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Мета-тег подтверждения (Yandex/Google)</label>
+                      <textarea v-model="form.seo_config.verification_tag" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-mono text-xs shadow-inner resize-none" rows="2" placeholder='<meta name="yandex-verification" content="..." />'></textarea>
+                      <p class="text-[8px] text-gray-400 ml-4 uppercase">Будет вставлен в секцию &lt;head&gt;</p>
+                    </div>
+                    <div class="space-y-2">
+                      <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Код счетчика (Метрика/Analytics)</label>
+                      <textarea v-model="form.seo_config.analytics_code" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-mono text-xs shadow-inner resize-none" rows="6" placeholder="<!-- Yandex.Metrika counter --> ..."></textarea>
+                      <p class="text-[8px] text-gray-400 ml-4 uppercase">Будет вставлен в конец &lt;body&gt;</p>
+                    </div>
                   </div>
                 </div>
                 

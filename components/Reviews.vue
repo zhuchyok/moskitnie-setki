@@ -5,7 +5,7 @@ const reviews = computed(() => [
   {
     author: 'Алексей',
     date: '2025-05-15',
-    text: `Заказал сетки Антикошка в ${tenant.config.city || 'Чебоксарах'}. Кот доволен, я спокоен. Качество отличное, установили быстро.`,
+    text: `Заказал сетки Антикошка (город ${tenant.config.city || 'Чебоксары'}). Кот доволен, я спокоен. Качество отличное, установили быстро.`,
     rating: 5
   },
   {
@@ -17,7 +17,7 @@ const reviews = computed(() => [
   {
     author: 'Игорь',
     date: '2025-07-10',
-    text: `Брал сетки Антипыль, так как аллергик. Реально стало меньше пыли в квартире. В ${tenant.config.city || 'нашем городе'} это лучший вариант по цене и качеству.`,
+    text: `Брал сетки Антипыль, так как аллергик. Реально стало меньше пыли в квартире. Для города ${tenant.config.city || 'Чебоксары'} это лучший вариант по цене и качеству.`,
     rating: 5
   }
 ])
@@ -57,7 +57,7 @@ useHead({
   <section class="py-12 bg-gray-50/50 rounded-[3rem] mt-16 border border-gray-100 overflow-hidden">
     <div class="container mx-auto px-6">
       <h2 class="text-2xl md:text-3xl font-black mb-10 uppercase tracking-tight text-center" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
-        Отзывы наших клиентов в {{ tenant.config.city || 'Чебоксарах' }}
+        Отзывы наших клиентов: {{ tenant.config.city || 'Чебоксары' }}
       </h2>
       
       <div class="grid md:grid-cols-3 gap-6">
@@ -78,11 +78,7 @@ useHead({
       
       <div class="mt-10 text-center">
         <div class="inline-flex items-center px-6 py-3 bg-white rounded-full shadow-sm border border-gray-100">
-          <span class="text-sm font-bold text-gray-500 mr-2">⭐ 4.9/5 на основе 154 отзывов в {{ tenant.config.city || 'Чебоксарах' }}</span>
-          <div class="w-px h-4 bg-gray-200 mx-3"></div>
-          <a href="#" class="text-sm font-black uppercase tracking-wider hover:underline" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
-            Все отзывы
-          </a>
+          <span class="text-sm font-bold text-gray-500">⭐ 4.9/5 на основе 154 отзывов: {{ tenant.config.city || 'Чебоксары' }}</span>
         </div>
       </div>
     </div>

@@ -147,15 +147,15 @@ const faqItems = computed(() => [
               <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 pr-[30%] md:pr-[35%]">
                 <div class="inline-flex flex-col items-stretch">
                   <div class="text-center">
-                    <p class="text-[clamp(1rem,4vw,2.2rem)] font-black leading-[0.9] uppercase tracking-[0.05em] opacity-90 flex justify-between" 
-                       style="font-family: 'Impact', 'Arial Black', sans-serif;"
+                    <p class="text-[clamp(1rem,3.2vw,2rem)] font-black leading-[0.9] uppercase tracking-tighter opacity-90" 
+                       style="font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: -0.02em;"
                        :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
-                      <span>П</span><span>Р</span><span>О</span><span>С</span><span>Т</span><span>О</span><span>&nbsp;</span><span>З</span><span>А</span><span>М</span><span>Е</span><span>Р</span><span>Я</span><span>Е</span><span>М</span>
+                      ПРОСТО ЗАМЕРЯЕМ
                     </p>
-                    <p class="text-[clamp(1rem,4vw,2.2rem)] font-black leading-[0.9] uppercase tracking-[0.05em] opacity-90 mt-1 flex justify-between" 
-                       style="font-family: 'Impact', 'Arial Black', sans-serif;"
+                    <p class="text-[clamp(1rem,3.2vw,2rem)] font-black leading-[0.9] uppercase tracking-tighter opacity-90 mt-1" 
+                       style="font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: -0.02em;"
                        :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
-                      <span>Р</span><span>А</span><span>З</span><span>М</span><span>Е</span><span>Р</span><span>Ы</span><span>&nbsp;</span><span>С</span><span>Т</span><span>В</span><span>О</span><span>Р</span><span>К</span><span>И</span>
+                      РАЗМЕРЫ СТВОРКИ
                     </p>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import punycode from 'punycode/'
+import punycode from 'punycode'
 
 const tenant = useTenantStore()
 

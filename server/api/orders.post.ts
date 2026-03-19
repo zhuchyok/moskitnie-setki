@@ -34,46 +34,11 @@ export default defineEventHandler(async (event) => {
       total_order_value: body.total_order_value ? String(body.total_order_value).trim() : undefined,
       measurement: body.measurement,
       discount_type: body.discount_type,
-      // Валидация UUID: Rust API упадет с 400, если передать пустую строку или невалидный UUID
       dealer_id: (body.dealer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.dealer_id)) ? body.dealer_id : undefined,
       branch_id: (body.branch_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.branch_id)) ? body.branch_id : undefined,
       items: Array.isArray(body.items) ? body.items : []
     }
 
-    // Если branch_id не является валидным UUID, но передан (например, "Самовывоз Чебоксары"), 
-    // мы его очищаем, так как в БД это внешний ключ на таблицу dealer_branches.
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-    if (trimmed.branch_id && !uuidRegex.test(trimmed.branch_id)) {
-      trimmed.branch_id = undefined
-    }
-
-    console.log('Sending order to Rust API:', JSON.stringify({
-      client_name: trimmed.formName,
-      dealer_id: trimmed.dealer_id,
-      branch_id: trimmed.branch_id,
-      items_count: trimmed.items.length
-    }))
-
-  // Валидация данных
-  const requiredFields = ['formName', 'formPhone', 'list_order', 'total_price_value']
-  for (const field of requiredFields) {
-    if (!trimmed[field as keyof typeof trimmed] && field !== 'items' && field !== 'dealer_id') {
-      throw createError({
-        statusCode: 400,
-        statusMessage: `Missing required field: ${field}`
-      })
-    }
-  }
-
-    // Валидация email формата (если есть)
-    if (trimmed.formEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed.formEmail)) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: 'Invalid email format'
-      })
-    }
-
-    // Валидация телефона: любые скобки/дефисы/пробелы — нормализуем до 11 цифр
     const phoneNorm = normalizePhone(trimmed.formPhone)
     if (!phoneNorm) {
       throw createError({
@@ -82,28 +47,36 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // 1. Сохранение в БД через moskit-api (ПЕРВООЧЕРЕДНО)
+    // 1. Сохранение в БД через moskit-api
     let orderIdFromDb = Date.now()
     let orderNumberFromDb = `WEB-${orderIdFromDb}`
+    let dealerData: any = null
 
     try {
       const apiUrl = process.env.API_URL || 'http://moskit-api:8080'
+      
+      // Получаем данные дилера для письма (город, название)
+      if (trimmed.dealer_id) {
+        try {
+          dealerData = await $fetch(`${apiUrl}/api/v1/tenant/config`, {
+            headers: { 'host': getHeader(event, 'host') || '' },
+            query: { dealer_id: trimmed.dealer_id }
+          })
+        } catch (e) {
+          console.error('Failed to fetch dealer info for email:', e)
+        }
+      }
+
       const orderPayload = {
         client_name: trimmed.formName,
         client_phone: phoneNorm,
         client_address: trimmed.formAddress,
         dealer_id: trimmed.dealer_id,
-        branch_id: (trimmed.branch_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed.branch_id)) ? trimmed.branch_id : null,
+        branch_id: trimmed.branch_id || null,
         items: trimmed.items.map((item: any) => {
-          // Маппинг типов сеток на ID продуктов из базы данных
-          let productId = '00000000-0000-0000-0000-000000000004' // Default: Стандартная сетка
+          let productId = '00000000-0000-0000-0000-000000000004'
           const meshType = item.params?.mesh_type || ''
-          
-          if (meshType === 'antikoshka') {
-            productId = '00000000-0000-0000-0000-000000000005'
-          }
-          // Можно добавить другие типы, когда они появятся в БД
-
+          if (meshType === 'antikoshka') productId = '00000000-0000-0000-0000-000000000005'
           return {
             product_id: productId,
             name: item.name,
@@ -113,8 +86,6 @@ export default defineEventHandler(async (event) => {
           }
         })
       }
-
-      console.log('FINAL PAYLOAD TO RUST:', JSON.stringify(orderPayload))
 
       const dbResponse: any = await $fetch(`${apiUrl}/api/v1/dealer/orders`, {
         method: 'POST',
@@ -127,18 +98,15 @@ export default defineEventHandler(async (event) => {
       }
     } catch (dbError: any) {
       console.error('CRITICAL: Failed to save order to DB:', dbError)
-      
-      // Если это ошибка бизнес-логики от Rust API (например, баланс), пробрасываем её текст
       const remoteMessage = dbError.data?.message || dbError.message
       const isBusinessError = dbError.statusCode === 400 || dbError.statusCode === 422
-
       throw createError({
         statusCode: isBusinessError ? 400 : 503,
-        statusMessage: isBusinessError ? remoteMessage : 'Сервис временно недоступен. Пожалуйста, попробуйте позже или свяжитесь с нами по телефону.'
+        statusMessage: isBusinessError ? remoteMessage : 'Сервис временно недоступен.'
       })
     }
 
-    // 2. Настройка SMTP — тот же провайдер, что и для callback/contact (Timeweb: 465, secure)
+    // 2. Настройка SMTP
     const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10)
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.timeweb.ru',
@@ -150,60 +118,94 @@ export default defineEventHandler(async (event) => {
       }
     })
 
-    // Создание HTML письма (все пользовательские данные экранированы)
+    const city = dealerData?.city || 'Чебоксары'
+    const dealerName = dealerData?.dealer_name || 'Сетки 21'
+    const brandColor = dealerData?.branding?.primary_color || '#2A6AB2'
+
+    // Красивый HTML шаблон в стиле сайта
     const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2A6AB2;">Новый заказ №${orderNumberFromDb}</h2>
+      <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9fafb; padding: 40px 20px;">
+        <div style="background-color: #ffffff; border-radius: 24px; overflow: hidden; shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+          <!-- Header -->
+          <div style="background-color: ${brandColor}; padding: 30px; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px;">Новый заказ №${orderNumberFromDb}</h1>
+            <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0 0; font-size: 14px; font-weight: bold; text-transform: uppercase;">${dealerName} — ${city}</p>
+          </div>
 
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3>Контактные данные:</h3>
-          <p><strong>Имя:</strong> ${escapeHtml(trimmed.formName)}</p>
-          <p><strong>Телефон:</strong> ${escapeHtml(trimmed.formPhone)}</p>
-          ${trimmed.formEmail ? `<p><strong>Email:</strong> ${escapeHtml(trimmed.formEmail)}</p>` : ''}
-          ${trimmed.formAddress ? `<p><strong>Адрес:</strong> ${escapeHtml(trimmed.formAddress)}</p>` : ''}
-          ${trimmed.formComment ? `<p><strong>Комментарий:</strong> ${escapeHtml(trimmed.formComment)}</p>` : ''}
+          <div style="padding: 30px;">
+            <!-- Клиент -->
+            <div style="margin-bottom: 30px;">
+              <h3 style="color: #9ca3af; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; font-weight: 900;">Данные клиента</h3>
+              <div style="background-color: #f3f4f6; border-radius: 16px; padding: 20px;">
+                <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>Имя:</strong> ${escapeHtml(trimmed.formName)}</p>
+                <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>Телефон:</strong> <a href="tel:${phoneNorm}" style="color: ${brandColor}; text-decoration: none; font-weight: bold;">${escapeHtml(trimmed.formPhone)}</a></p>
+                ${trimmed.formAddress ? `<p style="margin: 0; font-size: 16px;"><strong>Адрес:</strong> ${escapeHtml(trimmed.formAddress)}</p>` : ''}
+              </div>
+            </div>
+
+            <!-- Заказ -->
+            <div style="margin-bottom: 30px;">
+              <h3 style="color: #9ca3af; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; font-weight: 900;">Состав заказа</h3>
+              <div style="border: 2px solid #f3f4f6; border-radius: 16px; padding: 20px;">
+                <div style="font-size: 14px; line-height: 1.6; color: #374151;">
+                  ${trimmed.list_order.split(/<br\s*\/?>/gi).map(s => `<div style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">${escapeHtml(s)}</div>`).join('')}
+                </div>
+                <div style="margin-top: 20px; text-align: right;">
+                  <span style="color: #9ca3af; font-size: 12px; text-transform: uppercase; font-weight: bold;">Итого к оплате:</span>
+                  <div style="color: ${brandColor}; font-size: 32px; font-weight: 900; margin-top: 5px;">${trimmed.total_price_value} ₽</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Доп. услуги -->
+            <div style="margin-bottom: 30px;">
+              <h3 style="color: #9ca3af; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; font-weight: 900;">Дополнительно</h3>
+              <div style="background-color: ${brandColor}0D; border: 1px solid ${brandColor}1A; border-radius: 16px; padding: 20px; color: ${brandColor};">
+                <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;">
+                  <span style="opacity: 0.7;">📦 Способ получения:</span> ${escapeHtml(trimmed.total_order_value || 'Не указан')}
+                </p>
+                ${trimmed.measurement 
+                  ? `<p style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">📏 Замер:</span> Требуется выезд мастера (${city})</p>` 
+                  : `<p style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">📏 Замер:</span> Своими силами (см. детали в составе заказа)</p>`
+                }
+                ${trimmed.discount_type === 'srochnyi' ? `<p style="margin: 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">⚡ Срочность:</span> Приоритетный заказ (+400 ₽)</p>` : ''}
+              </div>
+            </div>
+
+            ${trimmed.formComment ? `
+            <div>
+              <h3 style="color: #9ca3af; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; font-weight: 900;">Комментарий</h3>
+              <div style="font-style: italic; color: #6b7280; font-size: 14px; background-color: #f9fafb; padding: 15px; border-radius: 12px; border-left: 4px solid #d1d5db;">
+                ${escapeHtml(trimmed.formComment)}
+              </div>
+            </div>` : ''}
+          </div>
+
+          <!-- Footer -->
+          <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #f3f4f6;">
+            <p style="color: #9ca3af; font-size: 11px; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
+              Заказ создан через сайт ${dealerName}<br>
+              ${new Date().toLocaleString('ru-RU')}
+            </p>
+          </div>
         </div>
-
-        <div style="background: #fff; padding: 20px; border: 1px solid #dee2e6; border-radius: 8px; margin: 20px 0;">
-          <h3>Заказ:</h3>
-          ${trimmed.list_order.split(/<br\s*\/?>/gi).map(s => escapeHtml(s)).join('<br/>')}
-          <p style="font-size: 18px; font-weight: bold; color: #2A6AB2; margin-top: 15px;">
-            Итого: ${escapeHtml(String(trimmed.total_price_value))} ₽
-          </p>
-        </div>
-
-        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0; color: #1565c0;">
-            <strong>Доставка:</strong> ${escapeHtml(trimmed.total_order_value || 'Не указана')}
-          </p>
-          ${trimmed.measurement ? '<p style="margin: 8px 0 0 0; color: #1565c0;"><strong>Замер:</strong> Чебоксары и Новочебоксарск</p>' : ''}
-          ${trimmed.discount_type === 'srochnyi' ? '<p style="margin: 8px 0 0 0; color: #1565c0;"><strong>Приоритетный срочный заказ:</strong> 400 ₽</p>' : ''}
-        </div>
-
-        <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
-        <p style="color: #666; font-size: 12px;">
-          Заказ создан автоматически через сайт Сетки 21<br>
-          Номер в системе: ${orderNumberFromDb}<br>
-          Время создания: ${new Date().toLocaleString('ru-RU')}
-        </p>
       </div>
     `
 
     // Отправка email
-    // Приоритет: email дилера из конфига -> основной email дилера -> email из окружения -> дефолт
-    const recipientEmail = body.dealer_email || body.formDealerEmail || process.env.ORDER_EMAIL || 'info@setki21.ru'
+    // Приоритет: email дилера из базы данных (dealerData) -> email из тела запроса -> email из окружения -> дефолт
+    const recipientEmail = dealerData?.email || body.dealer_email || body.formDealerEmail || process.env.ORDER_EMAIL || 'info@setki21.ru'
     
     try {
       await transporter.sendMail({
-        from: process.env.SMTP_USER,
+        from: `"${dealerName}" <${process.env.SMTP_USER}>`,
         to: recipientEmail,
-        subject: `Заказ №${orderNumberFromDb} - ${escapeHtml(trimmed.formName)}`,
+        subject: `Заказ №${orderNumberFromDb} (${city}) - ${trimmed.formName}`,
         html: htmlContent,
-        replyTo: trimmed.formEmail || trimmed.formPhone
+        replyTo: trimmed.formEmail || phoneNorm
       })
     } catch (mailError) {
       console.error('NON-CRITICAL: Failed to send order email:', mailError)
-      // Мы не бросаем ошибку здесь, так как заказ уже сохранен в БД
     }
 
     return {
@@ -215,7 +217,6 @@ export default defineEventHandler(async (event) => {
 
   } catch (error: any) {
     console.error('Order API error:', error)
-
     throw createError({
       statusCode: error.statusCode || 500,
       statusMessage: error.statusMessage || 'Internal server error'

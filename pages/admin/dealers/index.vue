@@ -258,7 +258,13 @@ const openCreateModal = () => {
   form.branding = { logo_url: '', primary_color: '#2196F3', short_description: '', full_description: '', working_hours: '' }
   form.contacts = { phones: [], emails: [], additional_cities: [] }
   form.legal_info = { requisites: '', privacy_policy_url: '', privacy_policy_text: '' }
-  form.seo_config = { title_template: '', description_template: '', keywords: '', verification_tag: '', analytics_code: '' }
+  form.seo_config = { 
+    title_template: 'Москитные сетки в {city} - {dealer_name}', 
+    description_template: 'Заказать москитные сетки в {city} от производителя {dealer_name}. Изготовление за 1 день, замер и установка.', 
+    keywords: 'москитные сетки {city}, купить сетку на окно, {dealer_name}', 
+    verification_tag: '', 
+    analytics_code: '' 
+  }
   isModalOpen.value = true
 }
 

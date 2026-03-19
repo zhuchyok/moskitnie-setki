@@ -22,7 +22,9 @@ export const useTenantStore = defineStore('tenant', () => {
     seo: {
       title: '',
       description: '',
-      keywords: ''
+      keywords: '',
+      verification_tag: '',
+      analytics_code: ''
     },
     legal: {
       requisites: '',
@@ -39,22 +41,122 @@ export const useTenantStore = defineStore('tenant', () => {
       const route = useRoute()
       
       // Запрос конфига — на текущий origin, чтобы бэкенд получил Host дилера и вернул его конфиг (фавикон и лого дилера, не головного сайта)
-      // На клиенте: baseURL '' = текущий origin. На SSR: если передан ssrOrigin (Host из запроса) — запрашиваем с домена дилера
+      // На клиенте: baseURL '' = текущий origin. На SSR: используем apiBase (http://api:8080/api) с Host заголовком
       const configBaseUrl = process.client && typeof window !== 'undefined'
         ? ''
-        : (ssrOrigin || apiBase)
+        : runtimeConfig.public.apiBase
       
       const dealerId = !route.path.startsWith('/admin') ? route.query.dealer_id : null
       const queryParams = dealerId ? { dealer_id: String(dealerId) } : {}
       
-      const data = await $fetch('/api/v1/tenant/config', {
-        baseURL: configBaseUrl,
-        query: queryParams
-      }) as any
+      const headers: Record<string, string> = {}
+      if (ssrOrigin) {
+        try {
+          const url = new URL(ssrOrigin)
+          let host = url.host
+          console.error(`[SSR_DEBUG] ORIGINAL_HOST: ${host}`)
+          if (host === 'localhost:3003' || host === '127.0.0.1:3003' || host === '0.0.0.0:3003') {
+            host = 'setkimoskitki.ru'
+            console.error(`[SSR_DEBUG] MAPPED_HOST: ${host}`)
+          }
+          headers['host'] = host
+          headers['x-forwarded-host'] = host
+          headers['x-forwarded-proto'] = url.protocol.replace(':', '')
+        } catch (e) {
+          console.error('Invalid ssrOrigin URL:', ssrOrigin)
+        }
+      }
+      
+      if (import.meta.server) {
+        console.log(`[SSR] Fetching config from ${configBaseUrl}/api/v1/tenant/config with Host: ${headers['Host'] || 'none'}`)
+      }
+      
+      // На SSR baseURL уже включает /api (http://api:8080/api), поэтому путь должен быть /v1/...
+      // На клиенте baseURL пустой, поэтому путь должен быть /api/v1/...
+      // ВАЖНО: Если baseURL начинается с http, Nuxt не будет пытаться резолвить его как внутренний роут.
+      // Используем относительный путь для SSR, если baseURL задан.
+      const fetchPath = (configBaseUrl && configBaseUrl.startsWith('http')) ? 'v1/tenant/config' : '/api/v1/tenant/config'
+      
+      if (import.meta.server) {
+        console.log(`[SSR] Fetching config from "${configBaseUrl}" with path "${fetchPath}" and Host: ${headers['Host'] || 'none'}`)
+      }
+
+      // Используем полный URL для SSR всегда.
+      const ssrBaseUrl = runtimeConfig.public.apiBase // http://api:8080/api
+      const cleanSsrBaseUrl = ssrBaseUrl.endsWith('/') ? ssrBaseUrl.slice(0, -1) : ssrBaseUrl
+      
+      const finalFetchPath = import.meta.server 
+        ? `${cleanSsrBaseUrl}/v1/tenant/config` 
+        : '/api/v1/tenant/config'
+      
+      if (import.meta.server) {
+        console.log(`[SSR] Fetching config from "${finalFetchPath}" with Host: ${headers['Host'] || 'none'}`)
+      }
+
+      // ВАЖНО: На SSR используем нативный fetch или $fetch с полным URL, 
+      // чтобы избежать резолвинга Nuxt как внутреннего роута.
+      let data: any = null
+      if (import.meta.server) {
+        // Проверяем, является ли путь абсолютным URL
+        const fetchUrl = finalFetchPath.startsWith('http') 
+          ? finalFetchPath 
+          : `http://api:8080${finalFetchPath.startsWith('/') ? '' : '/'}${finalFetchPath}`
+          
+        const url = new URL(fetchUrl)
+        if (queryParams.dealer_id) url.searchParams.set('dealer_id', queryParams.dealer_id as string)
+        
+        // Очищаем заголовки для нативного fetch
+        const cleanHeaders: Record<string, string> = {}
+        // Принудительно очищаем Host от лишних пробелов и символов
+        if (headers['host']) cleanHeaders['host'] = headers['host'].trim()
+        if (headers['x-forwarded-host']) cleanHeaders['x-forwarded-host'] = headers['x-forwarded-host'].trim()
+        if (headers['x-forwarded-proto']) cleanHeaders['x-forwarded-proto'] = headers['x-forwarded-proto'].trim()
+        
+        // Добавляем User-Agent, чтобы бэкенд не блокировал запрос
+        cleanHeaders['user-agent'] = 'Mozilla/5.0 (Nuxt SSR)'
+        
+        // ВАЖНО: Принудительно выводим в stdout через console.error, так как Nuxt может перехватывать console.log
+        console.error(`[SSR_DEBUG] FETCHING: ${url.toString()} with host: ${cleanHeaders['host']}`)
+        
+        try {
+          const response = await fetch(url.toString(), {
+            headers: cleanHeaders
+          })
+          console.error(`[SSR_DEBUG] RESPONSE: ${response.status}`)
+          if (response.ok) {
+            data = await response.json()
+            console.error(`[SSR_DEBUG] DATA_TAG: ${data?.seo?.verification_tag}`)
+            // Принудительно обновляем состояние стора
+            config.value = { ...config.value, ...data }
+          } else {
+            const body = await response.text()
+            console.error(`[SSR_DEBUG] ERROR_BODY: ${body}`)
+          }
+        } catch (fetchError) {
+          console.error(`[SSR_DEBUG] EXCEPTION:`, fetchError)
+        }
+      } else {
+        // На клиенте используем $fetch, заголовки будут переданы автоматически или из аргументов
+        const clientHeaders: Record<string, string> = {}
+        if (headers['host']) clientHeaders['host'] = headers['host']
+        
+        data = await $fetch(finalFetchPath, {
+          query: queryParams,
+          headers: clientHeaders
+        })
+      }
       
       if (data) {
         // Полная замена конфига из API; email и contacts.emails нужны для заявок дилера (callback)
-        config.value = { ...config.value, ...data, email: data.email ?? config.value?.email ?? '' }
+        const updatedConfig = { ...config.value, ...data }
+        
+        // Убеждаемся, что email дилера попал в основное поле email, если он есть в корне ответа
+        if (data.email) {
+          updatedConfig.email = data.email
+        }
+        
+        config.value = updatedConfig
+        
         const base = process.client && typeof window !== 'undefined'
           ? window.location.origin
           : (ssrOrigin || (runtimeConfig.public.apiUrl as string) || '')

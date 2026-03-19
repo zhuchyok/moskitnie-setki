@@ -10,17 +10,20 @@ const route = useRoute()
 
 // Конфиг тенанта: на SSR — по Host из запроса (чтобы фавикон/лого дилера в первом HTML), на клиенте — по текущему origin
 const event = import.meta.server ? useRequestEvent() : null
-const ssrOrigin = event?.node?.req?.headers?.host
-  ? `${(event.node.req as any).headers['x-forwarded-proto'] === 'https' ? 'https' : 'http'}://${event.node.req.headers.host}`
-  : undefined
+const headers = event?.node?.req?.headers
+const ssrHost = (headers?.['x-forwarded-host'] as string) || headers?.host
+const ssrProto = (headers?.['x-forwarded-proto'] as string) || 'http'
+const ssrOrigin = ssrHost ? `${ssrProto}://${ssrHost}` : undefined
 
-// OG-image и Canonical: от текущего origin (аудит 2026-03-10), не хардкод www.setki21.ru
+      // OG-image и Canonical: от текущего origin (аудит 2026-03-10), не хардкод www.setki21.ru
 const requestURL = useRequestURL()
-const siteOrigin = requestURL?.origin || ''
+const siteOrigin = (import.meta.server && ssrOrigin) ? ssrOrigin : (requestURL?.origin || '')
 
 const { data: tenantConfig } = await useAsyncData('tenant-config', async () => {
   await tenant.fetchConfig(ssrOrigin)
   return tenant.config
+}, {
+  watch: [computed(() => ssrOrigin)]
 })
 
 const { data: pricingData } = await useAsyncData('pricing-config', async () => {
@@ -48,24 +51,25 @@ onMounted(() => {
 })
 
 useHead({
-  title: computed(() => tenant.config.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21'),
+  title: computed(() => tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21'),
   meta: computed(() => {
-    const ogImage = tenant.config.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png')
+    const ogImage = tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png')
+    const verificationTag = tenantConfig.value?.seo?.verification_tag
     return [
-      { name: 'description', content: tenant.config.seo?.description || '' },
-      { property: 'og:title', content: tenant.config.seo?.title || '' },
-      { property: 'og:description', content: tenant.config.seo?.description || '' },
+      { name: 'description', content: tenantConfig.value?.seo?.description || '' },
+      { property: 'og:title', content: tenantConfig.value?.seo?.title || '' },
+      { property: 'og:description', content: tenantConfig.value?.seo?.description || '' },
       { property: 'og:image', content: ogImage },
       { name: 'twitter:image', content: ogImage },
       { name: 'robots', content: 'index, follow' },
-      ...(tenant.config.seo?.verification_tag ? [{
-        name: 'verification',
-        content: tenant.config.seo.verification_tag
+      ...(verificationTag ? [{
+        name: 'yandex-verification',
+        content: verificationTag
       }] : [])
     ]
   }),
   link: computed(() => {
-    const faviconUrl = tenant.config.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
+    const faviconUrl = tenantConfig.value?.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
     return [
       { rel: 'canonical', href: canonicalUrl.value },
       { rel: 'icon', type: 'image/x-icon', href: faviconUrl },
@@ -75,9 +79,9 @@ useHead({
   }),
   script: computed(() => {
     const scripts = []
-    if (tenant.config.seo?.analytics_code) {
+    if (tenantConfig.value?.seo?.analytics_code) {
       scripts.push({
-        innerHTML: tenant.config.seo.analytics_code,
+        innerHTML: tenantConfig.value.seo.analytics_code,
         type: 'text/javascript',
         body: true
       })

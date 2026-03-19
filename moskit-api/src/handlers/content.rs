@@ -49,7 +49,7 @@ pub async fn get_tenant_config(
         // 2. Ищем по домену (сначала филиалы, потом дилеры). www.setki21.ru → пробуем setki21.ru.
         let host_for_lookup = host.strip_prefix("www.").unwrap_or(host.as_str());
         let branch = sqlx::query_as::<_, moskit_core::entity::DealerBranch>(
-            "SELECT * FROM dealer_branches WHERE domain = $1 AND is_active = true"
+            "SELECT id, dealer_id, name, domain, city, margin_config, is_active, created_at, updated_at FROM dealer_branches WHERE domain = $1"
         )
         .bind(&host)
         .fetch_optional(&state.pool)
@@ -58,7 +58,7 @@ pub async fn get_tenant_config(
         let branch = match branch {
             Some(b) => Some(b),
             None if host_for_lookup != host.as_str() => sqlx::query_as::<_, moskit_core::entity::DealerBranch>(
-                "SELECT * FROM dealer_branches WHERE domain = $1 AND is_active = true"
+                "SELECT id, dealer_id, name, domain, city, margin_config, is_active, created_at, updated_at FROM dealer_branches WHERE domain = $1"
             )
             .bind(host_for_lookup)
             .fetch_optional(&state.pool)
@@ -183,6 +183,8 @@ fn build_tenant_config(d: moskit_core::entity::Dealer, branch_id: Option<Uuid>) 
             "title": title,
             "description": description,
             "keywords": keywords,
+            "verification_tag": d.seo_config.verification_tag,
+            "analytics_code": d.seo_config.analytics_code,
             "content": {
                 "main": main_text,
                 "vstavnye": vstavnye_text,

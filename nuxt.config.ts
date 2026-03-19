@@ -66,18 +66,19 @@ export default defineNuxtConfig({
   },
   nitro: {
     prerender: {
-      routes: ['/', '/antimoshka', '/ultravyu', '/antikoshka', '/antipyl', '/vstavnye', '/remont', '/contacts', '/delivery', '/privacy', '/karta-sajta', '/dealers', '/admin'],
+      routes: ['/admin'],
       failOnError: false
     }
   },
   routeRules: {
-    '/sitemap.xml': { static: true }
+    // Динамические роуты для SEO (server/routes)
   },
   runtimeConfig: {
     public: {
-      // Пустая строка = same-origin (/api на текущем домене). localhost fallback только для локальной разработки.
+      // apiUrl: пустая строка = same-origin (/api на текущем домене).
+      // apiBase: для SSR используем внутренний URL (http://api:8080/api), для клиента — /api.
       apiUrl: process.env.NUXT_PUBLIC_API_URL || '',
-      apiBase: process.env.NUXT_PUBLIC_API_URL ? process.env.NUXT_PUBLIC_API_URL + '/api' : '/api'
+      apiBase: process.env.API_URL ? process.env.API_URL + '/api' : '/api'
     }
   },
   build: {

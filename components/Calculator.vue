@@ -451,45 +451,55 @@ const submitOrder = async () => {
   if (!form.agree) return
   if (!validateOrderForm()) return
 
-    const branch = tenant.config.contacts?.branches?.find(b => b.id === store.delivery || b.name === store.delivery)
-    const branchId = branch?.id || tenant.config.branch_id || undefined
+  const branch = tenant.config.contacts?.branches?.find(b => b.id === store.delivery || b.name === store.delivery)
+  const branchId = branch?.id || tenant.config.branch_id || undefined
 
     const orderData = {
-    formName: form.name.trim(),
-    formPhone: form.phone.trim(),
-    formAddress: form.address.trim(),
-    formComment: form.comment.trim(),
-    list_order: store.items.map(i => `${i.frameTypeName ? i.frameTypeName + ': ' : ''}${i.typeName} (${i.width}x${i.height}, ${i.color}) - ${i.count}шт`).join('<br>'),
-    total_price_value: store.totalPrice,
-    total_order_value: store.allItemsWithInstallation ? 'Монтаж' : store.delivery,
-    measurement: store.measurementSelected,
-    discount_type: store.discountType || undefined,
-    dealer_id: tenant.config.dealer_id || undefined,
-    branch_id: branchId,
-    dealer_email: tenant.config.contacts?.emails?.[0] || undefined,
-    formDealerEmail: tenant.config.email || undefined,
-    items: store.items.map(i => ({
-      name: i.typeName,
-      quantity: i.count,
-      price: i.price / i.count,
-      params: {
-        width: i.width,
-        height: i.height,
-        color: i.color,
-        color_id: i.color === 'КОРИЧНЕВАЯ' ? 2 : (i.color === 'АНТРАЦИТ' ? 3 : (i.color === 'RAL' ? 4 : 1)),
-        mesh_type: i.type,
-        frame_type: i.frameTypeName,
-        measurement_method: i.measurementMethod
-      }
+      formName: form.name.trim(),
+      formPhone: form.phone.trim(),
+      formAddress: form.address.trim(),
+      formComment: form.comment.trim(),
+      list_order: store.items.map(i => {
+        const methodMap = { stvorka: 'По створке', proem: 'По проему', old_mesh: 'По старой сетке' };
+        const methodStr = i.measurementMethod ? ` [Замер: ${methodMap[i.measurementMethod as keyof typeof methodMap] || i.measurementMethod}]` : '';
+        return `${i.frameTypeName ? i.frameTypeName + ': ' : ''}${i.typeName} (${i.width}x${i.height}, ${i.color})${methodStr} - ${i.count}шт`;
+      }).join('<br>'),
+      total_price_value: store.totalPrice,
+      total_order_value: store.allItemsWithInstallation ? 'Монтаж' : store.delivery,
+      measurement: store.measurementSelected,
+      discount_type: store.discountType || undefined,
+      dealer_id: tenant.config.dealer_id || undefined,
+      branch_id: branchId,
+      dealer_email: tenant.config.contacts?.emails?.[0] || undefined,
+      formDealerEmail: tenant.config.email || undefined,
+      items: store.items.map(i => ({
+        name: i.typeName,
+        quantity: i.count,
+        price: i.price / i.count,
+        params: {
+          width: i.width,
+          height: i.height,
+          color: i.color,
+          color_id: i.color === 'КОРИЧНЕВАЯ' ? 2 : (i.color === 'АНТРАЦИТ' ? 3 : (i.color === 'RAL' ? 4 : 1)),
+          mesh_type: i.type,
+          frame_type: i.frameTypeName,
+          measurement_method: i.measurementMethod
+        }
+      }))
+    }
+    
+    console.log('Submitting order with data:', JSON.stringify({
+      dealer_id: orderData.dealer_id,
+      dealer_email: orderData.dealer_email,
+      formDealerEmail: orderData.formDealerEmail
     }))
-  }
-  
-  try {
-    // Используем относительный путь без лишних слешей
-    const response = await $fetch('/api_nuxt/orders', {
-      method: 'POST',
-      body: orderData
-    })
+    
+    try {
+      // Используем относительный путь без лишних слешей
+      const response = await $fetch('/api_nuxt/orders', {
+        method: 'POST',
+        body: orderData
+      })
 
     if (response.success) {
       // Track conversion in Google Analytics

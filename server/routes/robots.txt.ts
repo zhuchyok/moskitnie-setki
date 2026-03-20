@@ -8,8 +8,11 @@ Allow: /
 Allow: /images/
 Allow: /upload/
 Allow: /images/optimized/
+Disallow: /admin/
+Disallow: /api/
 Sitemap: ${origin}/sitemap.xml
 Sitemap: ${origin}/sitemap-images.xml
+Host: ${host}
 
 # AI Crawler Settings
 User-agent: GPTBot

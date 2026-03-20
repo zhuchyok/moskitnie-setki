@@ -154,26 +154,50 @@ impl PricingService {
     /// Рассчитать итоговую цену для дилера
     pub fn calculate_dealer_price(&self, base_cost: Decimal) -> DealerPrice {
         let dealer_cost = (base_cost * self.global.markup.dealer).round_dp(0);
-        let suggested_price = (base_cost * self.global.markup.client).round_dp(0);
-        
-        let multiplier = self.margin.get_multiplier();
-        let actual_price = (suggested_price * multiplier).round_dp(0);
-        
-        let dealer_profit = actual_price - dealer_cost;
-        let margin_percent = if dealer_cost > Decimal::ZERO {
-            (dealer_profit / dealer_cost * dec!(100.0)).round_dp(2)
-        } else {
-            Decimal::ZERO
-        };
+    let suggested_price = (base_cost * self.global.markup.client).round_dp(0);
+    
+    let multiplier = self.margin.get_multiplier();
+    let actual_price = (suggested_price * multiplier).round_dp(0);
+    
+    let dealer_profit = actual_price - dealer_cost;
+    let margin_percent = if dealer_cost > Decimal::ZERO {
+        (dealer_profit / dealer_cost * dec!(100.0)).round_dp(2)
+    } else {
+        Decimal::ZERO
+    };
 
-        DealerPrice {
-            dealer_cost,
-            suggested_price,
-            actual_price,
-            margin_percent,
-            dealer_profit,
-        }
+    DealerPrice {
+        dealer_cost,
+        suggested_price,
+        actual_price,
+        margin_percent,
+        dealer_profit,
     }
+}
+
+/// Рассчитать цену услуги (доставка, монтаж и т.д.) для клиента дилера
+pub fn calculate_service_price(&self, base_service_cost: Decimal, service_type: &str) -> Decimal {
+    //Suggested price from global markup
+    let profit_factor = match service_type {
+        "delivery" => self.global.markup.delivery_profit_factor,
+        "installation" => self.global.markup.installation_profit_factor,
+        "measurement" => self.global.markup.measurement_profit_factor,
+        "urgent" => self.global.markup.urgent_profit_factor,
+        _ => dec!(0.0),
+    };
+
+    let suggested_price = (base_service_cost * (dec!(1.0) + profit_factor / dec!(100.0))).round_dp(0);
+    
+    let multiplier = match service_type {
+        "urgent" => self.margin.get_service_multiplier(self.margin.urgent_margin_percent),
+        "delivery" => self.margin.get_service_multiplier(self.margin.delivery_margin_percent),
+        "installation" => self.margin.get_service_multiplier(self.margin.installation_margin_percent),
+        "measurement" => self.margin.get_service_multiplier(self.margin.measurement_margin_percent),
+        _ => dec!(1.0),
+    };
+
+    (suggested_price * multiplier).round_dp(0)
+}
 }
 
 /// Округление (helper)

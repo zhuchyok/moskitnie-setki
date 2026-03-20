@@ -153,6 +153,25 @@ pub async fn create_order(
     let mut total_dealer_cost = Decimal::ZERO;
     let mut total_selling_price = Decimal::ZERO;
 
+    // Извлекаем параметры заказа (delivery, measurement, discount_type) из первого товара или из тела запроса
+    // В Nuxt фронтенде они передаются в корне CreateOrderRequest, но moskit-api их не парсил
+    let params_root = payload.items.first().and_then(|i| i.params.as_ref()).cloned().unwrap_or_else(|| serde_json::json!({}));
+
+    // Считаем дополнительные услуги (доставка, замер, срочность)
+    let mut extra_services_price = Decimal::ZERO;
+    
+    if let Some(delivery_id) = params_root.get("delivery").and_then(|v| v.as_str()) {
+        if delivery_id == "Доставка" {
+            let base_delivery = global_pricing.services.iter().find(|s| s.id == "delivery").map(|s| s.price).unwrap_or(dec!(300.0));
+            extra_services_price += pricing_service.calculate_service_price(base_delivery, "delivery");
+        }
+    }
+
+    if params_root.get("measurement").and_then(|v| v.as_bool()).unwrap_or(false) {
+        let base_measurement = global_pricing.markup.measurement_base;
+        extra_services_price += pricing_service.calculate_service_price(base_measurement, "measurement");
+    }
+
     for item_req in payload.items {
         let params = item_req.params.clone().unwrap_or_else(|| serde_json::json!({}));
         
@@ -179,7 +198,20 @@ pub async fn create_order(
 
             let base_cost = pricing_service.compute_cost(w as u32, h as u32, ColorId(c as u8), &mesh_type, &frame_type);
             let dp = pricing_service.calculate_dealer_price(base_cost);
-            (dp.dealer_cost, dp.actual_price)
+            
+            let mut unit_price = dp.actual_price;
+            
+            // Применяем наценку на монтаж, если он выбран
+            if params.get("installation").and_then(|v| v.as_bool()).unwrap_or(false) {
+                let base_installation = if frame_type == FrameType::Vstavnaya {
+                    global_pricing.services.iter().find(|s| s.id == "installation_vsn").map(|s| s.price).unwrap_or(dec!(100.0))
+                } else {
+                    global_pricing.services.iter().find(|s| s.id == "installation").map(|s| s.price).unwrap_or(dec!(300.0))
+                };
+                unit_price += pricing_service.calculate_service_price(base_installation, "installation");
+            }
+
+            (dp.dealer_cost, unit_price)
         } else {
             (item_req.price * dec!(0.7), item_req.price)
         };
@@ -199,6 +231,16 @@ pub async fn create_order(
             dealer_cost,
         });
     }
+
+    // Применяем наценку на срочность ко всей сумме, если выбрано
+    if params_root.get("discount_type").and_then(|v| v.as_str()) == Some("srochnyi") {
+        let base_total = total_selling_price + extra_services_price;
+        let urgent_factor = global_pricing.markup.urgent_profit_factor / dec!(100.0);
+        let base_urgent = (base_total * urgent_factor).max(dec!(400.0));
+        extra_services_price += pricing_service.calculate_service_price(base_urgent, "urgent");
+    }
+
+    total_selling_price += extra_services_price;
 
     // --- ПРОВЕРКА БАЛАНСА (ОТКЛЮЧЕНА ДЛЯ ЗАЯВОК) ---
     /*

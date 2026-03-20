@@ -112,6 +112,10 @@ pub struct CreateDealerRequest {
     pub email: Option<String>,
     pub domain: Option<String>,
     pub margin_percent: Option<f64>,
+    pub urgent_margin_percent: Option<f64>,
+    pub delivery_margin_percent: Option<f64>,
+    pub installation_margin_percent: Option<f64>,
+    pub measurement_margin_percent: Option<f64>,
     pub parent_id: Option<Uuid>,
     pub role: Option<String>,
     pub credit_limit: Option<Decimal>,
@@ -129,6 +133,13 @@ pub struct DealerResponse {
     pub domain: Option<String>,
     pub is_active: bool,
     pub margin_percent: f64,
+    pub urgent_margin_percent: Option<f64>,
+    pub delivery_margin_percent: Option<f64>,
+    pub installation_margin_percent: Option<f64>,
+    pub measurement_margin_percent: Option<f64>,
+    pub title_template: Option<String>,
+    pub description_template: Option<String>,
+    pub keywords: Option<String>,
     pub delivery_mode: String,
     pub payment_type: String,
     pub balance: Decimal,
@@ -167,6 +178,13 @@ pub async fn create_dealer(
             branch_multiplier: 1.0,
             volume_discounts: vec![],
             category_margins: std::collections::HashMap::new(),
+            urgent_margin_percent: payload.urgent_margin_percent,
+            delivery_margin_percent: payload.delivery_margin_percent,
+            installation_margin_percent: payload.installation_margin_percent,
+            measurement_margin_percent: payload.measurement_margin_percent,
+            title_template: None,
+            description_template: None,
+            keywords: None,
         },
         delivery_mode: DeliveryMode::SelfPickup,
         payment_type: PaymentType::Postpaid,
@@ -223,6 +241,13 @@ pub async fn create_dealer(
         domain: created.domain,
         is_active: created.is_active,
         margin_percent: created.margin_config.base_margin_percent,
+        urgent_margin_percent: created.margin_config.urgent_margin_percent,
+        delivery_margin_percent: created.margin_config.delivery_margin_percent,
+        installation_margin_percent: created.margin_config.installation_margin_percent,
+        measurement_margin_percent: created.margin_config.measurement_margin_percent,
+        title_template: created.margin_config.title_template,
+        description_template: created.margin_config.description_template,
+        keywords: created.margin_config.keywords,
         delivery_mode: created.delivery_mode.as_db_value().to_string(),
         payment_type: created.payment_type.as_db_value().to_string(),
         balance: created.balance,
@@ -261,6 +286,13 @@ pub async fn get_dealer(
         domain: dealer.domain,
         is_active: dealer.is_active,
         margin_percent: dealer.margin_config.base_margin_percent,
+        urgent_margin_percent: dealer.margin_config.urgent_margin_percent,
+        delivery_margin_percent: dealer.margin_config.delivery_margin_percent,
+        installation_margin_percent: dealer.margin_config.installation_margin_percent,
+        measurement_margin_percent: dealer.margin_config.measurement_margin_percent,
+        title_template: dealer.margin_config.title_template,
+        description_template: dealer.margin_config.description_template,
+        keywords: dealer.margin_config.keywords,
         delivery_mode: dealer.delivery_mode.as_db_value().to_string(),
         payment_type: dealer.payment_type.as_db_value().to_string(),
         balance: dealer.balance,
@@ -295,6 +327,13 @@ pub async fn list_dealers(
         domain: d.domain,
         is_active: d.is_active,
         margin_percent: d.margin_config.base_margin_percent,
+        urgent_margin_percent: d.margin_config.urgent_margin_percent,
+        delivery_margin_percent: d.margin_config.delivery_margin_percent,
+        installation_margin_percent: d.margin_config.installation_margin_percent,
+        measurement_margin_percent: d.margin_config.measurement_margin_percent,
+        title_template: d.margin_config.title_template,
+        description_template: d.margin_config.description_template,
+        keywords: d.margin_config.keywords,
         delivery_mode: d.delivery_mode.as_db_value().to_string(),
         payment_type: d.payment_type.as_db_value().to_string(),
         balance: d.balance,
@@ -317,6 +356,10 @@ pub struct UpdateDealerRequest {
     pub email: Option<String>,
     pub domain: Option<String>,
     pub margin_percent: Option<f64>,
+    pub urgent_margin_percent: Option<f64>,
+    pub delivery_margin_percent: Option<f64>,
+    pub installation_margin_percent: Option<f64>,
+    pub measurement_margin_percent: Option<f64>,
     pub is_active: Option<bool>,
     pub parent_id: Option<Uuid>,
     pub role: Option<String>,
@@ -350,6 +393,13 @@ pub async fn update_dealer(
     if let Some(email) = payload.email { dealer.email = Some(email); }
     if let Some(domain) = payload.domain { dealer.domain = Some(domain); }
     if let Some(margin) = payload.margin_percent { dealer.margin_config.base_margin_percent = margin; }
+    if let Some(m) = payload.urgent_margin_percent { dealer.margin_config.urgent_margin_percent = Some(m); }
+    if let Some(m) = payload.delivery_margin_percent { dealer.margin_config.delivery_margin_percent = Some(m); }
+    if let Some(m) = payload.installation_margin_percent { dealer.margin_config.installation_margin_percent = Some(m); }
+    if let Some(m) = payload.measurement_margin_percent { dealer.margin_config.measurement_margin_percent = Some(m); }
+    if let Some(title) = payload.title_template { dealer.margin_config.title_template = Some(title); }
+    if let Some(desc) = payload.description_template { dealer.margin_config.description_template = Some(desc); }
+    if let Some(kw) = payload.keywords { dealer.margin_config.keywords = Some(kw); }
     if let Some(active) = payload.is_active { dealer.is_active = active; }
     if let Some(parent_id) = payload.parent_id { dealer.parent_id = Some(parent_id); }
     if let Some(role) = payload.role { dealer.role = role; }
@@ -367,13 +417,21 @@ pub async fn update_dealer(
     if let Some(contacts) = payload.contacts { dealer.contacts = contacts; }
     if let Some(legal) = payload.legal_info { dealer.legal_info = legal; }
     if let Some(seo) = payload.seo_config {
-        if let Some(title) = seo.title_template { dealer.seo_config.title_template = Some(title); }
-        if let Some(desc) = seo.description_template { dealer.seo_config.description_template = Some(desc); }
-        if let Some(kw) = seo.keywords { dealer.seo_config.keywords = Some(kw); }
+        if let Some(title) = seo.title_template { 
+            dealer.seo_config.title_template = Some(title.clone());
+        }
+        if let Some(desc) = seo.description_template { 
+            dealer.seo_config.description_template = Some(desc.clone());
+        }
+        if let Some(kw) = seo.keywords { 
+            dealer.seo_config.keywords = Some(kw.clone());
+        }
         if let Some(vt) = seo.verification_tag { dealer.seo_config.verification_tag = Some(vt); }
         if let Some(ac) = seo.analytics_code { dealer.seo_config.analytics_code = Some(ac); }
     }
 
+    let dealer_id = dealer.id;
+    let repo = PostgresDealerRepository::new(state.pool.clone());
     let updated = repo.update(dealer).await.map_err(|e| {
         tracing::error!(dealer_id = %dealer_id, error = %e, "admin update_dealer update: DB error");
         bad_request(&e.to_string())
@@ -390,6 +448,13 @@ pub async fn update_dealer(
         domain: updated.domain,
         is_active: updated.is_active,
         margin_percent: updated.margin_config.base_margin_percent,
+        urgent_margin_percent: updated.margin_config.urgent_margin_percent,
+        delivery_margin_percent: updated.margin_config.delivery_margin_percent,
+        installation_margin_percent: updated.margin_config.installation_margin_percent,
+        measurement_margin_percent: updated.margin_config.measurement_margin_percent,
+        title_template: updated.margin_config.title_template,
+        description_template: updated.margin_config.description_template,
+        keywords: updated.margin_config.keywords,
         delivery_mode: updated.delivery_mode.as_db_value().to_string(),
         payment_type: updated.payment_type.as_db_value().to_string(),
         balance: updated.balance,

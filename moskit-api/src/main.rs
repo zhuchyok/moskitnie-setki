@@ -125,6 +125,9 @@ async fn main() {
         .route("/api/v1/pricing", get(handlers::pricing::get_global_pricing))
         // Фавикон дилера
         .route("/api/v1/tenant/favicon", get(handlers::content::get_tenant_favicon))
+        .route("/favicon.ico", get(handlers::content::get_tenant_favicon))
+        .route("/apple-touch-icon.png", get(handlers::content::get_tenant_favicon))
+        .route("/apple-touch-icon-precomposed.png", get(handlers::content::get_tenant_favicon))
         // Контент и мультитенантность
         .route("/api/v1/tenant/config", get(handlers::content::get_tenant_config))
         .layer(cors)

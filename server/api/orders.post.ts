@@ -122,7 +122,6 @@ export default defineEventHandler(async (event) => {
     const dealerName = dealerData?.dealer_name || 'Сетки 21'
     const brandColor = dealerData?.branding?.primary_color || '#2A6AB2'
 
-    // Красивый HTML шаблон в стиле сайта
     const htmlContent = `
       <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9fafb; padding: 40px 20px;">
         <div style="background-color: #ffffff; border-radius: 24px; overflow: hidden; shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">

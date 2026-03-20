@@ -17,6 +17,20 @@ pub struct MarginConfig {
     pub volume_discounts: Vec<VolumeDiscount>,
     /// Наценки по категориям
     pub category_margins: std::collections::HashMap<String, f64>,
+    /// Наценка на срочность (%)
+    pub urgent_margin_percent: Option<f64>,
+    /// Наценка на доставку (%)
+    pub delivery_margin_percent: Option<f64>,
+    /// Наценка на монтаж (%)
+    pub installation_margin_percent: Option<f64>,
+    /// Наценка на замер (%)
+    pub measurement_margin_percent: Option<f64>,
+    /// Шаблон заголовка SEO
+    pub title_template: Option<String>,
+    /// Шаблон описания SEO
+    pub description_template: Option<String>,
+    /// Ключевые слова SEO
+    pub keywords: Option<String>,
 }
 
 impl MarginConfig {
@@ -26,6 +40,12 @@ impl MarginConfig {
         let city = Decimal::from_f64_retain(self.city_multiplier).unwrap_or(dec!(1.0));
         let branch = Decimal::from_f64_retain(self.branch_multiplier).unwrap_or(dec!(1.0));
         (base * city * branch).round_dp(4)
+    }
+
+    /// Получить множитель для услуги (срочность, доставка и т.д.)
+    pub fn get_service_multiplier(&self, service_margin: Option<f64>) -> Decimal {
+        let margin = service_margin.unwrap_or(0.0);
+        Decimal::from_f64_retain(1.0 + (margin / 100.0)).unwrap_or(dec!(1.0))
     }
 }
 
@@ -37,6 +57,10 @@ impl Default for MarginConfig {
             branch_multiplier: 1.0,
             volume_discounts: Vec::new(),
             category_margins: std::collections::HashMap::new(),
+            urgent_margin_percent: None,
+            delivery_margin_percent: None,
+            installation_margin_percent: None,
+            measurement_margin_percent: None,
         }
     }
 }

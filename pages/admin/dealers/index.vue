@@ -184,6 +184,10 @@ const form = reactive({
   email: '',
   domain: '',
   margin_percent: 30.0,
+  urgent_margin_percent: 0,
+  delivery_margin_percent: 0,
+  installation_margin_percent: 0,
+  measurement_margin_percent: 0,
   is_active: true,
   parent_id: null,
   role: 'dealer',
@@ -250,6 +254,10 @@ const openCreateModal = () => {
   form.email = ''
   form.domain = ''
   form.margin_percent = 30.0
+  form.urgent_margin_percent = 0
+  form.delivery_margin_percent = 0
+  form.installation_margin_percent = 0
+  form.measurement_margin_percent = 0
   form.is_active = true
   form.parent_id = null
   form.role = 'dealer'
@@ -286,6 +294,10 @@ const openEditModal = async (dealer: any) => {
     form.email = full.email || ''
     form.domain = full.domain || ''
     form.margin_percent = full.margin_percent
+    form.urgent_margin_percent = full.urgent_margin_percent || 0
+    form.delivery_margin_percent = full.delivery_margin_percent || 0
+    form.installation_margin_percent = full.installation_margin_percent || 0
+    form.measurement_margin_percent = full.measurement_margin_percent || 0
     form.is_active = full.is_active
     form.parent_id = full.parent_id
     form.role = full.role
@@ -304,6 +316,10 @@ const openEditModal = async (dealer: any) => {
     form.email = dealer.email || ''
     form.domain = dealer.domain || ''
     form.margin_percent = dealer.margin_percent
+    form.urgent_margin_percent = dealer.urgent_margin_percent || 0
+    form.delivery_margin_percent = dealer.delivery_margin_percent || 0
+    form.installation_margin_percent = dealer.installation_margin_percent || 0
+    form.measurement_margin_percent = dealer.measurement_margin_percent || 0
     form.is_active = dealer.is_active
     form.parent_id = dealer.parent_id
     form.role = dealer.role
@@ -616,6 +632,28 @@ onMounted(fetchDealers)
                   <div class="space-y-2">
                     <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Основная наценка (%)</label>
                     <input v-model.number="form.margin_percent" type="number" step="0.1" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                  </div>
+                  <div class="space-y-6 pt-4 border-t border-gray-50">
+                    <h4 class="text-[10px] font-black text-brand-blue uppercase tracking-[0.2em] ml-4">Дополнительные наценки (%)</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Срочность</label>
+                        <input v-model.number="form.urgent_margin_percent" type="number" step="0.1" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Доставка</label>
+                        <input v-model.number="form.delivery_margin_percent" type="number" step="0.1" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Монтаж</label>
+                        <input v-model.number="form.installation_margin_percent" type="number" step="0.1" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                      </div>
+                      <div class="space-y-2">
+                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Замер</label>
+                        <input v-model.number="form.measurement_margin_percent" type="number" step="0.1" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
+                      </div>
+                    </div>
+                    <p class="text-[8px] text-gray-400 ml-4 uppercase">Наценки применяются к рекомендованным розничным ценам на соответствующие услуги</p>
                   </div>
                 </div>
 

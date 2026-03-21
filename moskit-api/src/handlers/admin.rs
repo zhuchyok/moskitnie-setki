@@ -397,9 +397,6 @@ pub async fn update_dealer(
     if let Some(m) = payload.delivery_margin_percent { dealer.margin_config.delivery_margin_percent = Some(m); }
     if let Some(m) = payload.installation_margin_percent { dealer.margin_config.installation_margin_percent = Some(m); }
     if let Some(m) = payload.measurement_margin_percent { dealer.margin_config.measurement_margin_percent = Some(m); }
-    if let Some(title) = payload.title_template { dealer.margin_config.title_template = Some(title); }
-    if let Some(desc) = payload.description_template { dealer.margin_config.description_template = Some(desc); }
-    if let Some(kw) = payload.keywords { dealer.margin_config.keywords = Some(kw); }
     if let Some(active) = payload.is_active { dealer.is_active = active; }
     if let Some(parent_id) = payload.parent_id { dealer.parent_id = Some(parent_id); }
     if let Some(role) = payload.role { dealer.role = role; }

@@ -61,6 +61,9 @@ impl Default for MarginConfig {
             delivery_margin_percent: None,
             installation_margin_percent: None,
             measurement_margin_percent: None,
+            title_template: None,
+            description_template: None,
+            keywords: None,
         }
     }
 }

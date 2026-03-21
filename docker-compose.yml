@@ -21,6 +21,8 @@ services:
       - postgres
       - redis
     restart: unless-stopped
+    networks:
+      - default
 
   # Frontend (Nuxt)
   # Для продакшена (VDS) при сборке ОБЯЗАТЕЛЬНО NUXT_PUBLIC_API_URL=https://www.setki21.ru — иначе в бандле apiUrl=localhost → мерцание/белый экран.
@@ -34,8 +36,9 @@ services:
     ports:
       - "3003:3000"
     environment:
-      - API_URL=${API_URL:-http://api:8080}
+      - API_URL=${API_URL:-http://setki21-api-new:8080}
       - NUXT_PUBLIC_API_URL=${NUXT_PUBLIC_API_URL:-https://www.setki21.ru}
+      - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE:-http://setki21-api-new:8080/api}
       # Тот же SMTP, что и для заказов сеток (Timeweb и др.): на VDS задать в .env
       - SMTP_HOST=${SMTP_HOST:-smtp.timeweb.ru}
       - SMTP_PORT=${SMTP_PORT:-465}
@@ -45,9 +48,12 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    networks:
+      - default
 
   # PostgreSQL
   postgres:
+    container_name: setki21-postgres
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: moskit
@@ -59,6 +65,7 @@ services:
 
   # Redis
   redis:
+    container_name: setki21-redis
     image: redis:7-alpine
     volumes:
       - redisdata:/data
@@ -81,3 +88,8 @@ services:
 volumes:
   pgdata:
   redisdata:
+
+networks:
+  default:
+    name: setki21_src_default
+    driver: bridge

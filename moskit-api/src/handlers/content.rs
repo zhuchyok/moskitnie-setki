@@ -1,6 +1,16 @@
 // handlers/content.rs
 
-use axum::response::{IntoResponse, Redirect};
+use axum::{
+    extract::{State, Host, Query},
+    Json,
+};
+use std::sync::Arc;
+use serde::{Serialize, Deserialize};
+use crate::AppState;
+use crate::handlers::{ApiResult, ok, bad_request};
+use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
+use uuid::Uuid;
+use axum::response::{Redirect, IntoResponse};
 
 #[derive(Debug, Serialize)]
 pub struct TenantConfig {
@@ -12,6 +22,7 @@ pub struct TenantConfig {
     pub branding: moskit_core::entity::DealerBranding,
     pub contacts: moskit_core::entity::DealerContacts,
     pub seo: serde_json::Value,
+    pub margin_config: moskit_core::entity::pricing::MarginConfig,
     pub legal: moskit_core::entity::DealerLegalInfo,
     pub branch_id: Option<String>,
 }
@@ -99,24 +110,30 @@ fn build_tenant_config(d: moskit_core::entity::Dealer, branch_id: Option<Uuid>) 
         d.city.clone()
     };
 
-    let title_tpl = d.margin_config.title_template.as_ref()
-        .or(d.seo_config.title_template.as_ref())
-        .map(|s| s.as_str())
-        .unwrap_or("Москитные сетки на окна в {city} — цены от 850 руб | {dealer_name}");
-    
-    let desc_tpl = d.margin_config.description_template.as_ref()
-        .or(d.seo_config.description_template.as_ref())
-        .map(|s| s.as_str())
-        .unwrap_or("Заказать москитные сетки в {city} от производителя {dealer_name}. Изготовление за 1 день, металлический крепеж, замер и установка. Рамочные, Антикошка, Антипыль, вставные VSN.");
+    // Приоритет: 1. Шаблон из seo_config, 2. AI-генерация
+    let title = if let Some(ref t) = d.seo_config.title_template {
+        t.replace("{city}", &city).replace("{dealer_name}", &d.name)
+    } else {
+        format!("Москитные сетки на окна в {} — цены от 850 руб | {}", city, d.name)
+    };
 
-    let kw_tpl = d.margin_config.keywords.as_ref()
-        .or(d.seo_config.keywords.as_ref())
-        .map(|s| s.as_str())
-        .unwrap_or("москитные сетки {city}, купить сетку на окно, антикошка, антипыль, vsn, ремонт сеток, {dealer_name}");
+    let description = if let Some(ref desc) = d.seo_config.description_template {
+        desc.replace("{city}", &city).replace("{dealer_name}", &d.name)
+    } else {
+        format!(
+            "Заказать москитные сетки в {} от производителя {}. Изготовление за 1 день, металлический крепеж, замер и установка. Рамочные, Антикошка, Антипыль, вставные VSN.",
+            city, d.name
+        )
+    };
 
-    let title = title_tpl.replace("{city}", &city).replace("{dealer_name}", &d.name);
-    let description = desc_tpl.replace("{city}", &city).replace("{dealer_name}", &d.name);
-    let keywords = kw_tpl.replace("{city}", &city).replace("{dealer_name}", &d.name);
+    let keywords = if let Some(ref kw) = d.seo_config.keywords {
+        kw.replace("{city}", &city).replace("{dealer_name}", &d.name)
+    } else {
+        format!(
+            "москитные сетки {}, купить сетку на окно, антикошка, антипыль, vsn, ремонт сеток, {}",
+            city, d.name
+        )
+    };
 
     // AI-Generated Product Descriptions (Extended texts)
     let main_text = format!(
@@ -194,6 +211,7 @@ fn build_tenant_config(d: moskit_core::entity::Dealer, branch_id: Option<Uuid>) 
                 "remont": remont_text
             }
         }),
+        margin_config: d.margin_config,
         legal: d.legal_info,
         branch_id: branch_id.map(|id| id.to_string()),
     })
@@ -205,19 +223,17 @@ pub async fn get_tenant_favicon(
     Query(query): Query<TenantQuery>,
 ) -> axum::response::Response {
     let repo = PostgresDealerRepository::new(state.pool.clone());
-    
-    // 1. Пытаемся найти дилера по dealer_id из query-параметра (для предпросмотра)
+
     let dealer = if let Some(id_str) = query.dealer_id {
         if let Ok(id) = Uuid::parse_str(&id_str) {
             match repo.find_by_id(id).await {
                 Ok(Some(d)) => Some(d),
-                _ => None
+                _ => None,
             }
         } else {
             None
         }
     } else {
-        // 2. Ищем по домену; www.setki21.ru → пробуем setki21.ru
         let mut dealer = repo.find_by_domain(host.as_str()).await.ok().flatten();
         if dealer.is_none() {
             if let Some(host_no_www) = host.strip_prefix("www.") {
@@ -228,16 +244,21 @@ pub async fn get_tenant_favicon(
     };
 
     if let Some(d) = dealer {
-        if let Some(logo_url) = d.branding.logo_url {
-            // Если логотип — это путь к загруженному файлу (начинается с /uploads)
+        let source_url = d.branding.favicon_url.or(d.branding.logo_url);
+        if let Some(logo_url) = source_url {
             if logo_url.starts_with("/uploads") {
-                // Пытаемся прочитать файл локально
                 let file_path = format!(".{}", logo_url);
                 if let Ok(data) = std::fs::read(&file_path) {
+                    if let Ok(png_bytes) = resize_to_favicon(&data) {
+                        return axum::response::Response::builder()
+                            .header("Content-Type", "image/png")
+                            .header("Cache-Control", "public, max-age=604800")
+                            .body(axum::body::Body::from(png_bytes))
+                            .unwrap();
+                    }
                     let mime = if logo_url.ends_with(".png") { "image/png" }
-                              else if logo_url.ends_with(".jpg") || logo_url.ends_with(".jpeg") { "image/jpeg" }
-                              else { "image/x-icon" };
-                    
+                        else if logo_url.ends_with(".jpg") || logo_url.ends_with(".jpeg") { "image/jpeg" }
+                        else { "image/x-icon" };
                     return axum::response::Response::builder()
                         .header("Content-Type", mime)
                         .header("Cache-Control", "public, max-age=86400")
@@ -245,11 +266,20 @@ pub async fn get_tenant_favicon(
                         .unwrap();
                 }
             }
-            // Если файл не найден или это внешний URL — редирект
             return Redirect::temporary(&logo_url).into_response();
         }
     }
 
-    // Дефолтный фавикон (редирект на статику фронтенда)
     Redirect::temporary("/favicon.ico").into_response()
+}
+
+fn resize_to_favicon(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    use image::imageops::FilterType;
+    use image::ImageFormat;
+
+    let img = image::load_from_memory(data)?;
+    let resized = img.resize(32, 32, FilterType::Lanczos3);
+    let mut out = std::io::Cursor::new(Vec::new());
+    resized.write_to(&mut out, ImageFormat::Png)?;
+    Ok(out.into_inner())
 }

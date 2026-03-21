@@ -112,6 +112,7 @@ impl<'q> sqlx::Encode<'q, sqlx::Postgres> for PaymentType {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct DealerBranding {
     pub logo_url: Option<String>,
+    pub favicon_url: Option<String>,
     pub primary_color: Option<String>, // HEX код, например #2196F3
     pub short_description: Option<String>,
     pub full_description: Option<String>,

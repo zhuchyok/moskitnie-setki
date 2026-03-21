@@ -69,7 +69,7 @@ useHead({
     ]
   }),
   link: computed(() => {
-    const faviconUrl = tenantConfig.value?.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
+    const faviconUrl = tenantConfig.value?.branding?.favicon_url || tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
     return [
       { rel: 'canonical', href: canonicalUrl.value },
       { rel: 'icon', type: 'image/x-icon', href: faviconUrl },

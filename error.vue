@@ -3,12 +3,15 @@ const props = defineProps({
   error: Object
 })
 
+const is404 = computed(() => props.error?.statusCode === 404)
+
 useHead({
-  title: 'Страница не найдена — Сетки 21',
-  meta: [
-    { name: 'robots', content: 'noindex, nofollow' },
-    { name: 'description', content: 'Страница не найдена. Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21.' }
-  ]
+  title: computed(() => is404.value ? 'Страница не найдена — Сетки 21' : 'Ошибка сервера — Сетки 21'),
+  meta: computed(() => [
+    // noindex только для настоящих 404, НЕ для временных серверных ошибок
+    ...(is404.value ? [{ name: 'robots', content: 'noindex, nofollow' }] : []),
+    { name: 'description', content: 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21.' }
+  ])
 })
 
 const handleError = () => clearError({ redirect: '/' })

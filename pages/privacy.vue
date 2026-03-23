@@ -7,8 +7,8 @@ const title = computed(() => `Политика конфиденциальнос�
 const description = computed(() => `Политика обработки персональных данных компании ${tenant.config.dealer_name || 'Сетки Москитки'}. Информация о защите персональных данных клиентов.`)
 const requestURL = useRequestURL()
 const url = computed(() => {
-  if (import.meta.client) return window.location.origin
-  return requestURL?.origin || 'https://www.setki21.ru'
+  const origin = import.meta.client ? window.location.origin : (requestURL?.origin || 'https://www.setki21.ru')
+  return `${origin.replace(/\/$/, '')}/privacy`
 })
 const domain = computed(() => {
   if (import.meta.client) {
@@ -32,7 +32,6 @@ useHead({
     { property: 'og:description', content: description.value },
     { property: 'og:url', content: url.value },
   ],
-  link: [{ rel: 'canonical', href: url.value }],
   script: [
     {
       type: 'application/ld+json',

@@ -5,8 +5,8 @@ onMounted(() => {
   store.updateConfig({ frameType: 'standart', type: 'antikoshka', typeName: 'АНТИКОШКА' })
 })
 
-const title = computed(() => `Москитная сетка Антикошка в ${tenant.config.city || 'Чебоксарах'} — цены от 1300 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
-const description = computed(() => `Усиленные москитные сетки Антикошка (Pet Screen) в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Выдерживают когти кошек, прочное полотно, металлический крепеж.`)
+const title = computed(() => tenant.config.seo?.pages?.antikoshka?.title || tenant.config.seo?.title || `Москитная сетка Антикошка в ${tenant.config.city || 'Чебоксарах'} — цены от 1300 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => tenant.config.seo?.pages?.antikoshka?.description || tenant.config.seo?.description || `Усиленные москитные сетки Антикошка (Pet Screen) в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Выдерживают когти кошек, прочное полотно, металлический крепеж.`)
 const keywords = computed(() => `антикошка, москитная сетка антикошка, ${tenant.config.city}, ${tenant.config.dealer_name}, pet screen, защита животных, цена, купить, сетка на окна от кошек`)
 
 const requestURL = useRequestURL()

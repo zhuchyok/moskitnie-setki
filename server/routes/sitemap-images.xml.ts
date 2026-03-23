@@ -22,7 +22,7 @@ export default defineEventHandler((event) => {
     </url>
     
     <url>
-        <loc>${origin}/antikoshka/</loc>
+        <loc>${origin}/antikoshka</loc>
         <image:image>
             <image:loc>${origin}/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp</image:loc>
             <image:title>Сетка Антикошка Pet Screen</image:title>
@@ -31,7 +31,7 @@ export default defineEventHandler((event) => {
     </url>
     
     <url>
-        <loc>${origin}/antipyl/</loc>
+        <loc>${origin}/antipyl</loc>
         <image:image>
             <image:loc>${origin}/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp</image:loc>
             <image:title>Сетка Антипыль Poll-Tex</image:title>
@@ -40,7 +40,7 @@ export default defineEventHandler((event) => {
     </url>
     
     <url>
-        <loc>${origin}/antimoshka/</loc>
+        <loc>${origin}/antimoshka</loc>
         <image:image>
             <image:loc>${origin}/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp</image:loc>
             <image:title>Сетка Антимошка Micro Mesh</image:title>
@@ -49,7 +49,7 @@ export default defineEventHandler((event) => {
     </url>
     
     <url>
-        <loc>${origin}/vstavnye/</loc>
+        <loc>${origin}/vstavnye</loc>
         <image:image>
             <image:loc>${origin}/images/optimized/e09/hero-vstavnye.webp</image:loc>
             <image:title>Вставные москитные сетки VSN</image:title>
@@ -58,7 +58,7 @@ export default defineEventHandler((event) => {
     </url>
     
     <url>
-        <loc>${origin}/remont/</loc>
+        <loc>${origin}/remont</loc>
         <image:image>
             <image:loc>${origin}/images/optimized/e09/hero-remont.webp</image:loc>
             <image:title>Ремонт москитных сеток</image:title>

@@ -24,7 +24,8 @@ export const useTenantStore = defineStore('tenant', () => {
       description: '',
       keywords: '',
       verification_tag: '',
-      analytics_code: ''
+      analytics_code: '',
+      pages: {} as Record<string, { title?: string, description?: string }>
     },
     legal: {
       requisites: '',
@@ -90,7 +91,7 @@ export const useTenantStore = defineStore('tenant', () => {
         : '/api/v1/tenant/config'
       
       if (import.meta.server) {
-        console.log(`[SSR] Fetching config from "${finalFetchPath}" with Host: ${headers['Host'] || 'none'}`)
+        console.log(`[SSR] Fetching config from "${finalFetchPath}" with Host: ${headers['host'] || 'none'}`)
       }
 
       // ВАЖНО: На SSR используем нативный fetch или $fetch с полным URL, 
@@ -98,9 +99,10 @@ export const useTenantStore = defineStore('tenant', () => {
       let data: any = null
       if (import.meta.server) {
         // Проверяем, является ли путь абсолютным URL
-        const fetchUrl = finalFetchPath.startsWith('http') 
-          ? finalFetchPath 
-          : `http://api:8080${finalFetchPath.startsWith('/') ? '' : '/'}${finalFetchPath}`
+        let fetchUrl = finalFetchPath
+        if (!fetchUrl.startsWith('http')) {
+          fetchUrl = `http://setki21-api-new:8080${fetchUrl.startsWith('/') ? '' : '/'}${fetchUrl}`
+        }
           
         const url = new URL(fetchUrl)
         if (queryParams.dealer_id) url.searchParams.set('dealer_id', queryParams.dealer_id as string)

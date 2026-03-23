@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const tenant = useTenantStore()
-const title = computed(() => `Ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах'} — цены от 100 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
-const description = computed(() => `Профессиональный ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Замена полотна, ручек, уголков. Быстро, качественно, недорого.`)
+const title = computed(() => tenant.config.seo?.pages?.remont?.title || tenant.config.seo?.title || `Ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах'} — цены от 100 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => tenant.config.seo?.pages?.remont?.description || tenant.config.seo?.description || `Профессиональный ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Замена полотна, ручек, уголков. Быстро, качественно, недорого.`)
 const keywords = computed(() => `ремонт сеток, замена полотна, москитная сетка ремонт, ${tenant.config.city}, ${tenant.config.dealer_name}, запчасти для сеток, перетяжка сетки, замена ручек`)
 
 const requestURL = useRequestURL()

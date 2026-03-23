@@ -110,15 +110,26 @@ fn build_tenant_config(d: moskit_core::entity::Dealer, branch_id: Option<Uuid>) 
         d.city.clone()
     };
 
-    // Приоритет: 1. Шаблон из seo_config, 2. AI-генерация
+    // Приоритет: 1. Шаблон из seo_config (из админки), 2. AI-генерация
     let title = if let Some(ref t) = d.seo_config.title_template {
-        t.replace("{city}", &city).replace("{dealer_name}", &d.name)
+        if !t.trim().is_empty() {
+            t.replace("{city}", &city).replace("{dealer_name}", &d.name)
+        } else {
+            format!("Москитные сетки на окна в {} — цены от 850 руб | {}", city, d.name)
+        }
     } else {
         format!("Москитные сетки на окна в {} — цены от 850 руб | {}", city, d.name)
     };
 
     let description = if let Some(ref desc) = d.seo_config.description_template {
-        desc.replace("{city}", &city).replace("{dealer_name}", &d.name)
+        if !desc.trim().is_empty() {
+            desc.replace("{city}", &city).replace("{dealer_name}", &d.name)
+        } else {
+            format!(
+                "Заказать москитные сетки в {} от производителя {}. Изготовление за 1 день, металлический крепеж, замер и установка. Рамочные, Антикошка, Антипыль, вставные VSN.",
+                city, d.name
+            )
+        }
     } else {
         format!(
             "Заказать москитные сетки в {} от производителя {}. Изготовление за 1 день, металлический крепеж, замер и установка. Рамочные, Антикошка, Антипыль, вставные VSN.",
@@ -127,7 +138,14 @@ fn build_tenant_config(d: moskit_core::entity::Dealer, branch_id: Option<Uuid>) 
     };
 
     let keywords = if let Some(ref kw) = d.seo_config.keywords {
-        kw.replace("{city}", &city).replace("{dealer_name}", &d.name)
+        if !kw.trim().is_empty() {
+            kw.replace("{city}", &city).replace("{dealer_name}", &d.name)
+        } else {
+            format!(
+                "москитные сетки {}, купить сетку на окно, антикошка, антипыль, vsn, ремонт сеток, {}",
+                city, d.name
+            )
+        }
     } else {
         format!(
             "москитные сетки {}, купить сетку на окно, антикошка, антипыль, vsn, ремонт сеток, {}",
@@ -187,6 +205,51 @@ fn build_tenant_config(d: moskit_core::entity::Dealer, branch_id: Option<Uuid>) 
         city, d.name
     );
 
+    // Дополнительные SEO поля для конкретных страниц (если нужно переопределить через API)
+    let seo_data = serde_json::json!({
+        "title": title,
+        "description": description,
+        "keywords": keywords,
+        "verification_tag": d.seo_config.verification_tag,
+        "analytics_code": d.seo_config.analytics_code,
+        "content": {
+            "main": main_text,
+            "vstavnye": vstavnye_text,
+            "antimoshka": antimoshka_text,
+            "antikoshka": antikoshka_text,
+            "antipyl": antipyl_text,
+            "ultravyu": ultravyu_text,
+            "remont": remont_text
+        },
+        // Шаблоны для внутренних страниц, если они не заданы в админке
+        "pages": {
+            "vstavnye": {
+                "title": format!("Вставные москитные сетки VSN в {} — цены от 1450 руб | {}", city, d.name),
+                "description": format!("Инновационные вставные сетки VSN в {} от компании {}. Не требуют сверления рамы, устанавливаются изнутри. Надежно, эстетично, безопасно.", city, d.name)
+            },
+            "antimoshka": {
+                "title": format!("Москитная сетка Антимошка в {} — цены от 1000 руб | {}", city, d.name),
+                "description": format!("Сетки Антимошка с уменьшенной ячейкой 0.8х0.8 мм в {} от компании {}. Защита от мелких насекомых и тополиного пуха.", city, d.name)
+            },
+            "antikoshka": {
+                "title": format!("Сетка Антикошка на окна в {} — цены от 1800 руб | {}", city, d.name),
+                "description": format!("Усиленные сетки Антикошка (Pet Screen) в {} от компании {}. Выдерживают когти животных, обеспечивают безопасность питомцев.", city, d.name)
+            },
+            "antipyl": {
+                "title": format!("Сетка Антипыль (Poll-Tex) в {} — цены от 2200 руб | {}", city, d.name),
+                "description": format!("Сетки Антипыль для аллергиков в {} от компании {}. Удерживают пыльцу и уличную пыль, обеспечивая чистый воздух.", city, d.name)
+            },
+            "ultravyu": {
+                "title": format!("Сетка Ультравью (Ultraview) в {} — цены от 1200 руб | {}", city, d.name),
+                "description": format!("Максимально прозрачные сетки Ультравью в {} от компании {}. Пропускают на 25% больше света и воздуха.", city, d.name)
+            },
+            "remont": {
+                "title": format!("Ремонт москитных сеток в {} — от 100 руб | {}", city, d.name),
+                "description": format!("Профессиональный ремонт москитных сеток в {} от компании {}. Замена полотна, ручек, уголков за 3 дня.", city, d.name)
+            }
+        }
+    });
+
     ok(TenantConfig {
         dealer_id: d.id.to_string(),
         dealer_name: d.name,
@@ -195,22 +258,7 @@ fn build_tenant_config(d: moskit_core::entity::Dealer, branch_id: Option<Uuid>) 
         email: d.email,
         branding: d.branding,
         contacts: d.contacts,
-        seo: serde_json::json!({
-            "title": title,
-            "description": description,
-            "keywords": keywords,
-            "verification_tag": d.seo_config.verification_tag,
-            "analytics_code": d.seo_config.analytics_code,
-            "content": {
-                "main": main_text,
-                "vstavnye": vstavnye_text,
-                "antimoshka": antimoshka_text,
-                "antikoshka": antikoshka_text,
-                "antipyl": antipyl_text,
-                "ultravyu": ultravyu_text,
-                "remont": remont_text
-            }
-        }),
+        seo: seo_data,
         margin_config: d.margin_config,
         legal: d.legal_info,
         branch_id: branch_id.map(|id| id.to_string()),

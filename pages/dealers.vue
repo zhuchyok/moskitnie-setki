@@ -42,7 +42,6 @@ useHead({
     { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: description },
   ],
-  link: [{ rel: 'canonical', href: url }],
 })
 
 // Если пользователь уже авторизован, перенаправляем в админку

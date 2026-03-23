@@ -12,12 +12,21 @@ const route = useRoute()
 const event = import.meta.server ? useRequestEvent() : null
 const headers = event?.node?.req?.headers
 const ssrHost = (headers?.['x-forwarded-host'] as string) || headers?.host
-const ssrProto = (headers?.['x-forwarded-proto'] as string) || 'http'
+// Принудительно используем https для канонических URL и ссылок на продакшене
+const ssrProto = (headers?.['x-forwarded-proto'] as string) || (process.env.NODE_ENV === 'production' ? 'https' : 'http')
 const ssrOrigin = ssrHost ? `${ssrProto}://${ssrHost}` : undefined
 
       // OG-image и Canonical: от текущего origin (аудит 2026-03-10), не хардкод www.setki21.ru
 const requestURL = useRequestURL()
 const siteOrigin = (import.meta.server && ssrOrigin) ? ssrOrigin : (requestURL?.origin || '')
+
+// Исправляем протокол в siteOrigin, если он http на продакшене
+const finalSiteOrigin = computed(() => {
+  if (process.env.NODE_ENV === 'production' && siteOrigin.startsWith('http://')) {
+    return siteOrigin.replace('http://', 'https://')
+  }
+  return siteOrigin
+})
 
 const { data: tenantConfig } = await useAsyncData('tenant-config', async () => {
   await tenant.fetchConfig(ssrOrigin)
@@ -33,7 +42,7 @@ const { data: pricingData } = await useAsyncData('pricing-config', async () => {
 
 // Вычисляем канонический URL для текущей страницы
 const canonicalUrl = computed(() => {
-  const origin = siteOrigin || 'https://www.setki21.ru'
+  const origin = finalSiteOrigin.value || 'https://www.setki21.ru'
   const path = route.path.replace(/\/$/, '') || '/'
   return `${origin}${path === '/' ? '' : path}`
 })

@@ -5,8 +5,8 @@ onMounted(() => {
   store.updateConfig({ frameType: 'standart', type: 'antipyl', typeName: 'АНТИПЫЛЬ' })
 })
 
-const title = computed(() => `Москитная сетка Антипыль (Poll-Tex) в ${tenant.config.city || 'Чебоксарах'} — цены от 1400 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
-const description = computed(() => `Сетки для аллергиков Poll-Tex в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Нейлоновое полотно притягивает пыль и пыльцу. Чистый воздух в вашем доме.`)
+const title = computed(() => tenant.config.seo?.pages?.antipyl?.title || tenant.config.seo?.title || `Москитная сетка Антипыль (Poll-Tex) в ${tenant.config.city || 'Чебоксарах'} — цены от 1400 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => tenant.config.seo?.pages?.antipyl?.description || tenant.config.seo?.description || `Сетки для аллергиков Poll-Tex в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Нейлоновое полотно притягивает пыль и пыльцу. Чистый воздух в вашем доме.`)
 const keywords = computed(() => `антипыль, poll-tex, москитная сетка для аллергиков, ${tenant.config.city}, ${tenant.config.dealer_name}, чистый воздух, защита от пыльцы, нейлоновая сетка`)
 
 const requestURL = useRequestURL()

@@ -48,7 +48,6 @@ useHead({
     { name: 'twitter:description', content: description },
     { name: 'twitter:image', content: image },
   ],
-  link: [{ rel: 'canonical', href: url }],
   script: [{ type: 'application/ld+json', children: computed(() => JSON.stringify(webPageSchema.value)) }],
 })
 </script>

@@ -5,8 +5,8 @@ onMounted(() => {
   store.updateConfig({ frameType: 'standart', type: 'ultravyu', typeName: 'УЛЬТРАВЬЮ' })
 })
 
-const title = computed(() => `Москитная сетка Ультравью в ${tenant.config.city || 'Чебоксарах'} — цены от 1000 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
-const description = computed(() => `Сетки Ультравью с повышенной прозрачностью и мелкой ячейкой в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от насекомых и пуха. Заказ за 2 дня.`)
+const title = computed(() => tenant.config.seo?.pages?.ultravyu?.title || tenant.config.seo?.title || `Москитная сетка Ультравью в ${tenant.config.city || 'Чебоксарах'} — цены от 1000 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => tenant.config.seo?.pages?.ultravyu?.description || tenant.config.seo?.description || `Сетки Ультравью с повышенной прозрачностью и мелкой ячейкой в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от насекомых и пуха. Заказ за 2 дня.`)
 const keywords = computed(() => `ультравью, ultraview, москитная сетка, ${tenant.config.city}, ${tenant.config.dealer_name}, прозрачная сетка, защита от мошек, тонкая сетка`)
 const url = 'https://www.setki21.ru/ultravyu/'
 const requestURL = useRequestURL()

@@ -76,7 +76,7 @@ const orderFormBlockRef = ref<HTMLElement | null>(null)
 
 // Логика Мастера (Wizard)
 const currentStep = ref(1)
-const maxStep = 4
+const maxStep = 3
 
 const nextStep = () => {
   if (currentStep.value < maxStep) {
@@ -821,56 +821,10 @@ const submitOrder = async () => {
                 </div>
               </div>
 
-              <!-- Шаг 2: Метод замера (Критический) -->
+              <!-- Шаг 2: Опции + Метод замера -->
               <div v-if="currentStep === 2" class="space-y-10 pt-2">
-                <div class="w-full min-w-0">
-                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Как вы измеряли?</label>
-                  <div :class="[
-                    'grid gap-4 w-full',
-                    store.config.frameType === 'vstavnaya' ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'
-                  ]">
-                    <template v-for="m in measurementMethods" :key="m.id">
-                          <button v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
-                                  @click="selectMeasurementMethod(m.id as any)"
-                                  :class="[
-                                    'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center measurement-method-btn',
-                                    store.config.measurementMethod === m.id
-                                      ? 'text-white border-transparent shadow-xl transform -translate-y-0.5'
-                                      : 'bg-white text-gray-400 border-gray-100'
-                                  ]"
-                                  :style="store.config.measurementMethod === m.id
-                                    ? { backgroundColor: brandPrimary, boxShadow: `0 20px 25px -5px ${brandPrimary}33` }
-                                    : { '--brand-primary': brandPrimary, color: store.config.measurementMethod === m.id ? 'white' : undefined, borderColor: store.config.measurementMethod === m.id ? 'transparent' : undefined }">
-                            {{ m.name }}
-                          </button>
-                    </template>
-                  </div>
-                  
-                  <!-- Динамическая подсказка под кнопками -->
-                  <div v-if="store.config.measurementMethod" 
-                       class="mt-5 p-5 rounded-2xl border animate-in fade-in slide-in-from-top-2 duration-300"
-                       :style="{ borderColor: brandPrimary + '1A', backgroundColor: brandPrimary + '0D' }">
-                    <div class="flex gap-4 items-start">
-                      <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" :style="{ backgroundColor: brandPrimary + '1A' }">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" :style="{ color: brandPrimary }">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <p class="text-[11px] font-bold leading-tight uppercase tracking-wider" :style="{ color: brandPrimary }">
-                        <template v-if="store.config.frameType === 'vstavnaya' && store.config.measurementMethod === 'proem'">
-                          ИЗМЕРИЛИ ОТКРЫТЫЙ ПРОЕМ ОТ КРАЯ ДО КРАЯ РЕЗИНКИ. <br/>МЫ АВТОМАТИЧЕСКИ УВЕЛИЧИЛИ РАЗМЕР НА 17 ММ ПО ШИРИНЕ И 12 ММ ПО ВЫСОТЕ.
-                        </template>
-                        <template v-else>
-                          <span v-html="measurementMethods.find(m => m.id === store.config.measurementMethod)?.desc"></span>
-                        </template>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <!-- Шаг 3: Опции -->
-              <div v-if="currentStep === 3" class="pt-12 border-t border-gray-100 w-full min-w-0">
+                <!-- Ручки / Монтаж / Количество -->
                 <ClientOnly>
                   <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12" style="width: 100%">
                     
@@ -966,10 +920,59 @@ const submitOrder = async () => {
                     </div>
                   </template>
                 </ClientOnly>
+
+                <!-- Разделитель -->
+                <div class="border-t border-gray-100"></div>
+
+                <!-- Метод замера -->
+                <div class="w-full min-w-0">
+                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Как вы измеряли?</label>
+                  <div :class="[
+                    'grid gap-4 w-full',
+                    store.config.frameType === 'vstavnaya' ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'
+                  ]">
+                    <template v-for="m in measurementMethods" :key="m.id">
+                          <button v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
+                                  @click="selectMeasurementMethod(m.id as any)"
+                                  :class="[
+                                    'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center measurement-method-btn',
+                                    store.config.measurementMethod === m.id
+                                      ? 'text-white border-transparent shadow-xl transform -translate-y-0.5'
+                                      : 'bg-white text-gray-400 border-gray-100'
+                                  ]"
+                                  :style="store.config.measurementMethod === m.id
+                                    ? { backgroundColor: brandPrimary, boxShadow: `0 20px 25px -5px ${brandPrimary}33` }
+                                    : { '--brand-primary': brandPrimary, color: store.config.measurementMethod === m.id ? 'white' : undefined, borderColor: store.config.measurementMethod === m.id ? 'transparent' : undefined }">
+                            {{ m.name }}
+                          </button>
+                    </template>
+                  </div>
+                  
+                  <!-- Динамическая подсказка под кнопками -->
+                  <div v-if="store.config.measurementMethod" 
+                       class="mt-5 p-5 rounded-2xl border animate-in fade-in slide-in-from-top-2 duration-300"
+                       :style="{ borderColor: brandPrimary + '1A', backgroundColor: brandPrimary + '0D' }">
+                    <div class="flex gap-4 items-start">
+                      <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" :style="{ backgroundColor: brandPrimary + '1A' }">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" :style="{ color: brandPrimary }">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <p class="text-[11px] font-bold leading-tight uppercase tracking-wider" :style="{ color: brandPrimary }">
+                        <template v-if="store.config.frameType === 'vstavnaya' && store.config.measurementMethod === 'proem'">
+                          ИЗМЕРИЛИ ОТКРЫТЫЙ ПРОЕМ ОТ КРАЯ ДО КРАЯ РЕЗИНКИ. <br/>МЫ АВТОМАТИЧЕСКИ УВЕЛИЧИЛИ РАЗМЕР НА 17 ММ ПО ШИРИНЕ И 12 ММ ПО ВЫСОТЕ.
+                        </template>
+                        <template v-else>
+                          <span v-html="measurementMethods.find(m => m.id === store.config.measurementMethod)?.desc"></span>
+                        </template>
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <!-- Шаг 5: Просмотр -->
-              <div v-if="currentStep === 4" class="space-y-8 pt-2">
+              <!-- Шаг 3: Оформление -->
+              <div v-if="currentStep === 3" class="space-y-8 pt-2">
                 <div class="bg-gray-50/50 rounded-3xl p-8 border border-gray-100 space-y-6 relative group">
                   <!-- Кнопка сброса (Крестик) -->
                   <button @click="currentStep = 1" 
@@ -1039,7 +1042,7 @@ const submitOrder = async () => {
           </Transition>
 
           <!-- Навигация и Цена (Step 1-4): нижний отступ увеличен, чтобы на VDS не обрезало цену и кнопку -->
-          <div v-if="currentStep < 4" class="pt-10 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
+          <div v-if="currentStep < 3" class="pt-10 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
             <!-- Цена в левом углу -->
             <div class="text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
               <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-1">Предварительная цена</p>

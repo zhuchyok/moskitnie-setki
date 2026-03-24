@@ -4,24 +4,20 @@ const store = useOrderStore()
 const pricingStore = usePricingStore()
 const tenant = useTenantStore()
 const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2A6AB2')
+
+const THUMB_SIZE = 36
+const H_SLIDER_W = 240
+const V_SLIDER_W = 240
+
+const widthThumbLeft = computed(() => {
+  const ratio = (store.config.width - 200) / (1500 - 200)
+  return ratio * (H_SLIDER_W - THUMB_SIZE)
+})
+const heightThumbLeft = computed(() => {
+  const ratio = (store.config.height - 200) / (2000 - 200)
+  return ratio * (V_SLIDER_W - THUMB_SIZE)
+})
 const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
-
-const isDraggingWidth = ref(false)
-const isDraggingHeight = ref(false)
-
-const widthThumbPercent = computed(() => ((store.config.width - 200) / (1500 - 200)) * 100)
-const heightThumbPercent = computed(() => ((store.config.height - 200) / (2000 - 200)) * 100)
-
-// Вычисляемые размеры сетки (в пикселях) для точного позиционирования ползунков
-const meshPixelWidth = computed(() => Math.min(280, Math.max(150, store.config.width / 4)))
-const meshPixelHeight = computed(() => Math.min(350, Math.max(200, store.config.height / 4)))
-// +16 = border-[8px] с двух сторон
-const meshTotalWidth = computed(() => meshPixelWidth.value + 16)
-const meshTotalHeight = computed(() => meshPixelHeight.value + 16)
-
-// Фиксированные длины ползунков — НЕ зависят от размера сетки (иначе бегают при движении)
-const SLIDER_H_WIDTH = 220   // горизонтальный — ширина в px
-const SLIDER_V_HEIGHT = 280  // вертикальный — высота в px (= ширина input до rotate)
 
 // По умолчанию при открытии калькулятора всегда выбрана доставка
 onMounted(() => {
@@ -553,97 +549,97 @@ const submitOrder = async () => {
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 h-auto lg:min-h-[680px] lg:h-[740px]">
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-4/12 bg-gray-50/50 p-10 flex flex-col items-center justify-center relative border-r border-gray-100 h-full">
-        <!-- Контейнер для сетки и ползунков — flex-layout, без абсолютного позиционирования -->
-        <div class="flex flex-col items-start" style="margin: auto;">
-          <!-- Строка: сетка + вертикальный ползунок -->
-          <div class="flex items-start gap-2">
-
-            <!-- Основная рамка сетки -->
-            <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden flex-shrink-0"
-                 :style="{ 
-                   width: meshPixelWidth + 'px', 
-                   height: meshPixelHeight + 'px',
-                   borderColor: frameColor
-                 }">
-              <!-- Сетка линиями (эффект плетения) - ТЕПЕРЬ НА ЗАДНЕМ ПЛАНЕ -->
-              <div class="absolute inset-0 transition-all duration-500 z-0"
-                   :style="{ 
-                     backgroundImage: `
-                       linear-gradient(to right, #000 ${meshThickness}, transparent ${meshThickness}),
-                       linear-gradient(to bottom, #000 ${meshThickness}, transparent ${meshThickness})
-                     `,
-                     backgroundSize: meshSize + 'px ' + meshSize + 'px',
-                     opacity: meshOpacity
-                   }"></div>
-              
-              <!-- Перегородка посередине - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-              <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 transition-colors duration-500 z-10 shadow-sm"
-                   :style="{ backgroundColor: frameColor }"></div>
-              
-              <!-- Ручки для вставной (сверху и снизу) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-              <template v-if="store.config.frameType === 'vstavnaya'">
-                <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5 z-20"></div>
-                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5 z-20"></div>
-              </template>
-              <!-- Ручки для остальных (по бокам, чуть ниже перегородки) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-              <template v-else>
-                <div class="absolute left-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -ml-2.5 z-20"></div>
-                <div class="absolute right-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -mr-2.5 z-20"></div>
-              </template>
-            </div>
-
-            <!-- Вертикальный ползунок (справа от сетки, та же высота) -->
-            <div class="flex items-center justify-center flex-shrink-0 overflow-visible"
-                 :style="{ height: SLIDER_V_HEIGHT + 'px', width: '20px' }">
-              <div class="relative overflow-visible">
-                <input type="range" min="200" max="2000" step="5" 
-                       :value="store.config.height"
-                       @mousedown="isDraggingHeight = true"
-                       @touchstart="isDraggingHeight = true"
-                       @mouseup="isDraggingHeight = false"
-                       @touchend="isDraggingHeight = false"
-                       @input="(e) => { 
-                         store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
-                         store.setMeasurementMethod('');
-                       }"
-                       style="-webkit-appearance: none; appearance: none;"
-                       :style="{ transform: 'rotate(-90deg)', width: SLIDER_V_HEIGHT + 'px', transformOrigin: 'center' }"
-                       class="horizontal-range"/>
-                <div v-if="isDraggingHeight"
-                     class="thumb-label"
-                     :style="{ left: `calc(${heightThumbPercent}% - 18px)`, color: brandPrimary, borderColor: brandPrimary + '40' }">
-                  {{ store.config.height }}
-                </div>
+        <!-- Контейнер для сетки и ползунков -->
+        <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
+          <!-- Ползунок высоты (вертикальный справа) -->
+          <div class="absolute overflow-visible flex items-center justify-center" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px;">
+            <div class="relative flex-shrink-0" style="width: 240px; height: 20px; transform: rotate(-90deg); transform-origin: center center;">
+              <input type="range" min="200" max="2000" step="5" 
+                     :value="store.config.height"
+                     @input="(e) => { 
+                       store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
+                       store.setMeasurementMethod('');
+                     }"
+                     class="horizontal-range hide-thumb"
+                     style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%); margin: 0;"/>
+              <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
+                   :style="{
+                     width: THUMB_SIZE + 'px', height: THUMB_SIZE + 'px',
+                     left: heightThumbLeft + 'px',
+                     top: '50%',
+                     transform: 'translateY(-50%)',
+                     backgroundColor: brandPrimary,
+                     boxShadow: `0 2px 8px ${brandPrimary}55`,
+                     color: 'white',
+                     fontSize: '9px'
+                   }">
+                {{ store.config.height }}
               </div>
             </div>
-
           </div>
 
-          <!-- Горизонтальный ползунок (под сеткой, та же ширина) -->
-          <div class="relative flex-shrink-0 mt-3" :style="{ width: SLIDER_H_WIDTH + 'px' }">
+          <!-- Основная рамка сетки -->
+          <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
+               :style="{ 
+                 width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', 
+                 height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px',
+                 borderColor: frameColor
+               }">
+            <!-- Сетка линиями (эффект плетения) - ТЕПЕРЬ НА ЗАДНЕМ ПЛАНЕ -->
+            <div class="absolute inset-0 transition-all duration-500 z-0"
+                 :style="{ 
+                   backgroundImage: `
+                     linear-gradient(to right, #000 ${meshThickness}, transparent ${meshThickness}),
+                     linear-gradient(to bottom, #000 ${meshThickness}, transparent ${meshThickness})
+                   `,
+                   backgroundSize: meshSize + 'px ' + meshSize + 'px',
+                   opacity: meshOpacity
+                 }"></div>
+            
+            <!-- Перегородка посередине - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+            <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 transition-colors duration-500 z-10 shadow-sm"
+                 :style="{ backgroundColor: frameColor }"></div>
+            
+            <!-- Ручки для вставной (сверху и снизу) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+            <template v-if="store.config.frameType === 'vstavnaya'">
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5 z-20"></div>
+              <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5 z-20"></div>
+            </template>
+            <!-- Ручки для остальных (по бокам, чуть ниже перегородки) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+            <template v-else>
+              <div class="absolute left-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -ml-2.5 z-20"></div>
+              <div class="absolute right-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -mr-2.5 z-20"></div>
+            </template>
+          </div>
+
+          <!-- Ползунок ширины (горизонтальный снизу) -->
+          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 relative" style="width: 240px;">
             <input type="range" min="200" max="1500" step="5" 
                    :value="store.config.width"
-                   @mousedown="isDraggingWidth = true"
-                   @touchstart="isDraggingWidth = true"
-                   @mouseup="isDraggingWidth = false"
-                   @touchend="isDraggingWidth = false"
                    @input="(e) => { 
                      store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
                      store.setMeasurementMethod('');
                    }"
-                   style="-webkit-appearance: none; appearance: none;"
-                   class="horizontal-range w-full"/>
-            <div v-if="isDraggingWidth"
-                 class="thumb-label"
-                 :style="{ left: `calc(${widthThumbPercent}% - 18px)`, color: brandPrimary, borderColor: brandPrimary + '40' }">
+                   class="horizontal-range hide-thumb w-full"/>
+            <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
+                 :style="{
+                   width: THUMB_SIZE + 'px', height: THUMB_SIZE + 'px',
+                   left: widthThumbLeft + 'px',
+                   top: '50%',
+                   transform: 'translateY(-50%)',
+                   backgroundColor: brandPrimary,
+                   boxShadow: `0 2px 8px ${brandPrimary}55`,
+                   color: 'white',
+                   fontSize: '9px'
+                 }">
               {{ store.config.width }}
             </div>
           </div>
-
+          </div>
         </div>
         
         <!-- Размеры под рамкой -->
-        <div class="mt-5 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
+        <div class="mt-20 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
           <!-- Ширина -->
           <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
             <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
@@ -1456,120 +1452,69 @@ input[type="range"]::-webkit-slider-thumb {
   @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
 }
 
-/* Пузырёк с размером над ползунком */
-.thumb-label {
-  position: absolute;
-  bottom: calc(100% + 10px);
-  min-width: 36px;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  padding: 2px 6px;
-  border-radius: 8px;
-  border: 1.5px solid;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
-  pointer-events: none;
-  white-space: nowrap;
-  animation: bubble-in 0.12s ease;
-}
-
-.thumb-label::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: currentColor;
-  opacity: 0.3;
-}
-
-@keyframes bubble-in {
-  from { opacity: 0; transform: translateY(4px) scale(0.9); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
 /* Горизонтальный ползунок (ширина) — базовые стили для обоих */
-input[type="range"].horizontal-range,
-.horizontal-range {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  height: 3px !important;
-  background: #e5e7eb !important;
-  border-radius: 9999px !important;
-  outline: none !important;
-  cursor: pointer !important;
+.horizontal-range {  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
 }
 
-input[type="range"].horizontal-range::-webkit-slider-runnable-track,
 .horizontal-range::-webkit-slider-runnable-track {
-  height: 3px !important;
-  background: #e5e7eb !important;
-  border-radius: 9999px !important;
+  height: 3px;
+  background: #e5e7eb;
+  border-radius: 9999px;
 }
 
-input[type="range"].horizontal-range::-webkit-slider-thumb,
 .horizontal-range::-webkit-slider-thumb {
-  -webkit-appearance: none !important;
-  width: 16px !important;
-  height: 16px !important;
-  background: #3B82F6 !important;
-  border: none !important;
-  border-radius: 50% !important;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
-  cursor: pointer !important;
-  margin-top: -6.5px !important;
-  transition: transform 0.15s ease !important;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+  cursor: pointer;
+  margin-top: -6.5px;
+  transition: transform 0.15s ease;
 }
 
-input[type="range"].horizontal-range::-webkit-slider-thumb:hover,
 .horizontal-range::-webkit-slider-thumb:hover {
-  transform: scale(1.15) !important;
+  transform: scale(1.15);
 }
 
-input[type="range"].horizontal-range::-webkit-slider-thumb:active,
 .horizontal-range::-webkit-slider-thumb:active {
-  transform: scale(1.25) !important;
-  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15) !important;
+  transform: scale(1.25);
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
 }
 
-input[type="range"].horizontal-range::-moz-range-track,
 .horizontal-range::-moz-range-track {
-  height: 3px !important;
-  background: #e5e7eb !important;
-  border-radius: 9999px !important;
+  height: 3px;
+  background: #e5e7eb;
+  border-radius: 9999px;
 }
 
-input[type="range"].horizontal-range::-moz-range-thumb,
 .horizontal-range::-moz-range-thumb {
-  width: 16px !important;
-  height: 16px !important;
-  background: #3B82F6 !important;
-  border: none !important;
-  border-radius: 50% !important;
-  cursor: pointer !important;
+  width: 16px;
+  height: 16px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
 }
 
-/* Вертикальный — горизонтальный ползунок повёрнутый */
-.range-rotate {
-  width: 240px !important;
-  transform: rotate(-90deg) !important;
-  transform-origin: center center !important;
-  flex-shrink: 0 !important;
+/* Скрываем нативный бегунок — используем кастомный overlay */
+.hide-thumb::-webkit-slider-thumb {
+  opacity: 0;
+  width: 36px;
+  height: 36px;
 }
-
-@media (max-width: 1023px) {
-  .range-rotate {
-    width: 180px !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .range-rotate {
-    width: 140px !important;
-  }
+.hide-thumb::-moz-range-thumb {
+  opacity: 0;
+  width: 36px;
+  height: 36px;
 }
 
 /* Анимации для Мастера */

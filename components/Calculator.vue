@@ -546,8 +546,7 @@ const submitOrder = async () => {
                      store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
                      store.setMeasurementMethod('');
                    }"
-                   class="vertical-range h-full w-2 bg-gray-100 rounded-full appearance-none cursor-pointer shadow-inner" 
-                   :style="{ accentColor: brandPrimary }"/>
+                   class="vertical-range h-full w-2 bg-gray-100 rounded-full appearance-none cursor-pointer shadow-inner"/>
           </div>
 
           <!-- Основная рамка сетки -->
@@ -601,7 +600,7 @@ const submitOrder = async () => {
         <div class="mt-20 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
           <!-- Ширина -->
           <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
-            <span class="w-2.5 h-2.5 rounded-full bg-brand-blue shadow-lg shadow-brand-blue/40 transition-transform group-hover:scale-125"></span>
+            <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
             <div class="flex items-baseline gap-1">
               <input v-if="editingWidth" 
                      type="text" 
@@ -624,7 +623,7 @@ const submitOrder = async () => {
 
           <!-- Высота -->
           <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
-            <span class="w-2.5 h-2.5 rounded-full bg-brand-blue shadow-lg shadow-brand-blue/40 transition-transform group-hover:scale-125"></span>
+            <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
             <div class="flex items-baseline gap-1">
               <input v-if="editingHeight" 
                      type="text" 
@@ -1413,10 +1412,15 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Вертикальный ползунок */
 .vertical-range {
-  writing-mode: bt-lr; /* IE/Edge */
-  -webkit-appearance: slider-vertical; /* WebKit */
-  width: 8px !important;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 6px !important;
   height: 100%;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
 }
 
 @media (max-width: 1023px) {
@@ -1453,6 +1457,7 @@ input[type="range"].shadow-inner::-webkit-slider-thumb:active {
 /* Сброс стандартных стилей для вертикального ползунка в WebKit */
 .vertical-range::-webkit-slider-runnable-track {
   width: 4px;
+  height: 100%;
   background: #e5e7eb;
   border-radius: 9999px;
 }
@@ -1461,7 +1466,7 @@ input[type="range"].shadow-inner::-webkit-slider-thumb:active {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  background: #3B82F6;
+  background: #3B82F6 !important;
   border: none;
   border-radius: 50%;
   box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
@@ -1473,6 +1478,23 @@ input[type="range"].shadow-inner::-webkit-slider-thumb:active {
 .vertical-range::-webkit-slider-thumb:active {
   transform: scale(1.2);
   box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2);
+}
+
+/* Firefox */
+.vertical-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
+  cursor: pointer;
+}
+
+.vertical-range::-moz-range-track {
+  width: 4px;
+  background: #e5e7eb;
+  border-radius: 9999px;
 }
 
 /* Анимации для Мастера */

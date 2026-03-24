@@ -6,16 +6,20 @@ const tenant = useTenantStore()
 const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2A6AB2')
 
 const THUMB_SIZE = 36
+const DOT_SIZE = 12
 const H_SLIDER_W = 240
 const V_SLIDER_W = 240
 
-const widthThumbLeft = computed(() => {
+const isDraggingWidth = ref(false)
+const isDraggingHeight = ref(false)
+
+const widthThumbCenter = computed(() => {
   const ratio = (store.config.width - 200) / (1500 - 200)
-  return ratio * (H_SLIDER_W - THUMB_SIZE)
+  return ratio * (H_SLIDER_W - THUMB_SIZE) + THUMB_SIZE / 2
 })
-const heightThumbLeft = computed(() => {
+const heightThumbCenter = computed(() => {
   const ratio = (store.config.height - 200) / (2000 - 200)
-  return ratio * (V_SLIDER_W - THUMB_SIZE)
+  return ratio * (V_SLIDER_W - THUMB_SIZE) + THUMB_SIZE / 2
 })
 const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
 
@@ -610,20 +614,26 @@ const submitOrder = async () => {
                        store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
                        store.setMeasurementMethod('');
                      }"
+                     @mousedown="isDraggingHeight = true"
+                     @touchstart="isDraggingHeight = true"
+                     @mouseup="isDraggingHeight = false"
+                     @touchend="isDraggingHeight = false"
                      class="horizontal-range hide-thumb"
                      style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%); margin: 0;"/>
               <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
                    :style="{
-                     width: THUMB_SIZE + 'px', height: THUMB_SIZE + 'px',
-                     left: heightThumbLeft + 'px',
+                     width: (isDraggingHeight ? THUMB_SIZE : DOT_SIZE) + 'px',
+                     height: (isDraggingHeight ? THUMB_SIZE : DOT_SIZE) + 'px',
+                     left: heightThumbCenter + 'px',
                      top: '50%',
-                     transform: 'translateY(-50%)',
+                     transform: 'translate(-50%, -50%)',
                      backgroundColor: brandPrimary,
-                     boxShadow: `0 2px 8px ${brandPrimary}55`,
+                     boxShadow: isDraggingHeight ? `0 2px 12px ${brandPrimary}66` : `0 1px 4px ${brandPrimary}44`,
                      color: 'white',
-                     fontSize: '9px'
+                     fontSize: isDraggingHeight ? '9px' : '0px',
+                     transition: 'width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease, font-size 0.1s ease',
                    }">
-                {{ store.config.height }}
+                <span v-if="isDraggingHeight">{{ store.config.height }}</span>
               </div>
             </div>
           </div>
@@ -671,18 +681,25 @@ const submitOrder = async () => {
                        store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
                        store.setMeasurementMethod('');
                      }"
+                     @mousedown="isDraggingWidth = true"
+                     @touchstart="isDraggingWidth = true"
+                     @mouseup="isDraggingWidth = false"
+                     @touchend="isDraggingWidth = false"
                      class="horizontal-range hide-thumb w-full"/>
               <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
                    :style="{
-                     width: THUMB_SIZE + 'px', height: THUMB_SIZE + 'px',
-                     left: widthThumbLeft + 'px',
+                     width: (isDraggingWidth ? THUMB_SIZE : DOT_SIZE) + 'px',
+                     height: (isDraggingWidth ? THUMB_SIZE : DOT_SIZE) + 'px',
+                     left: widthThumbCenter + 'px',
                      top: 0,
+                     transform: 'translateX(-50%)',
                      backgroundColor: brandPrimary,
-                     boxShadow: `0 2px 8px ${brandPrimary}55`,
+                     boxShadow: isDraggingWidth ? `0 2px 12px ${brandPrimary}66` : `0 1px 4px ${brandPrimary}44`,
                      color: 'white',
-                     fontSize: '9px'
+                     fontSize: isDraggingWidth ? '9px' : '0px',
+                     transition: 'width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease, font-size 0.1s ease',
                    }">
-                {{ store.config.width }}
+                <span v-if="isDraggingWidth">{{ store.config.width }}</span>
               </div>
             </div>
           </div>

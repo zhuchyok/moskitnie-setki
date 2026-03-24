@@ -549,6 +549,54 @@ const submitOrder = async () => {
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 h-auto lg:min-h-[680px] lg:h-[740px]">
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-4/12 bg-gray-50/50 p-10 flex flex-col items-center justify-center relative border-r border-gray-100 h-full">
+        <!-- Размеры над сеткой -->
+        <div class="mb-4 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
+          <!-- Ширина -->
+          <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
+            <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
+            <div class="flex items-baseline gap-1">
+              <input v-if="editingWidth" 
+                     type="text" 
+                     v-model="tempWidth" 
+                     @blur="saveWidth" 
+                     @keyup.enter="saveWidth"
+                     @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
+                     maxlength="4"
+                     class="w-16 text-sm font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
+                     :style="{ color: brandPrimary, borderColor: brandPrimary }"
+                     autofocus />
+              <span v-else 
+                    @click="startEditWidth" 
+                    class="border-b border-dashed border-gray-300 group-hover-brand transition-colors cursor-pointer">
+                {{ store.config.width }}
+              </span>
+              <small class="text-[9px] text-gray-300 ml-0.5">ММ</small>
+            </div>
+          </div>
+
+          <!-- Высота -->
+          <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
+            <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
+            <div class="flex items-baseline gap-1">
+              <input v-if="editingHeight" 
+                     type="text" 
+                     v-model="tempHeight" 
+                     @blur="saveHeight" 
+                     @keyup.enter="saveHeight"
+                     @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
+                     maxlength="4"
+                     class="w-16 text-sm font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
+                     :style="{ color: brandPrimary, borderColor: brandPrimary }"
+                     autofocus />
+              <span v-else 
+                    @click="startEditHeight" 
+                    class="border-b border-dashed border-gray-300 group-hover-brand transition-colors cursor-pointer">
+                {{ store.config.height }}
+              </span>
+              <small class="text-[9px] text-gray-300 ml-0.5">ММ</small>
+            </div>
+          </div>
+        </div>
         <!-- Контейнер для сетки и ползунков -->
         <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
           <!-- Ползунок высоты (вертикальный справа) -->
@@ -638,53 +686,6 @@ const submitOrder = async () => {
           </div>
         </div>
         
-        <!-- Размеры под рамкой -->
-        <div class="mt-20 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
-          <!-- Ширина -->
-          <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
-            <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
-            <div class="flex items-baseline gap-1">
-              <input v-if="editingWidth" 
-                     type="text" 
-                     v-model="tempWidth" 
-                     @blur="saveWidth" 
-                     @keyup.enter="saveWidth"
-                     @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
-                     maxlength="4"
-                     class="w-16 text-sm font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
-                     :style="{ color: brandPrimary, borderColor: brandPrimary }"
-                     autofocus />
-              <span v-else 
-                    @click="startEditWidth" 
-                    class="border-b border-dashed border-gray-300 group-hover-brand transition-colors cursor-pointer">
-                {{ store.config.width }}
-              </span>
-              <small class="text-[9px] text-gray-300 ml-0.5">ММ</small>
-            </div>
-          </div>
-
-          <!-- Высота -->
-          <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
-            <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
-            <div class="flex items-baseline gap-1">
-              <input v-if="editingHeight" 
-                     type="text" 
-                     v-model="tempHeight" 
-                     @blur="saveHeight" 
-                     @keyup.enter="saveHeight"
-                     @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
-                     maxlength="4"
-                     class="w-16 text-sm font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
-                     :style="{ color: brandPrimary, borderColor: brandPrimary }"
-                     autofocus />
-              <span v-else 
-                    @click="startEditHeight" 
-                    class="border-b border-dashed border-gray-300 group-hover-brand transition-colors cursor-pointer">
-                {{ store.config.height }}
-              </span>
-              <small class="text-[9px] text-gray-300 ml-0.5">ММ</small>
-            </div>
-          </div>
         </div>
       </div>
 

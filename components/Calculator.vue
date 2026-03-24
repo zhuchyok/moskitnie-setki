@@ -613,26 +613,28 @@ const submitOrder = async () => {
           </div>
 
           <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 relative" style="width: 240px;">
-            <input type="range" min="200" max="1500" step="5" 
-                   :value="store.config.width"
-                   @input="(e) => { 
-                     store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
-                     store.setMeasurementMethod('');
-                   }"
-                   class="horizontal-range hide-thumb w-full"/>
-            <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
-                 :style="{
-                   width: THUMB_SIZE + 'px', height: THUMB_SIZE + 'px',
-                   left: widthThumbLeft + 'px',
-                   top: '50%',
-                   transform: 'translateY(-50%)',
-                   backgroundColor: brandPrimary,
-                   boxShadow: `0 2px 8px ${brandPrimary}55`,
-                   color: 'white',
-                   fontSize: '9px'
-                 }">
-              {{ store.config.width }}
+          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2" style="width: 240px;">
+            <div class="relative w-full">
+              <input type="range" min="200" max="1500" step="5" 
+                     :value="store.config.width"
+                     @input="(e) => { 
+                       store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
+                       store.setMeasurementMethod('');
+                     }"
+                     class="horizontal-range hide-thumb w-full"/>
+              <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
+                   :style="{
+                     width: THUMB_SIZE + 'px', height: THUMB_SIZE + 'px',
+                     left: widthThumbLeft + 'px',
+                     top: '50%',
+                     transform: 'translateY(-50%)',
+                     backgroundColor: brandPrimary,
+                     boxShadow: `0 2px 8px ${brandPrimary}55`,
+                     color: 'white',
+                     fontSize: '9px'
+                   }">
+                {{ store.config.width }}
+              </div>
             </div>
           </div>
         </div>

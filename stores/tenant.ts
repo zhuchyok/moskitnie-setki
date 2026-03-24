@@ -30,6 +30,15 @@ export const useTenantStore = defineStore('tenant', () => {
     legal: {
       requisites: '',
       privacy_policy_url: '/privacy'
+    },
+    margin_config: {
+      base_margin_percent: 0,
+      city_multiplier: 1,
+      branch_multiplier: 1,
+      urgent_margin_percent: null as number | null,
+      delivery_margin_percent: null as number | null,
+      installation_margin_percent: null as number | null,
+      measurement_margin_percent: null as number | null
     }
   })
 
@@ -69,17 +78,15 @@ export const useTenantStore = defineStore('tenant', () => {
       }
       
       if (import.meta.server) {
-        console.log(`[SSR] Fetching config from ${configBaseUrl}/api/v1/tenant/config with Host: ${headers['Host'] || 'none'}`)
+        // console.log(`[SSR] Fetching config from ${configBaseUrl}/api/v1/tenant/config with Host: ${headers['Host'] || 'none'}`)
       }
       
-      // На SSR baseURL уже включает /api (http://api:8080/api), поэтому путь должен быть /v1/...
-      // На клиенте baseURL пустой, поэтому путь должен быть /api/v1/...
-      // ВАЖНО: Если baseURL начинается с http, Nuxt не будет пытаться резолвить его как внутренний роут.
-      // Используем относительный путь для SSR, если baseURL задан.
-      const fetchPath = (configBaseUrl && configBaseUrl.startsWith('http')) ? 'v1/tenant/config' : '/api/v1/tenant/config'
+      // На SSR apiBase уже включает /api (http://api:8080/api), поэтому путь должен быть /v1/...
+      // На клиенте apiBase пустой, поэтому путь должен быть /api/v1/...
+      const fetchPath = (apiBase && apiBase.startsWith('http')) ? 'v1/tenant/config' : '/api/v1/tenant/config'
       
       if (import.meta.server) {
-        console.log(`[SSR] Fetching config from "${configBaseUrl}" with path "${fetchPath}" and Host: ${headers['Host'] || 'none'}`)
+        // console.log(`[SSR] Fetching config from "${apiBase}" with path "${fetchPath}" and Host: ${headers['host'] || 'none'}`)
       }
 
       // Используем полный URL для SSR всегда.
@@ -91,7 +98,7 @@ export const useTenantStore = defineStore('tenant', () => {
         : '/api/v1/tenant/config'
       
       if (import.meta.server) {
-        console.log(`[SSR] Fetching config from "${finalFetchPath}" with Host: ${headers['host'] || 'none'}`)
+        // console.log(`[SSR] Fetching config from "${finalFetchPath}" with Host: ${headers['host'] || 'none'}`)
       }
 
       // ВАЖНО: На SSR используем нативный fetch или $fetch с полным URL, 
@@ -101,7 +108,7 @@ export const useTenantStore = defineStore('tenant', () => {
         // Проверяем, является ли путь абсолютным URL
         let fetchUrl = finalFetchPath
         if (!fetchUrl.startsWith('http')) {
-          fetchUrl = `http://setki21-api-new:8080${fetchUrl.startsWith('/') ? '' : '/'}${fetchUrl}`
+          fetchUrl = `${cleanSsrBaseUrl}/v1/tenant/config`
         }
           
         const url = new URL(fetchUrl)
@@ -124,18 +131,18 @@ export const useTenantStore = defineStore('tenant', () => {
           const response = await fetch(url.toString(), {
             headers: cleanHeaders
           })
-          console.error(`[SSR_DEBUG] RESPONSE: ${response.status}`)
+          // console.error(`[SSR_DEBUG] RESPONSE: ${response.status}`)
           if (response.ok) {
             data = await response.json()
-            console.error(`[SSR_DEBUG] DATA_TAG: ${data?.seo?.verification_tag}`)
+            // console.error(`[SSR_DEBUG] DATA_TAG: ${data?.seo?.verification_tag}`)
             // Принудительно обновляем состояние стора
             config.value = { ...config.value, ...data }
           } else {
             const body = await response.text()
-            console.error(`[SSR_DEBUG] ERROR_BODY: ${body}`)
+            // console.error(`[SSR_DEBUG] ERROR_BODY: ${body}`)
           }
         } catch (fetchError) {
-          console.error(`[SSR_DEBUG] EXCEPTION:`, fetchError)
+          // console.error(`[SSR_DEBUG] EXCEPTION:`, fetchError)
         }
       } else {
         // На клиенте используем $fetch, заголовки будут переданы автоматически или из аргументов

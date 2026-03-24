@@ -3,6 +3,7 @@ services:
   api:
     container_name: "${SETKI21_API_CONTAINER_NAME:-setki21-api-new}"
     image: moskit-api:latest
+    mem_limit: 1g
     build:
       context: .
       dockerfile: moskit-api/Dockerfile
@@ -28,6 +29,7 @@ services:
   # Для продакшена (VDS) при сборке ОБЯЗАТЕЛЬНО NUXT_PUBLIC_API_URL=https://www.setki21.ru — иначе в бандле apiUrl=localhost → мерцание/белый экран.
   web:
     container_name: "${SETKI21_WEB_CONTAINER_NAME:-setki21-web-new}"
+    mem_limit: 1g
     build:
       context: .
       dockerfile: Dockerfile.web

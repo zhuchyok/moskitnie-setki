@@ -2,6 +2,7 @@
 import { useAuthStore } from '~/stores/auth'
 import { useTenantStore } from '~/stores/tenant'
 import { usePricingStore } from '~/stores/pricing'
+import { useOrderStore } from '~/stores/order'
 
 const auth = useAuthStore()
 const tenant = useTenantStore()
@@ -36,7 +37,21 @@ const { data: tenantConfig } = await useAsyncData('tenant-config', async () => {
 })
 
 const { data: pricingData } = await useAsyncData('pricing-config', async () => {
+  // console.error('[SSR_DEBUG] Calling fetchPricing...')
   await pricing.fetchPricing()
+  
+  // ВАЖНО: Принудительно вызываем расчет коэффициентов для тенанта на сервере,
+  // чтобы clientFactorFromCost попал в сериализованное состояние стора.
+  const orderStore = useOrderStore()
+  const currentPrice = orderStore.currentPrice
+  const measurementPrice = orderStore.measurementPriceCalculated
+  const totalPrice = orderStore.totalPrice
+  
+  if (import.meta.server) {
+    console.error(`[SSR_DEBUG] Triggered all calculations on server. Factor: ${pricing.pricing?.markup?.clientFactorFromCost}, Total: ${totalPrice}`)
+  }
+  
+  // console.error(`[SSR_DEBUG] fetchPricing done, pricing is: ${pricing.pricing ? 'LOADED' : 'NULL'}`)
   return pricing.pricing
 })
 

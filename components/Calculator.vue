@@ -70,6 +70,7 @@ watch(
 
 // Состояние кнопки "Добавить в заказ"
 const isAdded = ref(false)
+const cancelHover = ref(false)
 const orderBlockRef = ref<HTMLElement | null>(null)
 const calculatorRef = ref<HTMLElement | null>(null)
 const orderFormBlockRef = ref<HTMLElement | null>(null)
@@ -1398,8 +1399,15 @@ const submitOrder = async () => {
               Заказать
             </button>
             <button type="button" @click="showOrderForm = false"
-                    class="flex-1 font-black py-6 rounded-2xl border-2 border-gray-100 text-gray-400 hover:text-white uppercase text-xs tracking-[0.3em] transition-all cancel-button"
-                    :style="{ '--brand-primary': brandPrimary }">
+                    @mouseenter="cancelHover = true"
+                    @mouseleave="cancelHover = false"
+                    class="flex-1 font-black py-6 rounded-2xl border-2 uppercase text-xs tracking-[0.3em] transition-all cancel-button"
+                    :style="{
+                      '--brand-primary': brandPrimary,
+                      backgroundColor: cancelHover ? brandPrimary : 'transparent',
+                      borderColor: cancelHover ? brandPrimary : '#f3f4f6',
+                      color: cancelHover ? 'white' : '#9ca3af'
+                    }">
               Отмена
             </button>
           </div>

@@ -7,8 +7,8 @@ const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2
 
 const THUMB_SIZE = 42
 const DOT_SIZE = 12
-const H_SLIDER_W = 240
-const V_SLIDER_W = 240
+const H_SLIDER_W = 210
+const V_SLIDER_W = 280
 
 const isDraggingWidth = ref(false)
 const isDraggingHeight = ref(false)
@@ -607,7 +607,7 @@ const submitOrder = async () => {
         <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
           <!-- Ползунок высоты (вертикальный справа) -->
           <div class="absolute overflow-visible flex items-center justify-center" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px;">
-            <div class="relative flex-shrink-0" style="width: 240px; height: 20px; transform: rotate(-90deg); transform-origin: center center;">
+                    <div class="relative flex-shrink-0" style="width: 280px; height: 20px; transform: rotate(-90deg); transform-origin: center center;">
               <input type="range" min="200" max="2000" step="5" 
                      :value="store.config.height"
                      @input="(e) => { 
@@ -673,7 +673,7 @@ const submitOrder = async () => {
           </div>
 
           <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute left-1/2 -translate-x-1/2" style="width: 240px; bottom: -38px;">
+          <div class="absolute left-1/2 -translate-x-1/2" style="width: 210px; bottom: -38px;">
             <div class="relative w-full flex items-center" :style="{ height: THUMB_SIZE + 'px' }">
               <input type="range" min="200" max="1500" step="5" 
                      :value="store.config.width"

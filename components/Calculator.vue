@@ -19,6 +19,10 @@ const meshPixelHeight = computed(() => Math.min(350, Math.max(200, store.config.
 const meshTotalWidth = computed(() => meshPixelWidth.value + 16)
 const meshTotalHeight = computed(() => meshPixelHeight.value + 16)
 
+// Фиксированные длины ползунков — НЕ зависят от размера сетки (иначе бегают при движении)
+const SLIDER_H_WIDTH = 220   // горизонтальный — ширина в px
+const SLIDER_V_HEIGHT = 280  // вертикальный — высота в px (= ширина input до rotate)
+
 // По умолчанию при открытии калькулятора всегда выбрана доставка
 onMounted(() => {
   store.setDelivery('Доставка', store.deliveryPriceCalculated)
@@ -590,7 +594,7 @@ const submitOrder = async () => {
 
             <!-- Вертикальный ползунок (справа от сетки, та же высота) -->
             <div class="flex items-center justify-center flex-shrink-0 overflow-visible"
-                 :style="{ height: meshTotalHeight + 'px', width: '20px' }">
+                 :style="{ height: SLIDER_V_HEIGHT + 'px', width: '20px' }">
               <div class="relative overflow-visible">
                 <input type="range" min="200" max="2000" step="5" 
                        :value="store.config.height"
@@ -603,7 +607,7 @@ const submitOrder = async () => {
                          store.setMeasurementMethod('');
                        }"
                        style="-webkit-appearance: none; appearance: none;"
-                       :style="{ transform: 'rotate(-90deg)', width: meshTotalHeight + 'px', transformOrigin: 'center' }"
+                       :style="{ transform: 'rotate(-90deg)', width: SLIDER_V_HEIGHT + 'px', transformOrigin: 'center' }"
                        class="horizontal-range"/>
                 <div v-if="isDraggingHeight"
                      class="thumb-label"
@@ -616,7 +620,7 @@ const submitOrder = async () => {
           </div>
 
           <!-- Горизонтальный ползунок (под сеткой, та же ширина) -->
-          <div class="relative flex-shrink-0 mt-3" :style="{ width: meshTotalWidth + 'px' }">
+          <div class="relative flex-shrink-0 mt-3" :style="{ width: SLIDER_H_WIDTH + 'px' }">
             <input type="range" min="200" max="1500" step="5" 
                    :value="store.config.width"
                    @mousedown="isDraggingWidth = true"

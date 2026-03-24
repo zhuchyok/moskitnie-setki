@@ -6,6 +6,12 @@ const tenant = useTenantStore()
 const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2A6AB2')
 const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
 
+const isDraggingWidth = ref(false)
+const isDraggingHeight = ref(false)
+
+const widthThumbPercent = computed(() => ((store.config.width - 200) / (1500 - 200)) * 100)
+const heightThumbPercent = computed(() => ((store.config.height - 200) / (2000 - 200)) * 100)
+
 // По умолчанию при открытии калькулятора всегда выбрана доставка
 onMounted(() => {
   store.setDelivery('Доставка', store.deliveryPriceCalculated)
@@ -540,13 +546,24 @@ const submitOrder = async () => {
         <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
           <!-- Ползунок высоты (вертикальный справа) -->
           <div class="absolute overflow-visible" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px; display: flex; align-items: center; justify-content: center;">
-            <input type="range" min="200" max="2000" step="5" 
-                   :value="store.config.height"
-                   @input="(e) => { 
-                     store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
-                     store.setMeasurementMethod('');
-                   }"
-                   class="horizontal-range range-rotate range-vertical-size"/>
+            <div class="relative flex items-center justify-center" style="width: 240px; transform: rotate(-90deg);">
+              <input type="range" min="200" max="2000" step="5" 
+                     :value="store.config.height"
+                     @mousedown="isDraggingHeight = true"
+                     @touchstart="isDraggingHeight = true"
+                     @mouseup="isDraggingHeight = false"
+                     @touchend="isDraggingHeight = false"
+                     @input="(e) => { 
+                       store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
+                       store.setMeasurementMethod('');
+                     }"
+                     class="horizontal-range w-full"/>
+              <div v-if="isDraggingHeight"
+                   class="thumb-label"
+                   :style="{ left: `calc(${heightThumbPercent}% - 18px)`, color: brandPrimary, borderColor: brandPrimary + '40' }">
+                {{ store.config.height }}
+              </div>
+            </div>
           </div>
 
           <!-- Основная рамка сетки -->
@@ -584,14 +601,23 @@ const submitOrder = async () => {
           </div>
 
           <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2" style="width: 240px;">
+          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 relative" style="width: 240px;">
             <input type="range" min="200" max="1500" step="5" 
                    :value="store.config.width"
+                   @mousedown="isDraggingWidth = true"
+                   @touchstart="isDraggingWidth = true"
+                   @mouseup="isDraggingWidth = false"
+                   @touchend="isDraggingWidth = false"
                    @input="(e) => { 
                      store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
                      store.setMeasurementMethod('');
                    }"
                    class="horizontal-range w-full"/>
+            <div v-if="isDraggingWidth"
+                 class="thumb-label"
+                 :style="{ left: `calc(${widthThumbPercent}% - 18px)`, color: brandPrimary, borderColor: brandPrimary + '40' }">
+              {{ store.config.width }}
+            </div>
           </div>
         </div>
         
@@ -1407,6 +1433,41 @@ input[type="range"]::-webkit-slider-thumb {
 }
 .overflow-x-auto::-webkit-scrollbar-thumb {
   @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
+}
+
+/* Пузырёк с размером над ползунком */
+.thumb-label {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  min-width: 36px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1.5px solid;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  pointer-events: none;
+  white-space: nowrap;
+  animation: bubble-in 0.12s ease;
+}
+
+.thumb-label::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: currentColor;
+  opacity: 0.3;
+}
+
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Горизонтальный ползунок (ширина) — базовые стили для обоих */

@@ -6,7 +6,7 @@ const tenant = useTenantStore()
 const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2A6AB2')
 
 const THUMB_SIZE = 42
-const DOT_SIZE = 12
+const DOT_SIZE = 18
 const H_SLIDER_W = 210
 const V_SLIDER_W = 280
 

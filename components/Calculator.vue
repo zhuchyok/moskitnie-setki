@@ -546,7 +546,7 @@ const submitOrder = async () => {
                      store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
                      store.setMeasurementMethod('');
                    }"
-                   class="horizontal-range range-rotate"/>
+                   class="horizontal-range range-rotate range-vertical-size"/>
           </div>
 
           <!-- Основная рамка сетки -->
@@ -584,7 +584,7 @@ const submitOrder = async () => {
           </div>
 
           <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-3/4">
+          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2" style="width: 240px;">
             <input type="range" min="200" max="1500" step="5" 
                    :value="store.config.width"
                    @input="(e) => { 
@@ -1465,7 +1465,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Вертикальный — горизонтальный ползунок повёрнутый */
 .range-rotate {
-  width: 220px;
+  width: 240px;
   transform: rotate(-90deg);
   transform-origin: center center;
   flex-shrink: 0;
@@ -1473,7 +1473,13 @@ input[type="range"]::-webkit-slider-thumb {
 
 @media (max-width: 1023px) {
   .range-rotate {
-    width: 160px;
+    width: 180px;
+  }
+}
+
+@media (max-width: 640px) {
+  .range-rotate {
+    width: 140px;
   }
 }
 

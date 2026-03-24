@@ -1403,6 +1403,8 @@ const submitOrder = async () => {
                     @mouseleave="cancelHover = false"
                     class="flex-1 font-black py-6 rounded-2xl border-2 uppercase text-xs tracking-[0.3em] transition-all"
                     :style="{
+                      '--hover-text-color': '#ffffff',
+                      '--hover-border-color': brandPrimary,
                       backgroundColor: cancelHover ? brandPrimary : 'transparent',
                       borderColor: cancelHover ? brandPrimary : '#f3f4f6',
                       color: cancelHover ? '#ffffff' : '#9ca3af'

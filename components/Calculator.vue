@@ -635,7 +635,6 @@ const submitOrder = async () => {
               {{ store.config.width }}
             </div>
           </div>
-          </div>
         </div>
         
         <!-- Размеры под рамкой -->

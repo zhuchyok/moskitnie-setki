@@ -1082,7 +1082,6 @@ const submitOrder = async () => {
               </svg>
             </button>
           </div>
-          </div>
         </div>
       </div>
     </div>

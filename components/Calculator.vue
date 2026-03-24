@@ -706,7 +706,6 @@ const submitOrder = async () => {
         </div>
       </div>
 
-      <!-- Управление (Правая часть): отступ сверху как у левого (p-12); снизу увеличен под цену и кнопку (на VDS не перекрывает) -->
       <div class="lg:w-8/12 px-10 md:px-16 pt-12 pb-8 lg:pb-8 flex flex-col justify-start min-w-0 overflow-hidden">
         <div class="flex items-center gap-5 mb-8">
           <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-2xl transform -rotate-3" :style="{ backgroundColor: brandPrimary, boxShadow: `0 25px 50px -12px ${brandPrimary}4D` }">
@@ -728,9 +727,9 @@ const submitOrder = async () => {
           </div>
         </div>
         
-        <div class="space-y-10 w-full min-w-0 transition-all duration-500 ease-in-out overflow-hidden pb-8">
+        <div class="flex-1 w-full min-w-0 transition-all duration-500 ease-in-out overflow-y-auto overflow-x-hidden">
           <Transition name="fade-slide" mode="out-in">
-            <div :key="currentStep" class="space-y-10">
+            <div :key="currentStep" class="space-y-10 pb-4">
               <!-- Шаг 1: Конфигурация -->
               <div v-if="currentStep === 1" class="space-y-10">
                 <!-- Тип полотна -->
@@ -1040,9 +1039,10 @@ const submitOrder = async () => {
               </div>
             </div>
           </Transition>
+        </div>
 
-          <!-- Навигация и Цена (Step 1-4): нижний отступ увеличен, чтобы на VDS не обрезало цену и кнопку -->
-          <div v-if="currentStep < 3" class="pt-10 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
+          <!-- Навигация и Цена: зафиксирована внизу правой части -->
+          <div v-if="currentStep < 3" class="pt-6 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8 bg-white mt-auto shrink-0">
             <!-- Цена в левом углу -->
             <div class="text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
               <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-1">Предварительная цена</p>

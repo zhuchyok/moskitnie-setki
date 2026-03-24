@@ -550,10 +550,10 @@ const submitOrder = async () => {
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-4/12 bg-gray-50/50 p-10 flex flex-col items-center justify-center relative border-r border-gray-100 h-full">
         <!-- Размеры над сеткой -->
-        <div class="mb-4 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
+        <div class="mb-6 flex gap-8 justify-center w-full text-[13px] font-black uppercase tracking-widest text-gray-500">
           <!-- Ширина -->
-          <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
-            <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
+          <div class="flex items-center gap-2 group" :style="{ '--brand-primary': brandPrimary }">
+            <span class="w-3 h-3 rounded-full flex-shrink-0 transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
             <div class="flex items-baseline gap-1">
               <input v-if="editingWidth" 
                      type="text" 
@@ -562,21 +562,22 @@ const submitOrder = async () => {
                      @keyup.enter="saveWidth"
                      @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
                      maxlength="4"
-                     class="w-16 text-sm font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
+                     class="w-16 text-base font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
                      :style="{ color: brandPrimary, borderColor: brandPrimary }"
                      autofocus />
               <span v-else 
                     @click="startEditWidth" 
-                    class="border-b border-dashed border-gray-300 group-hover-brand transition-colors cursor-pointer">
+                    class="text-base font-black border-b border-dashed border-gray-300 transition-colors cursor-pointer"
+                    :style="{ color: brandPrimary }">
                 {{ store.config.width }}
               </span>
-              <small class="text-[9px] text-gray-300 ml-0.5">ММ</small>
+              <small class="text-[10px] text-gray-400 ml-0.5 font-bold">ММ</small>
             </div>
           </div>
 
           <!-- Высота -->
-          <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
-            <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
+          <div class="flex items-center gap-2 group" :style="{ '--brand-primary': brandPrimary }">
+            <span class="w-3 h-3 rounded-full flex-shrink-0 transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
             <div class="flex items-baseline gap-1">
               <input v-if="editingHeight" 
                      type="text" 
@@ -585,15 +586,16 @@ const submitOrder = async () => {
                      @keyup.enter="saveHeight"
                      @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
                      maxlength="4"
-                     class="w-16 text-sm font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
+                     class="w-16 text-base font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
                      :style="{ color: brandPrimary, borderColor: brandPrimary }"
                      autofocus />
               <span v-else 
                     @click="startEditHeight" 
-                    class="border-b border-dashed border-gray-300 group-hover-brand transition-colors cursor-pointer">
+                    class="text-base font-black border-b border-dashed border-gray-300 transition-colors cursor-pointer"
+                    :style="{ color: brandPrimary }">
                 {{ store.config.height }}
               </span>
-              <small class="text-[9px] text-gray-300 ml-0.5">ММ</small>
+              <small class="text-[10px] text-gray-400 ml-0.5 font-bold">ММ</small>
             </div>
           </div>
         </div>

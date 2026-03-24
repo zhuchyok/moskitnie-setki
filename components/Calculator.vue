@@ -550,7 +550,7 @@ const submitOrder = async () => {
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-4/12 bg-gray-50/50 p-10 flex flex-col items-center justify-center relative border-r border-gray-100 h-full">
         <!-- Размеры над сеткой -->
-        <div class="mb-6 flex gap-8 justify-center w-full text-[13px] font-black uppercase tracking-widest text-gray-500">
+        <div class="mb-5 flex gap-8 justify-center w-full text-[13px] font-black uppercase tracking-widest text-gray-500">
           <!-- Ширина -->
           <div class="flex items-center gap-2 group" :style="{ '--brand-primary': brandPrimary }">
             <span class="w-3 h-3 rounded-full flex-shrink-0 transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
@@ -663,7 +663,7 @@ const submitOrder = async () => {
           </div>
 
           <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute -bottom-14 left-1/2 -translate-x-1/2" style="width: 240px;">
+          <div class="absolute left-1/2 -translate-x-1/2" style="width: 240px; bottom: -38px;">
             <div class="relative w-full flex items-center" :style="{ height: THUMB_SIZE + 'px' }">
               <input type="range" min="200" max="1500" step="5" 
                      :value="store.config.width"

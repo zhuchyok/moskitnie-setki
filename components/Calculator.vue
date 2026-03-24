@@ -613,8 +613,8 @@ const submitOrder = async () => {
           </div>
 
           <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2" style="width: 240px;">
-            <div class="relative w-full">
+          <div class="absolute -bottom-14 left-1/2 -translate-x-1/2" style="width: 240px;">
+            <div class="relative w-full flex items-center" :style="{ height: THUMB_SIZE + 'px' }">
               <input type="range" min="200" max="1500" step="5" 
                      :value="store.config.width"
                      @input="(e) => { 
@@ -626,8 +626,7 @@ const submitOrder = async () => {
                    :style="{
                      width: THUMB_SIZE + 'px', height: THUMB_SIZE + 'px',
                      left: widthThumbLeft + 'px',
-                     top: '50%',
-                     transform: 'translateY(-50%)',
+                     top: 0,
                      backgroundColor: brandPrimary,
                      boxShadow: `0 2px 8px ${brandPrimary}55`,
                      color: 'white',
@@ -1507,6 +1506,11 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* Скрываем нативный бегунок — используем кастомный overlay */
+.hide-thumb {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  margin: auto 0;
+}
 .hide-thumb::-webkit-slider-thumb {
   opacity: 0;
   width: 36px;

@@ -1014,36 +1014,13 @@ const submitOrder = async () => {
                   </div>
                 </div>
 
-                <div class="pt-4 flex flex-col sm:flex-row items-end justify-between gap-6">
-                  <div class="text-center sm:text-left w-full sm:w-auto">
-                    <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-1">Итоговая цена</p>
-                    <div class="flex items-baseline justify-center sm:justify-start">
-                      <div class="inline-flex items-baseline gap-3 bg-white px-8 py-2 -ml-8 overflow-visible">
-                        <span class="text-5xl font-black leading-none tracking-normal whitespace-nowrap" :style="{ color: brandPrimary }">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
-                        <span class="text-2xl font-black text-gray-200 uppercase leading-none self-baseline" style="font-size: 1.5rem; line-height: 1;">₽</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button @click="handleAddToOrder()"
-                          :class="[
-                            'w-full sm:w-auto font-black py-3 px-14 rounded-2xl transition-all shadow-xl active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap add-to-order-button border-2',
-                            isAdded ? 'text-white' : 'bg-brand-dark text-white border-transparent'
-                          ]"
-                          :style="[
-                            isAdded ? { backgroundColor: brandPrimary, borderColor: brandPrimary } : {},
-                            { '--brand-primary': brandPrimary }
-                          ]">
-                    {{ isAdded ? 'Добавлено' : 'Добавить в заказ' }}
-                  </button>
-                </div>
               </div>
             </div>
           </Transition>
         </div>
 
           <!-- Навигация и Цена: зафиксирована внизу правой части -->
-          <div v-if="currentStep < 3" class="pt-6 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8 bg-white mt-auto shrink-0">
-            <!-- Цена в левом углу -->
+          <div v-if="currentStep < 3" class="pt-6 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8 bg-white mt-auto shrink-0">            <!-- Цена в левом углу -->
             <div class="text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
               <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-1">Предварительная цена</p>
               <div class="flex items-baseline justify-center sm:justify-start">
@@ -1083,6 +1060,30 @@ const submitOrder = async () => {
             </button>
           </div>
         </div>
+
+          <!-- Итоговая цена + Добавить в заказ: зафиксирована внизу для шага 3 -->
+          <div v-if="currentStep === 3" class="pt-6 pb-2 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white mt-auto shrink-0">
+            <div class="text-center sm:text-left w-full sm:w-auto">
+              <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-1">Итоговая цена</p>
+              <div class="flex items-baseline justify-center sm:justify-start">
+                <div class="inline-flex items-baseline gap-3 bg-white px-8 py-2 -ml-8 overflow-visible">
+                  <span class="text-5xl font-black leading-none tracking-normal whitespace-nowrap" :style="{ color: brandPrimary }">{{ (store.currentPrice + (store.config.installation ? store.extrasInstallation : 0) + (store.config.handleType === 'metal' ? store.extrasHandleMetal : 0)) * store.config.count }}</span>
+                  <span class="text-2xl font-black text-gray-200 uppercase leading-none self-baseline" style="font-size: 1.5rem; line-height: 1;">₽</span>
+                </div>
+              </div>
+            </div>
+            <button @click="handleAddToOrder()"
+                    :class="[
+                      'w-full sm:w-auto font-black py-3 px-14 rounded-2xl transition-all shadow-xl active:scale-95 uppercase text-[10px] tracking-widest whitespace-nowrap add-to-order-button border-2',
+                      isAdded ? 'text-white' : 'bg-brand-dark text-white border-transparent'
+                    ]"
+                    :style="[
+                      isAdded ? { backgroundColor: brandPrimary, borderColor: brandPrimary } : {},
+                      { '--brand-primary': brandPrimary }
+                    ]">
+              {{ isAdded ? 'Добавлено' : 'Добавить в заказ' }}
+            </button>
+          </div>
       </div>
     </div>
 

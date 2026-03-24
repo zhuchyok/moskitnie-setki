@@ -536,41 +536,79 @@ const submitOrder = async () => {
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 h-auto lg:min-h-[680px] lg:h-[740px]">
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-4/12 bg-gray-50/50 p-10 flex flex-col items-center justify-center relative border-r border-gray-100 h-full">
-        <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
-             :style="{ 
-               width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', 
-               height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px',
-               borderColor: frameColor
-             }">
-          <!-- Сетка линиями (эффект плетения) - ТЕПЕРЬ НА ЗАДНЕМ ПЛАНЕ -->
-          <div class="absolute inset-0 transition-all duration-500 z-0"
+        <!-- Контейнер для сетки и ползунков -->
+        <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
+          <!-- Ползунок высоты (вертикальный справа) -->
+          <div class="absolute -right-8 top-1/2 -translate-y-1/2 h-3/4 flex items-center group/h">
+            <input type="range" min="200" max="2000" step="5" 
+                   :value="store.config.height"
+                   @input="(e) => { 
+                     store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
+                     store.setMeasurementMethod('');
+                   }"
+                   class="vertical-range h-full w-2 bg-gray-100 rounded-full appearance-none cursor-pointer shadow-inner" 
+                   :style="{ accentColor: brandPrimary }"/>
+            <!-- Подпись высоты рядом с ползунком -->
+            <div class="absolute left-10 flex flex-col items-center gap-1 opacity-0 group-hover/h:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <span class="text-[10px] font-black whitespace-nowrap" :style="{ color: brandPrimary }">{{ store.config.height }}</span>
+              <span class="text-[8px] font-bold text-gray-300 uppercase">мм</span>
+            </div>
+          </div>
+
+          <!-- Основная рамка сетки -->
+          <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
                :style="{ 
-                 backgroundImage: `
-                   linear-gradient(to right, #000 ${meshThickness}, transparent ${meshThickness}),
-                   linear-gradient(to bottom, #000 ${meshThickness}, transparent ${meshThickness})
-                 `,
-                 backgroundSize: meshSize + 'px ' + meshSize + 'px',
-                 opacity: meshOpacity
-               }"></div>
-          
-          <!-- Перегородка посередине - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-          <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 transition-colors duration-500 z-10 shadow-sm"
-               :style="{ backgroundColor: frameColor }"></div>
-          
-          <!-- Ручки для вставной (сверху и снизу) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-          <template v-if="store.config.frameType === 'vstavnaya'">
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5 z-20"></div>
-            <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5 z-20"></div>
-          </template>
-          <!-- Ручки для остальных (по бокам, чуть ниже перегородки) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-          <template v-else>
-            <div class="absolute left-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -ml-2.5 z-20"></div>
-            <div class="absolute right-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -mr-2.5 z-20"></div>
-          </template>
+                 width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', 
+                 height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px',
+                 borderColor: frameColor
+               }">
+            <!-- Сетка линиями (эффект плетения) - ТЕПЕРЬ НА ЗАДНЕМ ПЛАНЕ -->
+            <div class="absolute inset-0 transition-all duration-500 z-0"
+                 :style="{ 
+                   backgroundImage: `
+                     linear-gradient(to right, #000 ${meshThickness}, transparent ${meshThickness}),
+                     linear-gradient(to bottom, #000 ${meshThickness}, transparent ${meshThickness})
+                   `,
+                   backgroundSize: meshSize + 'px ' + meshSize + 'px',
+                   opacity: meshOpacity
+                 }"></div>
+            
+            <!-- Перегородка посередине - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+            <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 transition-colors duration-500 z-10 shadow-sm"
+                 :style="{ backgroundColor: frameColor }"></div>
+            
+            <!-- Ручки для вставной (сверху и снизу) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+            <template v-if="store.config.frameType === 'vstavnaya'">
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5 z-20"></div>
+              <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5 z-20"></div>
+            </template>
+            <!-- Ручки для остальных (по бокам, чуть ниже перегородки) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+            <template v-else>
+              <div class="absolute left-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -ml-2.5 z-20"></div>
+              <div class="absolute right-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -mr-2.5 z-20"></div>
+            </template>
+          </div>
+
+          <!-- Ползунок ширины (горизонтальный снизу) -->
+          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-3/4 group/w">
+            <input type="range" min="200" max="1500" step="5" 
+                   :value="store.config.width"
+                   @input="(e) => { 
+                     store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
+                     store.setMeasurementMethod('');
+                   }"
+                   class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer shadow-inner" 
+                   :style="{ accentColor: brandPrimary }"/>
+            <!-- Подпись ширины под ползунком -->
+            <div class="absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-1 opacity-0 group-hover/w:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <span class="text-[10px] font-black whitespace-nowrap" :style="{ color: brandPrimary }">{{ store.config.width }}</span>
+              <span class="text-[8px] font-bold text-gray-300 uppercase">мм</span>
+            </div>
+          </div>
         </div>
         
         <!-- Размеры под рамкой -->
-        <div class="mt-12 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
+        <div class="mt-20 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
           <!-- Ширина -->
           <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
             <span class="w-2.5 h-2.5 rounded-full bg-brand-blue shadow-lg shadow-brand-blue/40 transition-transform group-hover:scale-125"></span>
@@ -736,66 +774,27 @@ const submitOrder = async () => {
 
               <!-- Шаг 2: Размеры -->
               <div v-if="currentStep === 2" class="space-y-10 pt-2">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                  <div class="space-y-5">
-                    <div class="flex justify-between items-end">
-                      <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Ширина</label>
-                      <div class="flex items-baseline gap-1">
-                        <input v-if="editingWidth" 
-                               type="text" 
-                               v-model="tempWidth" 
-                               @blur="saveWidth" 
-                               @keyup.enter="saveWidth"
-                               @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
-                               maxlength="4"
-                               class="w-28 text-2xl font-black text-center bg-blue-50 border-2 rounded-xl px-3 py-2 focus:outline-none" 
-                               :style="{ color: brandPrimary, borderColor: brandPrimary }"
-                               autofocus />
-                        <span v-else 
-                              @click="startEditWidth" 
-                              class="text-2xl font-black cursor-pointer px-2 py-1 rounded-lg transition-colors dim-hover-bg" 
-                              title="Нажмите для ввода">{{ store.config.width }}</span>
-                        <small class="text-[10px] text-gray-300 ml-1">ММ</small>
-                      </div>
-                    </div>
-                    <input type="range" min="200" max="1500" step="5" 
-                           :value="store.config.width"
-                           @input="(e) => { 
-                             store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
-                             store.setMeasurementMethod('');
-                           }"
-                           class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer shadow-inner" 
-                           :style="{ accentColor: brandPrimary }"/>
+                <div class="bg-blue-50/50 p-8 rounded-3xl border border-blue-100/50 flex items-start gap-6">
+                  <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0" :style="{ color: brandPrimary }">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
                   </div>
-                  <div class="space-y-5">
-                    <div class="flex justify-between items-end">
-                      <label class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Высота</label>
-                      <div class="flex items-baseline gap-1">
-                        <input v-if="editingHeight" 
-                               type="text" 
-                               v-model="tempHeight" 
-                               @blur="saveHeight" 
-                               @keyup.enter="saveHeight"
-                               @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
-                               maxlength="4"
-                               class="w-28 text-2xl font-black text-center bg-blue-50 border-2 rounded-xl px-3 py-2 focus:outline-none" 
-                               :style="{ color: brandPrimary, borderColor: brandPrimary }"
-                               autofocus />
-                        <span v-else 
-                              @click="startEditHeight" 
-                              class="text-2xl font-black cursor-pointer px-2 py-1 rounded-lg transition-colors dim-hover-bg" 
-                              title="Нажмите для ввода">{{ store.config.height }}</span>
-                        <small class="text-[10px] text-gray-300 ml-1">ММ</small>
-                      </div>
-                    </div>
-                    <input type="range" min="200" max="2000" step="5" 
-                           :value="store.config.height"
-                           @input="(e) => { 
-                             store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
-                             store.setMeasurementMethod('');
-                           }"
-                           class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer shadow-inner" 
-                           :style="{ accentColor: brandPrimary }"/>
+                  <div class="space-y-2">
+                    <h4 class="text-lg font-black text-brand-dark uppercase tracking-tight">Управление размерами</h4>
+                    <p class="text-xs text-gray-500 font-medium leading-relaxed uppercase tracking-wider">
+                      Используйте ползунки прямо на визуализации слева или введите точные значения в миллиметрах под сеткой. 
+                      Это позволит вам мгновенно увидеть пропорции будущего изделия.
+                    </p>
+                  </div>
+                </div>
+                
+                <!-- Старый блок с ползунками удален, так как они теперь на визуализации -->
+                <div class="flex items-center justify-center py-10">
+                  <div class="flex flex-col items-center gap-4 text-center">
+                    <div class="w-16 h-1 bg-gray-100 rounded-full"></div>
+                    <p class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">Размеры настраиваются слева</p>
+                    <div class="w-16 h-1 bg-gray-100 rounded-full"></div>
                   </div>
                 </div>
               </div>
@@ -1420,6 +1419,46 @@ input[type="range"]::-webkit-slider-thumb {
 }
 .overflow-x-auto::-webkit-scrollbar-thumb {
   @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
+}
+
+/* Вертикальный ползунок */
+.vertical-range {
+  writing-mode: bt-lr; /* IE/Edge */
+  -webkit-appearance: slider-vertical; /* WebKit */
+  width: 8px !important;
+  height: 100%;
+}
+
+@media (max-width: 1023px) {
+  .vertical-range {
+    height: 200px;
+  }
+}
+
+/* Сброс стандартных стилей для вертикального ползунка в WebKit */
+.vertical-range::-webkit-slider-runnable-track {
+  width: 8px;
+  background: #f3f4f6;
+  border-radius: 9999px;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+}
+
+.vertical-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border: 4px solid var(--brand-primary, #2A6AB2);
+  border-radius: 50%;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  margin-left: -8px; /* Центрирование относительно дорожки */
+  transition: all 0.2s ease;
+}
+
+.vertical-range::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--brand-primary, #2A6AB2) 20%, transparent);
 }
 
 /* Анимации для Мастера */

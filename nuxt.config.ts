@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: false },
   devServer: {
-    port: 3001,
+    port: 3004,
     host: 'localhost'
   },
   modules: [
@@ -87,6 +87,11 @@ export default defineNuxtConfig({
   vite: {
     optimizeDeps: {
       include: ['vue-chartjs', 'chart.js']
+    },
+    server: {
+      watch: {
+        ignored: ['**/.cursorrules', '**/MASTER_REFERENCE.md']
+      }
     }
   }
 })

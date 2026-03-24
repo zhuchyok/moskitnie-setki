@@ -539,7 +539,7 @@ const submitOrder = async () => {
         <!-- Контейнер для сетки и ползунков -->
         <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
           <!-- Ползунок высоты (вертикальный справа) -->
-          <div class="absolute -right-8 top-1/2 -translate-y-1/2 h-3/4 flex items-center group/h">
+          <div class="absolute -right-8 top-1/2 -translate-y-1/2 h-3/4 flex items-center">
             <input type="range" min="200" max="2000" step="5" 
                    :value="store.config.height"
                    @input="(e) => { 
@@ -548,11 +548,6 @@ const submitOrder = async () => {
                    }"
                    class="vertical-range h-full w-2 bg-gray-100 rounded-full appearance-none cursor-pointer shadow-inner" 
                    :style="{ accentColor: brandPrimary }"/>
-            <!-- Подпись высоты рядом с ползунком -->
-            <div class="absolute left-10 flex flex-col items-center gap-1 opacity-0 group-hover/h:opacity-100 transition-opacity duration-300 pointer-events-none">
-              <span class="text-[10px] font-black whitespace-nowrap" :style="{ color: brandPrimary }">{{ store.config.height }}</span>
-              <span class="text-[8px] font-bold text-gray-300 uppercase">мм</span>
-            </div>
           </div>
 
           <!-- Основная рамка сетки -->
@@ -590,7 +585,7 @@ const submitOrder = async () => {
           </div>
 
           <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-3/4 group/w">
+          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 w-3/4">
             <input type="range" min="200" max="1500" step="5" 
                    :value="store.config.width"
                    @input="(e) => { 
@@ -599,11 +594,6 @@ const submitOrder = async () => {
                    }"
                    class="w-full h-2 bg-gray-100 rounded-full appearance-none cursor-pointer shadow-inner" 
                    :style="{ accentColor: brandPrimary }"/>
-            <!-- Подпись ширины под ползунком -->
-            <div class="absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-1 opacity-0 group-hover/w:opacity-100 transition-opacity duration-300 pointer-events-none">
-              <span class="text-[10px] font-black whitespace-nowrap" :style="{ color: brandPrimary }">{{ store.config.width }}</span>
-              <span class="text-[8px] font-bold text-gray-300 uppercase">мм</span>
-            </div>
           </div>
         </div>
         
@@ -1435,30 +1425,54 @@ input[type="range"]::-webkit-slider-thumb {
   }
 }
 
+/* Стили для горизонтального ползунка (ширина) */
+input[type="range"].shadow-inner::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
+  cursor: pointer;
+  margin-top: -7px;
+  transition: all 0.2s ease;
+}
+
+input[type="range"].shadow-inner::-webkit-slider-runnable-track {
+  height: 4px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+}
+
+input[type="range"].shadow-inner::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2);
+}
+
 /* Сброс стандартных стилей для вертикального ползунка в WebKit */
 .vertical-range::-webkit-slider-runnable-track {
-  width: 8px;
-  background: #f3f4f6;
+  width: 4px;
+  background: #e5e7eb;
   border-radius: 9999px;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
 }
 
 .vertical-range::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 24px;
-  height: 24px;
-  background: white;
-  border: 4px solid var(--brand-primary, #2A6AB2);
+  width: 16px;
+  height: 16px;
+  background: #3B82F6;
+  border: none;
   border-radius: 50%;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.5);
   cursor: pointer;
-  margin-left: -8px; /* Центрирование относительно дорожки */
+  margin-left: -6px;
   transition: all 0.2s ease;
 }
 
 .vertical-range::-webkit-slider-thumb:active {
   transform: scale(1.2);
-  box-shadow: 0 0 0 8px color-mix(in srgb, var(--brand-primary, #2A6AB2) 20%, transparent);
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2);
 }
 
 /* Анимации для Мастера */

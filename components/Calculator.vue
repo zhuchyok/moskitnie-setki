@@ -1401,12 +1401,11 @@ const submitOrder = async () => {
             <button type="button" @click="showOrderForm = false"
                     @mouseenter="cancelHover = true"
                     @mouseleave="cancelHover = false"
-                    class="flex-1 font-black py-6 rounded-2xl border-2 uppercase text-xs tracking-[0.3em] transition-all cancel-button"
+                    class="flex-1 font-black py-6 rounded-2xl border-2 uppercase text-xs tracking-[0.3em] transition-all"
                     :style="{
-                      '--brand-primary': brandPrimary,
                       backgroundColor: cancelHover ? brandPrimary : 'transparent',
                       borderColor: cancelHover ? brandPrimary : '#f3f4f6',
-                      color: cancelHover ? 'white' : '#9ca3af'
+                      color: cancelHover ? '#ffffff' : '#9ca3af'
                     }">
               Отмена
             </button>
@@ -1576,13 +1575,6 @@ button.next-step-button:hover {
   border-color: var(--brand-primary, #2A6AB2) !important;
   box-shadow: 0 20px 25px -5px color-mix(in srgb, var(--brand-primary, #2A6AB2) 30%, transparent) !important;
   transform: translateY(-1px);
-}
-
-/* Cancel button hover state */
-.cancel-button:hover {
-  background-color: var(--brand-primary) !important;
-  border-color: var(--brand-primary) !important;
-  color: white !important;
 }
 
 /* Hover на границу в цвет дилера */

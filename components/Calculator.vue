@@ -12,6 +12,13 @@ const isDraggingHeight = ref(false)
 const widthThumbPercent = computed(() => ((store.config.width - 200) / (1500 - 200)) * 100)
 const heightThumbPercent = computed(() => ((store.config.height - 200) / (2000 - 200)) * 100)
 
+// Вычисляемые размеры сетки (в пикселях) для точного позиционирования ползунков
+const meshPixelWidth = computed(() => Math.min(280, Math.max(150, store.config.width / 4)))
+const meshPixelHeight = computed(() => Math.min(350, Math.max(200, store.config.height / 4)))
+// +16 = border-[8px] с двух сторон
+const meshTotalWidth = computed(() => meshPixelWidth.value + 16)
+const meshTotalHeight = computed(() => meshPixelHeight.value + 16)
+
 // По умолчанию при открытии калькулятора всегда выбрана доставка
 onMounted(() => {
   store.setDelivery('Доставка', store.deliveryPriceCalculated)
@@ -542,67 +549,74 @@ const submitOrder = async () => {
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 h-auto lg:min-h-[680px] lg:h-[740px]">
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-4/12 bg-gray-50/50 p-10 flex flex-col items-center justify-center relative border-r border-gray-100 h-full">
-        <!-- Контейнер для сетки и ползунков -->
-        <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
-          <!-- Ползунок высоты (вертикальный справа) -->
-          <div class="absolute overflow-visible" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px; display: flex; align-items: center; justify-content: center;">
-            <div class="relative flex items-center justify-center" style="width: 240px; transform: rotate(-90deg);">
-              <input type="range" min="200" max="2000" step="5" 
-                     :value="store.config.height"
-                     @mousedown="isDraggingHeight = true"
-                     @touchstart="isDraggingHeight = true"
-                     @mouseup="isDraggingHeight = false"
-                     @touchend="isDraggingHeight = false"
-                     @input="(e) => { 
-                       store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
-                       store.setMeasurementMethod('');
-                     }"
-                     style="-webkit-appearance: none; appearance: none;"
-                     class="horizontal-range w-full"/>
-              <div v-if="isDraggingHeight"
-                   class="thumb-label"
-                   :style="{ left: `calc(${heightThumbPercent}% - 18px)`, color: brandPrimary, borderColor: brandPrimary + '40' }">
-                {{ store.config.height }}
+        <!-- Контейнер для сетки и ползунков — flex-layout, без абсолютного позиционирования -->
+        <div class="flex flex-col items-start" style="margin: auto;">
+          <!-- Строка: сетка + вертикальный ползунок -->
+          <div class="flex items-start gap-2">
+
+            <!-- Основная рамка сетки -->
+            <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden flex-shrink-0"
+                 :style="{ 
+                   width: meshPixelWidth + 'px', 
+                   height: meshPixelHeight + 'px',
+                   borderColor: frameColor
+                 }">
+              <!-- Сетка линиями (эффект плетения) - ТЕПЕРЬ НА ЗАДНЕМ ПЛАНЕ -->
+              <div class="absolute inset-0 transition-all duration-500 z-0"
+                   :style="{ 
+                     backgroundImage: `
+                       linear-gradient(to right, #000 ${meshThickness}, transparent ${meshThickness}),
+                       linear-gradient(to bottom, #000 ${meshThickness}, transparent ${meshThickness})
+                     `,
+                     backgroundSize: meshSize + 'px ' + meshSize + 'px',
+                     opacity: meshOpacity
+                   }"></div>
+              
+              <!-- Перегородка посередине - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+              <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 transition-colors duration-500 z-10 shadow-sm"
+                   :style="{ backgroundColor: frameColor }"></div>
+              
+              <!-- Ручки для вставной (сверху и снизу) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+              <template v-if="store.config.frameType === 'vstavnaya'">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5 z-20"></div>
+                <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5 z-20"></div>
+              </template>
+              <!-- Ручки для остальных (по бокам, чуть ниже перегородки) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
+              <template v-else>
+                <div class="absolute left-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -ml-2.5 z-20"></div>
+                <div class="absolute right-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -mr-2.5 z-20"></div>
+              </template>
+            </div>
+
+            <!-- Вертикальный ползунок (справа от сетки, та же высота) -->
+            <div class="flex items-center justify-center flex-shrink-0 overflow-visible"
+                 :style="{ height: meshTotalHeight + 'px', width: '20px' }">
+              <div class="relative overflow-visible">
+                <input type="range" min="200" max="2000" step="5" 
+                       :value="store.config.height"
+                       @mousedown="isDraggingHeight = true"
+                       @touchstart="isDraggingHeight = true"
+                       @mouseup="isDraggingHeight = false"
+                       @touchend="isDraggingHeight = false"
+                       @input="(e) => { 
+                         store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
+                         store.setMeasurementMethod('');
+                       }"
+                       style="-webkit-appearance: none; appearance: none;"
+                       :style="{ transform: 'rotate(-90deg)', width: meshTotalHeight + 'px', transformOrigin: 'center' }"
+                       class="horizontal-range"/>
+                <div v-if="isDraggingHeight"
+                     class="thumb-label"
+                     :style="{ left: `calc(${heightThumbPercent}% - 18px)`, color: brandPrimary, borderColor: brandPrimary + '40' }">
+                  {{ store.config.height }}
+                </div>
               </div>
             </div>
+
           </div>
 
-          <!-- Основная рамка сетки -->
-          <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
-               :style="{ 
-                 width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', 
-                 height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px',
-                 borderColor: frameColor
-               }">
-            <!-- Сетка линиями (эффект плетения) - ТЕПЕРЬ НА ЗАДНЕМ ПЛАНЕ -->
-            <div class="absolute inset-0 transition-all duration-500 z-0"
-                 :style="{ 
-                   backgroundImage: `
-                     linear-gradient(to right, #000 ${meshThickness}, transparent ${meshThickness}),
-                     linear-gradient(to bottom, #000 ${meshThickness}, transparent ${meshThickness})
-                   `,
-                   backgroundSize: meshSize + 'px ' + meshSize + 'px',
-                   opacity: meshOpacity
-                 }"></div>
-            
-            <!-- Перегородка посередине - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-            <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 transition-colors duration-500 z-10 shadow-sm"
-                 :style="{ backgroundColor: frameColor }"></div>
-            
-            <!-- Ручки для вставной (сверху и снизу) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-            <template v-if="store.config.frameType === 'vstavnaya'">
-              <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5 z-20"></div>
-              <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5 z-20"></div>
-            </template>
-            <!-- Ручки для остальных (по бокам, чуть ниже перегородки) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-            <template v-else>
-              <div class="absolute left-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -ml-2.5 z-20"></div>
-              <div class="absolute right-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -mr-2.5 z-20"></div>
-            </template>
-          </div>
-
-          <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 relative" style="width: 240px;">
+          <!-- Горизонтальный ползунок (под сеткой, та же ширина) -->
+          <div class="relative flex-shrink-0 mt-3" :style="{ width: meshTotalWidth + 'px' }">
             <input type="range" min="200" max="1500" step="5" 
                    :value="store.config.width"
                    @mousedown="isDraggingWidth = true"
@@ -621,10 +635,11 @@ const submitOrder = async () => {
               {{ store.config.width }}
             </div>
           </div>
+
         </div>
         
         <!-- Размеры под рамкой -->
-        <div class="mt-20 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
+        <div class="mt-5 flex gap-10 text-[11px] font-black uppercase tracking-widest text-gray-400">
           <!-- Ширина -->
           <div class="flex items-center gap-3 group" :style="{ '--brand-primary': brandPrimary }">
             <span class="w-2.5 h-2.5 rounded-full transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>

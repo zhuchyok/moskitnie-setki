@@ -539,14 +539,14 @@ const submitOrder = async () => {
         <!-- Контейнер для сетки и ползунков -->
         <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
           <!-- Ползунок высоты (вертикальный справа) -->
-          <div class="absolute -right-8 top-1/2 -translate-y-1/2 h-3/4 flex items-center">
+          <div class="absolute overflow-visible" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px; display: flex; align-items: center; justify-content: center;">
             <input type="range" min="200" max="2000" step="5" 
                    :value="store.config.height"
                    @input="(e) => { 
                      store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
                      store.setMeasurementMethod('');
                    }"
-                   class="vertical-range h-full appearance-none cursor-pointer"/>
+                   class="horizontal-range range-rotate"/>
           </div>
 
           <!-- Основная рамка сетки -->
@@ -591,8 +591,7 @@ const submitOrder = async () => {
                      store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
                      store.setMeasurementMethod('');
                    }"
-                   class="horizontal-range w-full appearance-none cursor-pointer" 
-                   :style="{ accentColor: brandPrimary }"/>
+                   class="horizontal-range w-full"/>
           </div>
         </div>
         
@@ -1410,7 +1409,7 @@ input[type="range"]::-webkit-slider-thumb {
   @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
 }
 
-/* Горизонтальный ползунок (ширина) */
+/* Горизонтальный ползунок (ширина) — базовые стили для обоих */
 .horizontal-range {
   -webkit-appearance: none;
   appearance: none;
@@ -1418,6 +1417,7 @@ input[type="range"]::-webkit-slider-thumb {
   background: #e5e7eb;
   border-radius: 9999px;
   outline: none;
+  cursor: pointer;
 }
 
 .horizontal-range::-webkit-slider-runnable-track {
@@ -1433,78 +1433,48 @@ input[type="range"]::-webkit-slider-thumb {
   background: #3B82F6;
   border: none;
   border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
   cursor: pointer;
   margin-top: -6.5px;
   transition: transform 0.15s ease;
 }
 
+.horizontal-range::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
 .horizontal-range::-webkit-slider-thumb:active {
-  transform: scale(1.2);
+  transform: scale(1.25);
   box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
 }
 
-/* Вертикальный ползунок (высота) */
-.vertical-range {
-  writing-mode: vertical-lr;
-  direction: rtl;
-  -webkit-appearance: none;
-  appearance: none;
-  width: 3px;
-  height: 100%;
-  background: #e5e7eb;
-  border-radius: 9999px;
-  outline: none;
-  cursor: pointer;
-}
-
-@media (max-width: 1023px) {
-  .vertical-range {
-    height: 200px;
-  }
-}
-
-.vertical-range::-webkit-slider-runnable-track {
-  width: 3px;
-  height: 100%;
+.horizontal-range::-moz-range-track {
+  height: 3px;
   background: #e5e7eb;
   border-radius: 9999px;
 }
 
-.vertical-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #3B82F6 !important;
-  border: none;
-  border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
-  cursor: pointer;
-  margin-left: -6.5px;
-  transition: transform 0.15s ease;
-}
-
-.vertical-range::-webkit-slider-thumb:active {
-  transform: scale(1.2);
-  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
-}
-
-/* Firefox */
-.horizontal-range::-moz-range-track,
-.vertical-range::-moz-range-track {
-  background: #e5e7eb;
-  border-radius: 9999px;
-}
-
-.horizontal-range::-moz-range-thumb,
-.vertical-range::-moz-range-thumb {
+.horizontal-range::-moz-range-thumb {
   width: 16px;
   height: 16px;
   background: #3B82F6;
   border: none;
   border-radius: 50%;
-  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
   cursor: pointer;
+}
+
+/* Вертикальный — горизонтальный ползунок повёрнутый */
+.range-rotate {
+  width: 220px;
+  transform: rotate(-90deg);
+  transform-origin: center center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1023px) {
+  .range-rotate {
+    width: 160px;
+  }
 }
 
 /* Анимации для Мастера */

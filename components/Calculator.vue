@@ -557,6 +557,7 @@ const submitOrder = async () => {
                        store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
                        store.setMeasurementMethod('');
                      }"
+                     style="-webkit-appearance: none; appearance: none;"
                      class="horizontal-range w-full"/>
               <div v-if="isDraggingHeight"
                    class="thumb-label"
@@ -612,6 +613,7 @@ const submitOrder = async () => {
                      store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
                      store.setMeasurementMethod('');
                    }"
+                   style="-webkit-appearance: none; appearance: none;"
                    class="horizontal-range w-full"/>
             <div v-if="isDraggingWidth"
                  class="thumb-label"
@@ -1471,76 +1473,83 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* Горизонтальный ползунок (ширина) — базовые стили для обоих */
+input[type="range"].horizontal-range,
 .horizontal-range {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 3px;
-  background: #e5e7eb;
-  border-radius: 9999px;
-  outline: none;
-  cursor: pointer;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  height: 3px !important;
+  background: #e5e7eb !important;
+  border-radius: 9999px !important;
+  outline: none !important;
+  cursor: pointer !important;
 }
 
+input[type="range"].horizontal-range::-webkit-slider-runnable-track,
 .horizontal-range::-webkit-slider-runnable-track {
-  height: 3px;
-  background: #e5e7eb;
-  border-radius: 9999px;
+  height: 3px !important;
+  background: #e5e7eb !important;
+  border-radius: 9999px !important;
 }
 
+input[type="range"].horizontal-range::-webkit-slider-thumb,
 .horizontal-range::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  background: #3B82F6;
-  border: none;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
-  cursor: pointer;
-  margin-top: -6.5px;
-  transition: transform 0.15s ease;
+  -webkit-appearance: none !important;
+  width: 16px !important;
+  height: 16px !important;
+  background: #3B82F6 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
+  cursor: pointer !important;
+  margin-top: -6.5px !important;
+  transition: transform 0.15s ease !important;
 }
 
+input[type="range"].horizontal-range::-webkit-slider-thumb:hover,
 .horizontal-range::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+  transform: scale(1.15) !important;
 }
 
+input[type="range"].horizontal-range::-webkit-slider-thumb:active,
 .horizontal-range::-webkit-slider-thumb:active {
-  transform: scale(1.25);
-  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
+  transform: scale(1.25) !important;
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15) !important;
 }
 
+input[type="range"].horizontal-range::-moz-range-track,
 .horizontal-range::-moz-range-track {
-  height: 3px;
-  background: #e5e7eb;
-  border-radius: 9999px;
+  height: 3px !important;
+  background: #e5e7eb !important;
+  border-radius: 9999px !important;
 }
 
+input[type="range"].horizontal-range::-moz-range-thumb,
 .horizontal-range::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: #3B82F6;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
+  width: 16px !important;
+  height: 16px !important;
+  background: #3B82F6 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
 }
 
 /* Вертикальный — горизонтальный ползунок повёрнутый */
 .range-rotate {
-  width: 240px;
-  transform: rotate(-90deg);
-  transform-origin: center center;
-  flex-shrink: 0;
+  width: 240px !important;
+  transform: rotate(-90deg) !important;
+  transform-origin: center center !important;
+  flex-shrink: 0 !important;
 }
 
 @media (max-width: 1023px) {
   .range-rotate {
-    width: 180px;
+    width: 180px !important;
   }
 }
 
 @media (max-width: 640px) {
   .range-rotate {
-    width: 140px;
+    width: 140px !important;
   }
 }
 

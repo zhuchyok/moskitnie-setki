@@ -76,7 +76,7 @@ const orderFormBlockRef = ref<HTMLElement | null>(null)
 
 // Логика Мастера (Wizard)
 const currentStep = ref(1)
-const maxStep = 5
+const maxStep = 4
 
 const nextStep = () => {
   if (currentStep.value < maxStep) {
@@ -821,35 +821,8 @@ const submitOrder = async () => {
                 </div>
               </div>
 
-              <!-- Шаг 2: Размеры -->
+              <!-- Шаг 2: Метод замера (Критический) -->
               <div v-if="currentStep === 2" class="space-y-10 pt-2">
-                <div class="bg-blue-50/50 p-8 rounded-3xl border border-blue-100/50 flex items-start gap-6">
-                  <div class="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0" :style="{ color: brandPrimary }">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                  </div>
-                  <div class="space-y-2">
-                    <h4 class="text-lg font-black text-brand-dark uppercase tracking-tight">Управление размерами</h4>
-                    <p class="text-xs text-gray-500 font-medium leading-relaxed uppercase tracking-wider">
-                      Используйте ползунки прямо на визуализации слева или введите точные значения в миллиметрах под сеткой. 
-                      Это позволит вам мгновенно увидеть пропорции будущего изделия.
-                    </p>
-                  </div>
-                </div>
-                
-                <!-- Старый блок с ползунками удален, так как они теперь на визуализации -->
-                <div class="flex items-center justify-center py-10">
-                  <div class="flex flex-col items-center gap-4 text-center">
-                    <div class="w-16 h-1 bg-gray-100 rounded-full"></div>
-                    <p class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em]">Размеры настраиваются слева</p>
-                    <div class="w-16 h-1 bg-gray-100 rounded-full"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Шаг 3: Метод замера (Критический) -->
-              <div v-if="currentStep === 3" class="space-y-10 pt-2">
                 <div class="w-full min-w-0">
                   <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Как вы измеряли?</label>
                   <div :class="[
@@ -896,8 +869,8 @@ const submitOrder = async () => {
                 </div>
               </div>
 
-              <!-- Шаг 4: Опции -->
-              <div v-if="currentStep === 4" class="pt-12 border-t border-gray-100 w-full min-w-0">
+              <!-- Шаг 3: Опции -->
+              <div v-if="currentStep === 3" class="pt-12 border-t border-gray-100 w-full min-w-0">
                 <ClientOnly>
                   <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12" style="width: 100%">
                     
@@ -996,7 +969,7 @@ const submitOrder = async () => {
               </div>
 
               <!-- Шаг 5: Просмотр -->
-              <div v-if="currentStep === 5" class="space-y-8 pt-2">
+              <div v-if="currentStep === 4" class="space-y-8 pt-2">
                 <div class="bg-gray-50/50 rounded-3xl p-8 border border-gray-100 space-y-6 relative group">
                   <!-- Кнопка сброса (Крестик) -->
                   <button @click="currentStep = 1" 
@@ -1066,7 +1039,7 @@ const submitOrder = async () => {
           </Transition>
 
           <!-- Навигация и Цена (Step 1-4): нижний отступ увеличен, чтобы на VDS не обрезало цену и кнопку -->
-          <div v-if="currentStep < 5" class="pt-10 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
+          <div v-if="currentStep < 4" class="pt-10 pb-2 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-8">
             <!-- Цена в левом углу -->
             <div class="text-center sm:text-left w-full sm:w-auto order-2 sm:order-1">
               <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-1">Предварительная цена</p>
@@ -1091,17 +1064,17 @@ const submitOrder = async () => {
             </button>
 
             <button @click="nextStep"
-                    :disabled="currentStep === 3 && !store.config.measurementMethod"
+                    :disabled="currentStep === 2 && !store.config.measurementMethod"
                     :class="[
                       'w-full font-black py-3 px-6 rounded-2xl transition-all uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-xl active:scale-95 border-2 border-transparent',
                       currentStep === 1 ? 'col-span-2' : '',
-                      currentStep === 3 && !store.config.measurementMethod
+                      currentStep === 2 && !store.config.measurementMethod
                         ? 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
                         : 'bg-brand-blue text-white hover:bg-[#1e5a9a] shadow-brand-blue/20 next-step-button'
                     ]"
                     :style="{ '--brand-primary': brandPrimary }">
-              {{ currentStep === 3 && !store.config.measurementMethod ? 'Выберите метод замера' : 'Далее' }}
-              <svg v-if="!(currentStep === 3 && !store.config.measurementMethod)" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {{ currentStep === 2 && !store.config.measurementMethod ? 'Выберите метод замера' : 'Далее' }}
+              <svg v-if="!(currentStep === 2 && !store.config.measurementMethod)" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
               </svg>
             </button>

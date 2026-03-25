@@ -11,7 +11,15 @@ Allow: /antipyl/
 Allow: /antimoshka/
 Allow: /vstavnye/
 Allow: /remont/
+Allow: /ultravyu/
 Allow: /privacy/
+Allow: /contacts/
+Allow: /delivery/
+Allow: /karta-sajta/
+
+# Запретить индексацию дилеров
+Disallow: /dealers/
+Disallow: /dealers
 
 # Разрешить индексацию изображений (SEO 2026: SGE, Image Search)
 Allow: /images/

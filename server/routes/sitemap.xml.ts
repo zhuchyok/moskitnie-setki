@@ -6,19 +6,19 @@ export default defineEventHandler((event) => {
   // но для надежности используем то, что пришло в Host.
   const origin = `${protocol}://${host}`
 
-  // Список страниц
+  // Список страниц (всегда со слэшем в конце для соответствия canonical)
   const pages = [
     { url: '/', priority: '1.0' },
-    { url: '/antimoshka', priority: '0.8' },
-    { url: '/antikoshka', priority: '0.8' },
-    { url: '/antipyl', priority: '0.8' },
-    { url: '/ultravyu', priority: '0.8' },
-    { url: '/vstavnye', priority: '0.8' },
-    { url: '/remont', priority: '0.7' },
-    { url: '/privacy', priority: '0.4' },
-    { url: '/contacts', priority: '0.6' },
-    { url: '/delivery', priority: '0.6' },
-    { url: '/karta-sajta', priority: '0.4' },
+    { url: '/antimoshka/', priority: '0.8' },
+    { url: '/antikoshka/', priority: '0.8' },
+    { url: '/antipyl/', priority: '0.8' },
+    { url: '/ultravyu/', priority: '0.8' },
+    { url: '/vstavnye/', priority: '0.8' },
+    { url: '/remont/', priority: '0.7' },
+    { url: '/privacy/', priority: '0.4' },
+    { url: '/contacts/', priority: '0.6' },
+    { url: '/delivery/', priority: '0.6' },
+    { url: '/karta-sajta/', priority: '0.4' },
   ]
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

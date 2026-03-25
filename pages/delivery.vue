@@ -5,7 +5,10 @@ const defaultDealerName = computed(() => tenant.config.city?.includes('Чебо�
 const title = computed(() => `Доставка и замер москитных сеток — ${tenant.config.city || 'Чебоксары'}`)
 const description = computed(() => `Доставка и замер москитных сеток по ${tenant.config.city || 'вашему городу'}. ${tenant.config.dealer_name || defaultDealerName.value} — изготовление за 1 день.`)
 const requestURL = useRequestURL()
-const url = requestURL?.origin ? `${requestURL.origin}/delivery` : 'https://www.setki21.ru/delivery'
+const url = computed(() => {
+  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  return `${origin}/delivery/`
+})
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
 const serviceSchema = computed(() => ({

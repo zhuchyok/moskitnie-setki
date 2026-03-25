@@ -59,7 +59,7 @@ const { data: pricingData } = await useAsyncData('pricing-config', async () => {
 const canonicalUrl = computed(() => {
   const origin = finalSiteOrigin.value || 'https://www.setki21.ru'
   const path = route.path.replace(/\/$/, '') || '/'
-  return `${origin}${path === '/' ? '' : path}`
+  return `${origin}${path}${path === '/' ? '' : '/'}`
 })
 
 onMounted(() => {
@@ -74,16 +74,19 @@ onMounted(() => {
   }
 })
 
+const titleTemplate = computed(() => tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21')
+
 useHead({
-  title: computed(() => tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21'),
+  title: titleTemplate,
   meta: computed(() => {
     const ogImage = tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png')
     const verificationTag = tenantConfig.value?.seo?.verification_tag
     return [
-      { name: 'description', content: tenantConfig.value?.seo?.description || '' },
-      { property: 'og:title', content: tenantConfig.value?.seo?.title || '' },
-      { property: 'og:description', content: tenantConfig.value?.seo?.description || '' },
+      { name: 'description', content: tenantConfig.value?.seo?.description || 'Производство и установка москитных сеток. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!' },
+      { property: 'og:title', content: tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21' },
+      { property: 'og:description', content: tenantConfig.value?.seo?.description || 'Производство и установка москитных сеток. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!' },
       { property: 'og:image', content: ogImage },
+      { property: 'og:url', content: canonicalUrl.value },
       { name: 'twitter:image', content: ogImage },
       { name: 'robots', content: 'index, follow' },
       ...(verificationTag ? [{

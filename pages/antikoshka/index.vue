@@ -5,12 +5,15 @@ onMounted(() => {
   store.updateConfig({ frameType: 'standart', type: 'antikoshka', typeName: 'АНТИКОШКА' })
 })
 
-const title = computed(() => tenant.config.seo?.pages?.antikoshka?.title || tenant.config.seo?.title || `Москитная сетка Антикошка в ${tenant.config.city || 'Чебоксарах'} — цены от 1300 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
-const description = computed(() => tenant.config.seo?.pages?.antikoshka?.description || tenant.config.seo?.description || `Усиленные москитные сетки Антикошка (Pet Screen) в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Выдерживают когти кошек, прочное полотно, металлический крепеж.`)
+const title = computed(() => tenant.config.seo?.pages?.antikoshka?.title || `Москитная сетка Антикошка в ${tenant.config.city || 'Чебоксарах'} — цены от 1300 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => tenant.config.seo?.pages?.antikoshka?.description || `Усиленные москитные сетки Антикошка (Pet Screen) в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Выдерживают когти кошек, прочное полотно, металлический крепеж.`)
 const keywords = computed(() => `антикошка, москитная сетка антикошка, ${tenant.config.city}, ${tenant.config.dealer_name}, pet screen, защита животных, цена, купить, сетка на окна от кошек`)
 
 const requestURL = useRequestURL()
-const url = computed(() => requestURL?.origin ? `${requestURL.origin}/antikoshka/` : 'https://www.setki21.ru/antikoshka/')
+const url = computed(() => {
+  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  return `${origin}/antikoshka/`
+})
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({

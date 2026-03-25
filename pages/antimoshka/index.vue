@@ -5,12 +5,15 @@ onMounted(() => {
   store.updateConfig({ frameType: 'standart', type: 'antimoshka', typeName: 'АНТИМОШКА' })
 })
 
-const title = computed(() => tenant.config.seo?.pages?.antimoshka?.title || tenant.config.seo?.title || `Москитная сетка Антимошка в ${tenant.config.city || 'Чебоксарах'} — цены от 1000 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
-const description = computed(() => tenant.config.seo?.pages?.antimoshka?.description || tenant.config.seo?.description || `Сетки Антимошка с уменьшенной ячейкой 0.8х0.8 мм в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от мелких насекомых и тополиного пуха.`)
+const title = computed(() => tenant.config.seo?.pages?.antimoshka?.title || `Москитная сетка Антимошка в ${tenant.config.city || 'Чебоксарах'} — цены от 1000 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => tenant.config.seo?.pages?.antimoshka?.description || `Сетки Антимошка с уменьшенной ячейкой 0.8х0.8 мм в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от мелких насекомых и тополиного пуха.`)
 const keywords = computed(() => `антимошка, микромеш, москитная сетка, ${tenant.config.city}, ${tenant.config.dealer_name}, защита от мошек, мелкая сетка, micro mesh`)
 
 const requestURL = useRequestURL()
-const url = computed(() => requestURL?.origin ? `${requestURL.origin}/antimoshka/` : 'https://www.setki21.ru/antimoshka/')
+const url = computed(() => {
+  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  return `${origin}/antimoshka/`
+})
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({

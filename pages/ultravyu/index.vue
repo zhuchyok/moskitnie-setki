@@ -5,11 +5,14 @@ onMounted(() => {
   store.updateConfig({ frameType: 'standart', type: 'ultravyu', typeName: 'УЛЬТРАВЬЮ' })
 })
 
-const title = computed(() => tenant.config.seo?.pages?.ultravyu?.title || tenant.config.seo?.title || `Москитная сетка Ультравью в ${tenant.config.city || 'Чебоксарах'} — цены от 1000 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
-const description = computed(() => tenant.config.seo?.pages?.ultravyu?.description || tenant.config.seo?.description || `Сетки Ультравью с повышенной прозрачностью и мелкой ячейкой в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от насекомых и пуха. Заказ за 2 дня.`)
+const title = computed(() => tenant.config.seo?.pages?.ultravyu?.title || `Москитная сетка Ультравью в ${tenant.config.city || 'Чебоксарах'} — цены от 1000 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => tenant.config.seo?.pages?.ultravyu?.description || `Сетки Ультравью с повышенной прозрачностью и мелкой ячейкой в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от насекомых и пуха. Заказ за 2 дня.`)
 const keywords = computed(() => `ультравью, ultraview, москитная сетка, ${tenant.config.city}, ${tenant.config.dealer_name}, прозрачная сетка, защита от мошек, тонкая сетка`)
-const url = 'https://www.setki21.ru/ultravyu/'
 const requestURL = useRequestURL()
+const url = computed(() => {
+  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  return `${origin}/ultravyu/`
+})
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
@@ -21,7 +24,7 @@ const productSchema = computed(() => ({
   brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
   offers: {
     '@type': 'Offer',
-    url,
+    url: url.value,
     email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
     priceCurrency: 'RUB',
     price: '1000',

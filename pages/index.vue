@@ -93,11 +93,11 @@ const productSchema = computed(() => ({
   },
   offers: {
     '@type': 'Offer',
-    url,
+    url: url.value,
     priceCurrency: 'RUB',
     price: '850',
     availability: 'https://schema.org/InStock',
-    seller: { '@id': `${url}#organization` }
+    seller: { '@id': `${url.value}#organization` }
   }
 }))
 

@@ -3,10 +3,10 @@ const tenant = useTenantStore()
 const defaultDealerName = computed(() => tenant.config.city?.includes('Чебоксары') ? 'Сетки 21' : 'Сетки Москитки')
 
 const requestURL = useRequestURL()
-const origin = requestURL?.origin || 'https://www.setki21.ru'
-const title = computed(() => `Карта сайта — ${tenant.config.dealer_name || defaultDealerName.value}`)
-const description = computed(() => `Все страницы сайта ${tenant.config.dealer_name || defaultDealerName.value}: москитные сетки, антимошка, ультравью, антикошка, антипыль, вставные сетки, ремонт. ${tenant.config.city || 'Чебоксары и Новочебоксарск'}.`)
-const url = `${origin}/karta-sajta`
+const url = computed(() => {
+  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  return `${origin}/karta-sajta/`
+})
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 const keywords = computed(() => `карта сайта, ${tenant.config.dealer_name || defaultDealerName.value}, москитные сетки ${tenant.config.city || 'чебоксары'}, разделы сайта`)
 
@@ -15,7 +15,7 @@ const webPageSchema = computed(() => ({
   '@type': 'WebPage',
   name: title.value,
   description: description.value,
-  url,
+  url: url.value,
   publisher: { '@type': 'Organization', name: tenant.config.dealer_name || defaultDealerName.value, url: origin },
   inLanguage: 'ru-RU'
 }))

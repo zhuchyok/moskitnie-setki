@@ -23,10 +23,10 @@ const tenant = useTenantStore()
 const defaultDealerName = computed(() => tenant.config.city?.includes('Чебоксары') ? 'Сетки 21' : 'Сетки Москитки')
 
 const requestURL = useRequestURL()
-const origin = requestURL?.origin || 'https://www.setki21.ru'
-const title = computed(() => `Дилерам — выгодное сотрудничество с ${tenant.config.dealer_name || defaultDealerName.value}`)
-const description = computed(() => `Приглашаем дилеров, оконные компании и частных мастеров к сотрудничеству. Собственное производство москитных сеток в ${tenant.config.city || 'Чебоксарах'}, низкие цены, изготовление за 1 день.`)
-const url = `${origin}/dealers`
+const url = computed(() => {
+  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  return `${origin}/dealers/`
+})
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
 useHead({
@@ -41,7 +41,11 @@ useHead({
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: description },
+    { name: 'robots', content: 'noindex, nofollow' },
   ],
+  link: [
+    { rel: 'canonical', href: url }
+  ]
 })
 
 // Если пользователь уже авторизован, перенаправляем в админку

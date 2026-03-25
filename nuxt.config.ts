@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   experimental: {
     extractCritical: true
   },
+  trailingSlash: true,
   compatibilityDate: '2024-11-01',
   devtools: { enabled: false },
   devServer: {

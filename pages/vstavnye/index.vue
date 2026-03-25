@@ -21,7 +21,7 @@ const productSchema = computed(() => ({
   brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
   offers: {
     '@type': 'Offer',
-    url,
+    url: url.value,
     email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
     priceCurrency: 'RUB',
     price: '1450',

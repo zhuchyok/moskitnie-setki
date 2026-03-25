@@ -8,8 +8,8 @@ onMounted(() => {
 const title = computed(() => tenant.config.seo?.pages?.vstavnye?.title || tenant.config.seo?.title || `Вставные москитные сетки VSN в ${tenant.config.city || 'Чебоксарах'} — цены от 1450 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
 const description = computed(() => tenant.config.seo?.pages?.vstavnye?.description || tenant.config.seo?.description || `Инновационные вставные сетки VSN в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Не требуют сверления рамы, устанавливаются изнутри. Надежно, эстетично, безопасно. Закажите онлайн!`)
 const keywords = computed(() => tenant.config.seo?.keywords || `вставная сетка, vsn, москитная сетка без сверления, ${tenant.config.city}, внутренняя сетка, сетка в проем, установка без шурупов, ${tenant.config.dealer_name}`)
-const url = 'https://www.setki21.ru/vstavnye/'
 const requestURL = useRequestURL()
+const url = computed(() => requestURL?.origin ? `${requestURL.origin}/vstavnye/` : 'https://www.setki21.ru/vstavnye/')
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({

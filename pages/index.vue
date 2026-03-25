@@ -9,7 +9,7 @@ const title = computed(() => tenant.config.seo?.title || `Москитные с�
 const description = computed(() => tenant.config.seo?.description || `Производство и установка москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!`)
 const keywords = computed(() => tenant.config.seo?.keywords || `москитные сетки, москитная сетка, окна, ${tenant.config.city}, ${tenant.config.dealer_name}, заказать, купить, цена, установка, замер, производство, антикошка, антипыль, vsn`)
 const requestURL = useRequestURL()
-const url = requestURL?.origin ? `${requestURL.origin}/` : 'https://www.setki21.ru/'
+const url = computed(() => requestURL?.origin ? `${requestURL.origin}/` : 'https://www.setki21.ru/')
 const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
 const localBusinessSchema = computed(() => ({

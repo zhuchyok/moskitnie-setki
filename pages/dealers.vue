@@ -22,6 +22,9 @@ const showNotification = (message: string, type: 'success' | 'error' = 'success'
 const tenant = useTenantStore()
 const defaultDealerName = computed(() => tenant.config.city?.includes('Чебоксары') ? 'Сетки 21' : 'Сетки Москитки')
 
+const title = computed(() => `Дилерам — выгодное сотрудничество с ${defaultDealerName.value}`)
+const description = computed(() => `Приглашаем дилеров, оконные компании и частных мастеров к сотрудничеству. Собственное производство москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}, низкие цены, изготовление за 1 день.`)
+
 const requestURL = useRequestURL()
 const url = computed(() => {
   const origin = requestURL?.origin || 'https://www.setki21.ru'

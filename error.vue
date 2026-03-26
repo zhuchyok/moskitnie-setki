@@ -44,6 +44,7 @@ const categories = [
   { name: 'Антикошка', path: '/antikoshka' },
   { name: 'Антимошка', path: '/antimoshka' },
   { name: 'Антипыль', path: '/antipyl' },
+  { name: 'Ультравью', path: '/ultravyu' },
   { name: 'Вставные VSN', path: '/vstavnye' },
   { name: 'Ремонт', path: '/remont' },
 ]

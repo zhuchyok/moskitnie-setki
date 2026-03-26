@@ -5,6 +5,25 @@ const props = defineProps({
 
 const tenant = useTenantStore()
 
+// error.vue не проходит через app.vue — загружаем конфиг явно
+const requestURL = useRequestURL()
+await useAsyncData('tenant-config', async () => {
+  if (!tenant.isLoaded) {
+    try {
+      await tenant.fetchConfig(requestURL?.origin)
+    } catch {}
+  }
+  return tenant.config
+})
+
+// На клиенте применяем CSS-переменную (на случай client-side навигации)
+onMounted(() => {
+  const color = tenant.config.branding?.primary_color
+  if (color) {
+    document.documentElement.style.setProperty('--brand-blue', color)
+  }
+})
+
 const is404 = computed(() => props.error?.statusCode === 404)
 const primaryColor = computed(() => tenant.config.branding?.primary_color || '#2A6AB2')
 const siteName = computed(() => tenant.config.dealer_name || 'Сетки 21')

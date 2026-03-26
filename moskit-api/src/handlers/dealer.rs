@@ -147,7 +147,7 @@ pub async fn create_order(
         }
     }
 
-    let pricing_service = PricingService::new(global_pricing, margin_config);
+    let pricing_service = PricingService::new(global_pricing.clone(), margin_config);
 
     let mut items = Vec::new();
     let mut total_dealer_cost = Decimal::ZERO;

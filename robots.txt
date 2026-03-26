@@ -16,10 +16,7 @@ Allow: /privacy/
 Allow: /contacts/
 Allow: /delivery/
 Allow: /karta-sajta/
-
-# Запретить индексацию дилеров
-Disallow: /dealers/
-Disallow: /dealers
+Allow: /dealers/
 
 # Разрешить индексацию изображений (SEO 2026: SGE, Image Search)
 Allow: /images/

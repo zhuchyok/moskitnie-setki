@@ -1,0 +1,53 @@
+# moskit-api/Dockerfile.arm64
+# Специальный Dockerfile для нативной сборки под Apple Silicon (arm64)
+# Используется для разработки на Mac Studio M4 Max.
+
+FROM rust:1.88-bookworm AS builder
+
+# Установка необходимых инструментов для сборки (нативная сборка, без кросс-компиляции)
+RUN apt-get update && apt-get install -y pkg-config libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Копируем зависимости из корня проекта
+# Контекст сборки должен быть корнем репозитория setki-21
+COPY moskit-api/Cargo.toml ./
+COPY moskit-core ./moskit-core
+
+# Подправляем Cargo.toml чтобы путь к moskit-core был верным внутри контейнера
+RUN sed -i 's|path = "../moskit-core"|path = "./moskit-core"|' Cargo.toml
+
+# Создаём dummy бинарник для кэширования зависимостей
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+
+# Сборка зависимостей
+ENV SQLX_OFFLINE=true
+ENV RUST_MIN_STACK=16777216
+RUN cargo build --release
+RUN rm -rf src
+
+# Сборка основного приложения
+ARG CACHEBUST
+COPY moskit-api/src ./src
+# Удалить артефакт от заглушки
+RUN rm -f /app/target/release/moskit-api /app/target/release/deps/moskit_api* 2>/dev/null; true
+RUN cargo build --release
+
+# Минимальный рантайм
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y ca-certificates postgresql-client libssl3 && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY --from=builder /app/target/release/moskit-api .
+RUN chmod +x ./moskit-api
+
+# Копируем миграции и скрипт запуска из корня setki-21
+COPY migrations ./migrations
+COPY scripts/entrypoint.sh ./scripts/entrypoint.sh
+RUN chmod +x ./scripts/entrypoint.sh
+
+EXPOSE 8080
+
+ENTRYPOINT ["./scripts/entrypoint.sh"]

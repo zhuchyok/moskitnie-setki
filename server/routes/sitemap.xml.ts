@@ -15,6 +15,7 @@ export default defineEventHandler((event) => {
     { url: '/ultravyu/', priority: '0.8' },
     { url: '/vstavnye/', priority: '0.8' },
     { url: '/remont/', priority: '0.7' },
+    { url: '/dealers/', priority: '0.5' }, // Добавлена страница дилеров
     { url: '/privacy/', priority: '0.4' },
     { url: '/contacts/', priority: '0.6' },
     { url: '/delivery/', priority: '0.6' },

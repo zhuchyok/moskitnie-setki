@@ -17,9 +17,9 @@ const localBusinessSchema = computed(() => ({
   '@graph': [
     {
       '@type': 'Organization',
-      '@id': `${url}#organization`,
+      '@id': `${url.value}#organization`,
       name: tenant.config.dealer_name || 'Сетки 21',
-      url,
+      url: url.value,
       logo: image.value,
       contactPoint: {
         '@type': 'ContactPoint',
@@ -31,8 +31,8 @@ const localBusinessSchema = computed(() => ({
     },
     {
       '@type': 'LocalBusiness',
-      '@id': `${url}#localbusiness`,
-      parentOrganization: { '@id': `${url}#organization` },
+      '@id': `${url.value}#localbusiness`,
+      parentOrganization: { '@id': `${url.value}#organization` },
       name: `${tenant.config.dealer_name || 'Сетки 21'} ${tenant.config.city || 'Чебоксары'}`,
       image: image.value,
       telephone: tenant.config.phone || '+7 (8352) 38-14-20',
@@ -72,11 +72,11 @@ const localBusinessSchema = computed(() => ({
 const websiteSchema = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  '@id': `${url}#website`,
+  '@id': `${url.value}#website`,
   name: tenant.config.dealer_name || 'Сетки 21',
-  url,
+  url: url.value,
   description: `Производство и установка москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}.`,
-  publisher: { '@id': `${url}#organization` }
+  publisher: { '@id': `${url.value}#organization` }
 }))
 
 const productSchema = computed(() => ({

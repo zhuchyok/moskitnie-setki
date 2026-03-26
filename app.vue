@@ -74,47 +74,30 @@ onMounted(() => {
   }
 })
 
-const titleTemplate = computed(() => tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21')
+const pageTitle = computed(() => tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21')
+const pageDescription = computed(() => tenantConfig.value?.seo?.description || 'Производство и установка москитных сеток. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!')
+const ogImage = computed(() => tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
+const faviconUrl = computed(() => tenantConfig.value?.branding?.favicon_url || tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico'))
+const yandexVerification = computed(() => tenantConfig.value?.seo?.verification_tag)
+const analyticsCode = computed(() => tenantConfig.value?.seo?.analytics_code)
 
 useHead({
-  title: titleTemplate,
-  meta: computed(() => {
-    const ogImage = tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png')
-    const verificationTag = tenantConfig.value?.seo?.verification_tag
-    return [
-      { name: 'description', content: tenantConfig.value?.seo?.description || 'Производство и установка москитных сеток. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!' },
-      { property: 'og:title', content: tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21' },
-      { property: 'og:description', content: tenantConfig.value?.seo?.description || 'Производство и установка москитных сеток. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!' },
-      { property: 'og:image', content: ogImage },
-      { property: 'og:url', content: canonicalUrl.value },
-      { name: 'twitter:image', content: ogImage },
-      { name: 'robots', content: 'index, follow' },
-      ...(verificationTag ? [{
-        name: 'yandex-verification',
-        content: verificationTag
-      }] : [])
-    ]
-  }),
-  link: computed(() => {
-    const faviconUrl = tenantConfig.value?.branding?.favicon_url || tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico')
-    return [
-      { rel: 'canonical', href: canonicalUrl.value },
-      { rel: 'icon', type: 'image/x-icon', href: faviconUrl },
-      { rel: 'shortcut icon', type: 'image/x-icon', href: faviconUrl },
-      { rel: 'apple-touch-icon', href: faviconUrl }
-    ]
-  }),
-  script: computed(() => {
-    const scripts = []
-    if (tenantConfig.value?.seo?.analytics_code) {
-      scripts.push({
-        innerHTML: tenantConfig.value.seo.analytics_code,
-        type: 'text/javascript',
-        body: true
-      })
-    }
-    return scripts
-  })
+  title: pageTitle,
+  meta: [
+    { name: 'description', content: pageDescription },
+    { property: 'og:title', content: pageTitle },
+    { property: 'og:description', content: pageDescription },
+    { property: 'og:image', content: ogImage },
+    { property: 'og:url', content: canonicalUrl },
+    { name: 'twitter:image', content: ogImage },
+    { name: 'robots', content: 'index, follow' },
+  ],
+  link: [
+    { rel: 'canonical', href: canonicalUrl },
+    { rel: 'icon', type: 'image/x-icon', href: faviconUrl },
+    { rel: 'shortcut icon', type: 'image/x-icon', href: faviconUrl },
+    { rel: 'apple-touch-icon', href: faviconUrl }
+  ],
 })
 </script>
 

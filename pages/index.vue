@@ -286,23 +286,23 @@ const faqMain = computed(() => [
                          loading="lazy" />
                   </div>
                 </div>
-                <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки?</h2>
+                <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши москитные сетки?</h2>
 
                 <div class="grid md:grid-cols-3 gap-12">
                   <div class="text-center md:text-left group">
                     <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
-                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Прочная алюминиевая рамка окрашена порошковой краской. Не выгорает и не ржавеет.</p>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Собственное производство</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Изготавливаем сетки за 1 день на своем оборудовании. Гарантируем качество и лучшую цену без посредников.</p>
                   </div>
                   <div class="text-center md:text-left group">
                     <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>
-                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Защита</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Помогает задержать тополиный пух, уличную пыль и пыльцу растений, что важно для аллергиков.</p>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Надежные комплектующие</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Используем усиленный алюминиевый профиль и полотно Fiberglass. Металлические крепления уже в комплекте.</p>
                   </div>
                   <div class="text-center md:text-left group">
                     <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">03</div>
-                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Безопасность</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Москитные сетки могут служить защитой от случайного выпадения из окон предметов домашнего обихода.</p>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Замер и монтаж</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Выезд мастера в день обращения. Профессиональная установка на любые типы окон с гарантией 1 год.</p>
                   </div>
                 </div>
               </div>

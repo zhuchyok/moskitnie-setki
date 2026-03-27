@@ -104,7 +104,7 @@ const faqItems = computed(() => [
         <div class="flex flex-col lg:flex-row gap-12 items-stretch mb-8 min-h-[440px]">
           <div class="lg:w-1/2 flex flex-col justify-center min-h-[440px]">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
-              Сетка <span class="text-brand-blue" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антипыль</span> — более 13 лет опыта
+              Сетка <span class="text-brand-blue" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антипыль</span> — задерживает 97% пыльцы
             </h1>
             <div style="display:none" data-ai-summary>
               {{ tenant.config.dealer_name || 'Сетки 21' }}: Собственное производство москитных сеток Антипыль (Poll-Tex) для аллергиков в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Опыт более 13 лет.

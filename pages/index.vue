@@ -176,7 +176,7 @@ const faqMain = computed(() => [
         <div class="flex flex-col lg:flex-row gap-12 items-stretch mb-8 min-h-[440px]">
           <div class="lg:w-1/2 flex flex-col justify-center min-h-[440px]">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
-              Рамочная <span class="text-brand-blue" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">москитная сетка</span> — более 13 лет опыта
+              Москитная <span class="text-brand-blue" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">сетка на окна</span> — за 1 день
             </h1>
             <div style="display:none" data-ai-summary>
               {{ tenant.config.dealer_name || 'Сетки 21' }}: Собственное производство и установка москитных сеток в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Опыт работы более 13 лет. Рамочные сетки Fiberglass от 850 руб, изготовление за 1 день. Профессиональный замер и монтаж. Типы: стандарт, Антимошка, Ультравью, Антикошка, Антипыль, вставные VSN.

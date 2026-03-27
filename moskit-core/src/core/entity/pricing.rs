@@ -81,6 +81,8 @@ pub struct PricingItem {
     pub id: String,
     pub name: String,
     pub price: Decimal,
+    #[serde(default)]
+    pub unit: Option<String>,
 }
 
 /// Глобальная конфигурация цен
@@ -104,8 +106,11 @@ pub struct MarkupConfig {
     pub measurement_percent: Decimal,
     #[serde(default)]
     pub measurement_profit_factor: Decimal,
+    #[serde(default)]
     pub urgent_profit_factor: Decimal,
+    #[serde(default)]
     pub installation_profit_factor: Decimal,
+    #[serde(default)]
     pub delivery_profit_factor: Decimal,
 }
 

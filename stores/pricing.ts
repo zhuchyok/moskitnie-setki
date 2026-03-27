@@ -47,12 +47,15 @@ export const usePricingStore = defineStore('pricing', {
       // На клиенте apiBase пустой, поэтому путь должен быть /api/v1/...
       const fetchPath = (apiBase && apiBase.startsWith('http')) ? 'v1/pricing' : '/api/v1/pricing'
       
+      const finalUrl = apiBase.startsWith('http') 
+        ? `${apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase}/${fetchPath.startsWith('/') ? fetchPath.slice(1) : fetchPath}`
+        : fetchPath
+
       if (import.meta.server) {
-        // console.error(`[SSR_PRICING] Fetching from ${apiBase} with path ${fetchPath}`)
+        // console.error(`[SSR_PRICING] Fetching from ${finalUrl}`)
       }
 
-      const response = await ($fetch as any)(fetchPath, {
-        baseURL: apiBase,
+      const response = await ($fetch as any)(finalUrl, {
         timeout: 8000
       }) as GlobalPricing
       
@@ -68,7 +71,9 @@ export const usePricingStore = defineStore('pricing', {
       } catch (e) {
         console.error('Failed to fetch global pricing', e)
         // Один повтор через 1.5 с при холодном старте API (Docker/VDS)
-        if (retry) {
+        // ВАЖНО: На SSR setTimeout может вызвать ошибку [nuxt] instance unavailable, 
+        // поэтому делаем ретрай только на клиенте
+        if (retry && !import.meta.server) {
           setTimeout(() => this.fetchPricing(false), 1500)
           return
         }

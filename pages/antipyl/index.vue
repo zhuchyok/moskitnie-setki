@@ -200,22 +200,22 @@ const faqItems = computed(() => [
 
           <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
             <div class="relative z-10">
-              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Преимущества Poll-Tex</h2>
+              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки Антипыль?</h2>
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left group">
                   <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Чистота</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Блокирует до 90% пыльцы березы, злаковых и других аллергенов.</p>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Микро-ячейка</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Размер ячейки в 2 раза меньше стандартной — задерживает даже мелкую цветочную пыльцу.</p>
                 </div>
                 <div class="text-center md:text-left group">
                   <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Легкий уход</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Достаточно просто промыть сетку под душем, чтобы смыть накопившуюся пыль.</p>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Чистый воздух</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Идеальное решение для аллергиков и жителей домов рядом с оживленными дорогами.</p>
                 </div>
                 <div class="text-center md:text-left group">
                   <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">03</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Защита</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Помогает задержать тополиный пух и уличную копоть от дорог в {{ tenant.config.city }}.</p>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Легкий уход</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Полотно легко промывается обычной водой, быстро восстанавливая пропускную способность.</p>
                 </div>
               </div>
             </div>

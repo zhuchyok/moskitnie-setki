@@ -200,22 +200,22 @@ const faqItems = computed(() => [
 
           <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
             <div class="relative z-10">
-              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Преимущества Антикошки</h2>
+              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки Антикошка?</h2>
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left group">
                   <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Универсальность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Устанавливаются в любые проемы в {{ tenant.config.city }}: на балконах, лоджиях, в оконных рамах.</p>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Полотно Pet Screen</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Многослойная нить с ПВХ-покрытием, которую невозможно порвать когтями или клювом.</p>
                 </div>
                 <div class="text-center md:text-left group">
                   <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Надежность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Домашний питомец не сможет ее открыть, разорвать или прогнуть под собственным весом.</p>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Стальной крепеж</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Используем только металлические Z-отливы, которые надежно фиксируют раму в проеме.</p>
                 </div>
                 <div class="text-center md:text-left group">
                   <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">03</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Долговечность</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Металлические крепления устойчивы к ультрафиолету и служат долгие годы.</p>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Безопасность 24/7</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Вы можете оставлять окна открытыми, не опасаясь за жизнь и здоровье вашего питомца.</p>
                 </div>
               </div>
             </div>

@@ -200,21 +200,22 @@ const faqItems = computed(() => [
 
           <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
             <div class="relative z-10">
-              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Плюсы Антимошки</h2>
-              <div class="grid md:grid-cols-2 gap-12">
-                <div class="flex gap-6 group">
-                  <div class="text-6xl font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
-                  <div>
-                    <h3 class="font-black text-xl mb-2 uppercase tracking-tighter text-white">Защита</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Предотвращает проникновение мошек, жуков, защищает от листьев и грязи с дорог.</p>
-                  </div>
+              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки Антимошка?</h2>
+              <div class="grid md:grid-cols-3 gap-12">
+                <div class="text-center md:text-left group">
+                  <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Защита от гнуса</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed group-hover:text-white/80 transition-colors">Плотное плетение не пропускает даже самых мелких насекомых и тополиный пух.</p>
                 </div>
-                <div class="flex gap-6 group">
-                  <div class="text-6xl font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>
-                  <div>
-                    <h3 class="font-black text-xl mb-2 uppercase tracking-tighter text-white">Комфорт</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Легко очищается, сдерживает солнечные лучи, обеспечивая фильтрацию света.</p>
-                  </div>
+                <div class="text-center md:text-left group">
+                  <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Максимальный обзор</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Несмотря на плотность, сетка остается практически прозрачной для взгляда.</p>
+                </div>
+                <div class="text-center md:text-left group">
+                  <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">03</div>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Прочность</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Устойчива к УФ-лучам и перепадам температур, не провисает со временем.</p>
                 </div>
               </div>
             </div>

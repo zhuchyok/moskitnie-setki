@@ -47,12 +47,17 @@ export const usePricingStore = defineStore('pricing', {
       // На клиенте apiBase пустой, поэтому путь должен быть /api/v1/...
       const fetchPath = (apiBase && apiBase.startsWith('http')) ? 'v1/pricing' : '/api/v1/pricing'
       
-      const finalUrl = apiBase.startsWith('http') 
+      let finalUrl = apiBase.startsWith('http') 
         ? `${apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase}/${fetchPath.startsWith('/') ? fetchPath.slice(1) : fetchPath}`
         : fetchPath
 
+      if (import.meta.server && !finalUrl.startsWith('http')) {
+        // Фолбек для SSR
+        finalUrl = `http://setki21-api-new:8080/api/v1/pricing`
+      }
+
       if (import.meta.server) {
-        // console.error(`[SSR_PRICING] Fetching from ${finalUrl}`)
+        console.error(`[SSR_PRICING] Fetching from ${finalUrl}`)
       }
 
       const response = await ($fetch as any)(finalUrl, {

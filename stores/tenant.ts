@@ -90,45 +90,43 @@ export const useTenantStore = defineStore('tenant', () => {
       }
 
       // Используем полный URL для SSR всегда.
-      const ssrBaseUrl = runtimeConfig.public.apiBase // http://api:8080/api
+      const ssrBaseUrl = runtimeConfig.public.apiBase || 'http://setki21-api-new:8080/api'
       const cleanSsrBaseUrl = ssrBaseUrl.endsWith('/') ? ssrBaseUrl.slice(0, -1) : ssrBaseUrl
       
-      const finalFetchPath = import.meta.server 
+      // Если на сервере ssrBaseUrl не начинается с http, значит переменная не задана корректно
+      const isAbsolute = cleanSsrBaseUrl.startsWith('http')
+      
+      const finalFetchPath = (import.meta.server && isAbsolute)
         ? `${cleanSsrBaseUrl}/v1/tenant/config` 
         : '/api/v1/tenant/config'
       
       if (import.meta.server) {
-        // console.log(`[SSR] Fetching config from "${finalFetchPath}" with Host: ${headers['host'] || 'none'}`)
+        console.error(`[SSR_DEBUG] apiBase: "${ssrBaseUrl}", finalPath: "${finalFetchPath}"`)
       }
 
       // ВАЖНО: На SSR используем нативный fetch или $fetch с полным URL, 
       // чтобы избежать резолвинга Nuxt как внутреннего роута.
       let data: any = null
       if (import.meta.server) {
-        // Проверяем, является ли путь абсолютным URL
         let fetchUrl = finalFetchPath
         if (!fetchUrl.startsWith('http')) {
-          fetchUrl = `${cleanSsrBaseUrl}/v1/tenant/config`
+          // Фолбек если что-то пошло не так с конфигом
+          fetchUrl = `http://setki21-api-new:8080/api/v1/tenant/config`
         }
           
-        const url = new URL(fetchUrl)
-        if (queryParams.dealer_id) url.searchParams.set('dealer_id', queryParams.dealer_id as string)
-        
-        // Очищаем заголовки для нативного fetch
-        const cleanHeaders: Record<string, string> = {}
-        // Принудительно очищаем Host от лишних пробелов и символов
-        if (headers['host']) cleanHeaders['host'] = headers['host'].trim()
-        if (headers['x-forwarded-host']) cleanHeaders['x-forwarded-host'] = headers['x-forwarded-host'].trim()
-        if (headers['x-forwarded-proto']) cleanHeaders['x-forwarded-proto'] = headers['x-forwarded-proto'].trim()
-        
-        // Добавляем User-Agent, чтобы бэкенд не блокировал запрос
-        cleanHeaders['user-agent'] = 'Mozilla/5.0 (Nuxt SSR)'
-        
-        // ВАЖНО: Принудительно выводим в stdout через console.error, так как Nuxt может перехватывать console.log
-        console.error(`[SSR_DEBUG] FETCHING: ${url.toString()} with host: ${cleanHeaders['host']}`)
-        
         try {
-          const response = await fetch(url.toString(), {
+          const urlObj = new URL(fetchUrl)
+          if (queryParams.dealer_id) urlObj.searchParams.set('dealer_id', queryParams.dealer_id as string)
+          
+          const cleanHeaders: Record<string, string> = {}
+          if (headers['host']) cleanHeaders['host'] = headers['host'].trim()
+          if (headers['x-forwarded-host']) cleanHeaders['x-forwarded-host'] = headers['x-forwarded-host'].trim()
+          if (headers['x-forwarded-proto']) cleanHeaders['x-forwarded-proto'] = headers['x-forwarded-proto'].trim()
+          cleanHeaders['user-agent'] = 'Mozilla/5.0 (Nuxt SSR)'
+          
+          console.error(`[SSR_DEBUG] FETCHING: ${urlObj.toString()} with host: ${cleanHeaders['host']}`)
+          
+          const response = await fetch(urlObj.toString(), {
             headers: cleanHeaders
           })
           // console.error(`[SSR_DEBUG] RESPONSE: ${response.status}`)

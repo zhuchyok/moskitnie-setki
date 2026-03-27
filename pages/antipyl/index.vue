@@ -203,8 +203,8 @@ const faqItems = computed(() => [
               <div class="grid md:grid-cols-3 gap-12">
                 <div class="text-center md:text-left group">
                   <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
-                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Микро-ячейка</h3>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Размер ячейки в 2 раза меньше стандартной — задерживает даже мелкую цветочную пыльцу.</p>
+                  <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Электростатический фильтр</h3>
+                  <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Ворсистое нейлоновое полотно Poll-Tex притягивает и удерживает пыльцу и пыль за счёт электростатики — блокирует до 97% частиц.</p>
                 </div>
                 <div class="text-center md:text-left group">
                   <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>

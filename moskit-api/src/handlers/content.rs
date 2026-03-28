@@ -318,7 +318,7 @@ pub async fn get_tenant_favicon(
                     if let Ok(cached) = std::fs::read(&cache_path) {
                         return axum::response::Response::builder()
                             .header("Content-Type", "image/png")
-                            .header("Cache-Control", "public, max-age=604800")
+                            .header("Cache-Control", "no-cache, must-revalidate")
                             .body(axum::body::Body::from(cached))
                             .unwrap();
                     }
@@ -332,7 +332,7 @@ pub async fn get_tenant_favicon(
 
                         return axum::response::Response::builder()
                             .header("Content-Type", "image/png")
-                            .header("Cache-Control", "public, max-age=604800")
+                            .header("Cache-Control", "no-cache, must-revalidate")
                             .body(axum::body::Body::from(png_bytes))
                             .unwrap();
                     }
@@ -341,7 +341,7 @@ pub async fn get_tenant_favicon(
                         else { "image/x-icon" };
                     return axum::response::Response::builder()
                         .header("Content-Type", mime)
-                        .header("Cache-Control", "public, max-age=86400")
+                        .header("Cache-Control", "no-cache, must-revalidate")
                         .body(axum::body::Body::from(data))
                         .unwrap();
                 }

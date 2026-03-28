@@ -54,7 +54,7 @@ pub async fn calculate(
         MarginConfig::default()
     };
 
-    let pricing_service = PricingService::new(global_pricing, margin_config);
+    let pricing_service = PricingService::new(global_pricing.clone(), margin_config);
 
     let mesh_type = match payload.mesh_type.as_str() {
         "antimoshka" => MeshType::Antimoshka,

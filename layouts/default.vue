@@ -117,10 +117,10 @@ useHead({
     { type: 'application/ld+json', children: JSON.stringify(breadcrumbSchema.value) }
   ]),
     link: computed(() => {
-    const rawUrl = tenant.config.branding?.favicon_url || '/favicon.ico'
+    const rawUrl = tenant.config.branding?.favicon_url || '/api/v1/tenant/favicon'
     const origin = requestURL?.origin || (typeof window !== 'undefined' ? window.location.origin : '')
     const logoUrl = rawUrl.startsWith('http') ? rawUrl : (origin ? origin.replace(/\/$/, '') + rawUrl : rawUrl)
-    const isPng = logoUrl.toLowerCase().endsWith('.png') || logoUrl.includes('/favicon.ico')
+    const isPng = logoUrl.toLowerCase().endsWith('.png') || logoUrl.includes('/favicon') || logoUrl.includes('/api/')
     const isSvg = logoUrl.toLowerCase().endsWith('.svg')
     const v = tenant.config.dealer_id || 'default'
     const hostSlug = typeof window !== 'undefined' ? window.location.hostname.replace(/\./g, '_') : (requestURL?.host || '').replace(/\./g, '_')

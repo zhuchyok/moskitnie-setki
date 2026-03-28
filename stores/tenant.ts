@@ -178,7 +178,7 @@ export const useTenantStore = defineStore('tenant', () => {
         } else if (data.branding?.favicon_url) {
           config.value.branding.favicon_url = data.branding.favicon_url
         } else {
-          config.value.branding.favicon_url = ''
+          config.value.branding.favicon_url = '/api/v1/tenant/favicon'
         }
         isLoaded.value = true
 

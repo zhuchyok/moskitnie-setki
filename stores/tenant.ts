@@ -172,16 +172,13 @@ export const useTenantStore = defineStore('tenant', () => {
         if (data.branding?.logo_url && data.branding.logo_url.startsWith('/')) {
           config.value.branding.logo_url = baseClean + data.branding.logo_url
         }
-        // Фавикон: favicon_url из конфига или автогенерируем из logo_url
+        // Фавикон: favicon_url из конфига; если не задан — null (Nuxt использует /favicon.ico через API)
         if (data.branding?.favicon_url && data.branding.favicon_url.startsWith('/')) {
           config.value.branding.favicon_url = baseClean + data.branding.favicon_url
         } else if (data.branding?.favicon_url) {
           config.value.branding.favicon_url = data.branding.favicon_url
-        } else if (data.branding?.logo_url) {
-          // favicon_url не задан — автоматически используем logo_url как фавикон
-          config.value.branding.favicon_url = data.branding.logo_url.startsWith('/')
-            ? baseClean + data.branding.logo_url
-            : data.branding.logo_url
+        } else {
+          config.value.branding.favicon_url = ''
         }
         isLoaded.value = true
 

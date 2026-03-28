@@ -117,7 +117,7 @@ useHead({
     { type: 'application/ld+json', children: JSON.stringify(breadcrumbSchema.value) }
   ]),
     link: computed(() => {
-    const rawUrl = tenant.config.branding?.favicon_url || tenant.config.branding?.logo_url || '/favicon.ico'
+    const rawUrl = tenant.config.branding?.favicon_url || '/favicon.ico'
     const origin = requestURL?.origin || (typeof window !== 'undefined' ? window.location.origin : '')
     const logoUrl = rawUrl.startsWith('http') ? rawUrl : (origin ? origin.replace(/\/$/, '') + rawUrl : rawUrl)
     const isPng = logoUrl.toLowerCase().endsWith('.png')

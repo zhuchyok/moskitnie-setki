@@ -64,7 +64,7 @@ onMounted(() => {
 const pageTitle = computed(() => tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21')
 const pageDescription = computed(() => tenantConfig.value?.seo?.description || 'Производство и установка москитных сеток. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!')
 const ogImage = computed(() => tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
-const faviconUrl = computed(() => tenantConfig.value?.branding?.favicon_url || tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico'))
+const faviconUrl = computed(() => tenantConfig.value?.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/favicon.ico` : '/favicon.ico'))
 const yandexVerification = computed(() => tenantConfig.value?.seo?.verification_tag)
 const analyticsCode = computed(() => tenantConfig.value?.seo?.analytics_code)
 

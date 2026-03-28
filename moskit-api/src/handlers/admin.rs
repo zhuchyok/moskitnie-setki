@@ -434,6 +434,33 @@ pub async fn update_dealer(
         bad_request(&e.to_string())
     })?;
 
+    // Авто-синхронизация contacts.branches → dealer_branches
+    // Ветки из JSON контактов вставляются/обновляются в таблицу, чтобы
+    // FK constraint orders_branch_id_fkey не падал при создании заказов
+    if let Some(branches) = &updated.contacts.branches {
+        for branch in branches {
+            if let Ok(branch_uuid) = uuid::Uuid::parse_str(&branch.id) {
+                let city = branch.address.split_whitespace().next().unwrap_or("").to_string();
+                let name = if branch.name.trim().is_empty() { city.clone() } else { branch.name.clone() };
+                let _ = sqlx::query(
+                    r#"INSERT INTO dealer_branches (id, dealer_id, name, city, is_active)
+                       VALUES ($1, $2, $3, $4, true)
+                       ON CONFLICT (id) DO UPDATE SET
+                         name = EXCLUDED.name,
+                         city = EXCLUDED.city,
+                         updated_at = NOW()"#
+                )
+                .bind(branch_uuid)
+                .bind(dealer_id)
+                .bind(name)
+                .bind(city)
+                .execute(&state.pool)
+                .await;
+            }
+        }
+        tracing::info!(dealer_id = %dealer_id, count = branches.len(), "Synced contacts.branches → dealer_branches");
+    }
+
     ok(DealerResponse {
         id: updated.id.to_string(),
         parent_id: updated.parent_id,

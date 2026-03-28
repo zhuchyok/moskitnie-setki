@@ -81,8 +81,8 @@ useHead({
   ],
   link: [
     { rel: 'canonical', href: canonicalUrl },
-    { rel: 'icon', type: 'image/x-icon', href: faviconUrl },
-    { rel: 'shortcut icon', type: 'image/x-icon', href: faviconUrl },
+    { rel: 'icon', type: 'image/png', href: faviconUrl },
+    { rel: 'shortcut icon', type: 'image/png', href: faviconUrl },
     { rel: 'apple-touch-icon', href: faviconUrl }
   ],
 })

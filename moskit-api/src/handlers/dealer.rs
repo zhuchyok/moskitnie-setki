@@ -264,7 +264,9 @@ pub async fn create_order(
         items,
     );
 
-    order.branch_id = payload.branch_id;
+    // Используем branch_id только если филиал реально существует в dealer_branches
+    // иначе FK constraint "orders_branch_id_fkey" отклонит вставку
+    order.branch_id = branch.as_ref().map(|b| b.id);
     order.dealer_cost = total_dealer_cost;
     order.dealer_profit = total_selling_price - total_dealer_cost;
     order.dealer_price_total = total_dealer_cost;

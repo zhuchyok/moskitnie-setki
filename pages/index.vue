@@ -176,13 +176,13 @@ const faqMain = computed(() => [
         <div class="flex flex-col lg:flex-row gap-12 items-stretch mb-8 min-h-[440px]">
           <div class="lg:w-1/2 flex flex-col justify-center min-h-[440px]">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
-              Москитная <span class="text-brand-blue" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">сетка на окна</span> — за 1 день
+              Москитная <span class="text-brand-blue" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">сетка на окна</span> — от производителя
             </h1>
             <div style="display:none" data-ai-summary>
-              {{ tenant.config.dealer_name || 'Сетки 21' }}: Собственное производство и установка москитных сеток в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Опыт работы более 13 лет. Рамочные сетки Fiberglass от 850 руб, изготовление за 1 день. Профессиональный замер и монтаж. Типы: стандарт, Антимошка, Ультравью, Антикошка, Антипыль, вставные VSN.
+              {{ tenant.config.dealer_name || 'Сетки 21' }}: Собственное производство и установка москитных сеток в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Опыт работы более 13 лет. Рамочные сетки Fiberglass от 850 руб. Срок изготовления 4–5 рабочих дней. Профессиональный замер и монтаж. Типы: стандарт, Антимошка, Ультравью, Антикошка, Антипыль, вставные VSN.
             </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
-              {{ tenant.config.seo?.content?.main || `Собственное производство москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от 850 ₽. Работаем для вас более 13 лет. Изготовим на окна по индивидуальным размерам за 1 день от компании ${tenant.config.dealer_name || 'Сетки 21'}. Профессиональный замер и монтаж на любые типы окон.` }}
+              {{ tenant.config.seo?.content?.main || `Собственное производство москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от 850 ₽. Работаем для вас более 13 лет. Изготовим на окна по индивидуальным размерам — срок 4–5 рабочих дней (в высокий сезон возможно дольше). Профессиональный замер и монтаж на любые типы окон от компании ${tenant.config.dealer_name || 'Сетки 21'}.` }}
             </p>
             <div class="grid grid-cols-2 gap-4">
               <div class="p-6 rounded-2xl border transition-colors"

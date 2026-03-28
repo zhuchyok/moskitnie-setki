@@ -296,8 +296,40 @@ pub async fn get_tenant_favicon(
         if let Some(logo_url) = source_url {
             if logo_url.starts_with("/uploads") {
                 let file_path = format!(".{}", logo_url);
+
+                // Кэш: ./uploads/cache/favicon_<hash>.png
+                let cache_key = format!("{:x}", md5_hash(&logo_url));
+                let cache_dir = std::path::Path::new("./uploads/cache");
+                let cache_path = cache_dir.join(format!("favicon_{}.png", cache_key));
+
+                // Если кэш свежее исходника — отдаём из кэша
+                let use_cache = if cache_path.exists() {
+                    let source_mtime = std::fs::metadata(&file_path).and_then(|m| m.modified()).ok();
+                    let cache_mtime = std::fs::metadata(&cache_path).and_then(|m| m.modified()).ok();
+                    match (source_mtime, cache_mtime) {
+                        (Some(s), Some(c)) => c >= s,
+                        _ => true,
+                    }
+                } else {
+                    false
+                };
+
+                if use_cache {
+                    if let Ok(cached) = std::fs::read(&cache_path) {
+                        return axum::response::Response::builder()
+                            .header("Content-Type", "image/png")
+                            .header("Cache-Control", "public, max-age=604800")
+                            .body(axum::body::Body::from(cached))
+                            .unwrap();
+                    }
+                }
+
                 if let Ok(data) = std::fs::read(&file_path) {
                     if let Ok(png_bytes) = resize_to_favicon(&data) {
+                        // Сохраняем в кэш
+                        let _ = std::fs::create_dir_all(cache_dir);
+                        let _ = std::fs::write(&cache_path, &png_bytes);
+
                         return axum::response::Response::builder()
                             .header("Content-Type", "image/png")
                             .header("Cache-Control", "public, max-age=604800")
@@ -319,6 +351,14 @@ pub async fn get_tenant_favicon(
     }
 
     Redirect::temporary("/favicon.ico").into_response()
+}
+
+fn md5_hash(s: &str) -> u64 {
+    use std::hash::{Hash, Hasher};
+    use std::collections::hash_map::DefaultHasher;
+    let mut h = DefaultHasher::new();
+    s.hash(&mut h);
+    h.finish()
 }
 
 fn resize_to_favicon(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {

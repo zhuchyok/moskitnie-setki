@@ -108,7 +108,12 @@ impl PricingService {
         let impost_length_m = impost_length_m.max(Decimal::ZERO);
         let impost_cost = impost_length_m * impost_price * dec!(1.15);
 
-        fixed_total + profile_cost + cord_cost + impost_cost + mesh_cost
+        let raw_cost = fixed_total + profile_cost + cord_cost + impost_cost + mesh_cost;
+
+        // Комиссия банка за оплату картой закладывается в себестоимость:
+        // делим на (1 - cardPercent), чтобы после удержания получить нужную сумму
+        let card_percent = dec!(0.025);
+        raw_cost / (Decimal::ONE - card_percent)
     }
 
     fn get_fixed_total(&self, color_id: u8, mesh_type: &MeshType, frame_type: &FrameType) -> Decimal {

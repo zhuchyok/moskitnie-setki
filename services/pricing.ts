@@ -44,16 +44,6 @@ export function getConfig(pricing?: GlobalPricing, marginConfig?: MarginConfig) 
     ? (pricing.markup.dealer * dealerBaseMarkupFactor * cityMult * branchMult)
     : pricing.markup.client
 
-  if (import.meta.server) {
-    console.error('--- PRICING DEBUG (SSR) ---')
-    console.error('marginConfig:', JSON.stringify(marginConfig))
-    console.error('dealerBaseMarkupFactor:', dealerBaseMarkupFactor)
-    console.error('cityMult:', cityMult)
-    console.error('branchMult:', branchMult)
-    console.error('pricing.markup.dealer:', pricing.markup.dealer)
-    console.error('finalClientFactor:', finalClientFactor)
-    console.error('---------------------------')
-  }
 
   return {
     ...PRICING_CONFIG,
@@ -283,7 +273,11 @@ export function computeCost(widthMm: number, heightMm: number, colorId: ColorId,
   const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
   const impostCost = impostLengthM * getImpostPerMeter(colorId, pricing, marginConfig) * v.marginProfile
 
-  return fixedTotal + profileCost + cordCost + impostCost + meshCost
+  const rawCost = fixedTotal + profileCost + cordCost + impostCost + meshCost
+  // Закладываем комиссию банка за оплату картой в себестоимость:
+  // делим на (1 - cardPercent), чтобы после удержания комиссии получить нужную сумму
+  const cardPercent = config.fees?.cardPercent ?? 0.025
+  return rawCost / (1 - cardPercent)
 }
 
 /**
@@ -309,7 +303,9 @@ export function computeCostVstavnaya(widthMm: number, heightMm: number, colorId:
   const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
   const impostCost = impostLengthM * getImpostPerMeter(colorId, pricing, marginConfig) * v.marginProfile
 
-  return fixedTotal + profileCost + cordCost + impostCost + meshCost
+  const rawCost = fixedTotal + profileCost + cordCost + impostCost + meshCost
+  const cardPercent = config.fees?.cardPercent ?? 0.025
+  return rawCost / (1 - cardPercent)
 }
 
 /** Округление до шага (50 или 10) */

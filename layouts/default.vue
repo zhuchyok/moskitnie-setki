@@ -122,7 +122,9 @@ useHead({
     const logoUrl = rawUrl.startsWith('http') ? rawUrl : (origin ? origin.replace(/\/$/, '') + rawUrl : rawUrl)
     const isPng = logoUrl.toLowerCase().endsWith('.png') || logoUrl.includes('/favicon') || logoUrl.includes('/api/')
     const isSvg = logoUrl.toLowerCase().endsWith('.svg')
-    const v = tenant.config.dealer_id || 'default'
+    const logoPath = tenant.config.branding?.logo_url || ''
+    const logoHash = logoPath ? (logoPath.split('/').pop()?.replace(/\.[^.]+$/, '').substring(0, 8) || '') : ''
+    const v = (tenant.config.dealer_id || 'default') + (logoHash ? '_' + logoHash : '')
     const hostSlug = typeof window !== 'undefined' ? window.location.hostname.replace(/\./g, '_') : (requestURL?.host || '').replace(/\./g, '_')
     const q = logoUrl.includes('?') ? `&v=${v}&h=${hostSlug}` : `?v=${v}&h=${hostSlug}`
     const href = logoUrl + q

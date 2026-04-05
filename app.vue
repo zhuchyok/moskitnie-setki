@@ -64,7 +64,15 @@ onMounted(() => {
 const pageTitle = computed(() => tenantConfig.value?.seo?.title || 'Москитные сетки в Чебоксарах и Новочебоксарске — Сетки 21')
 const pageDescription = computed(() => tenantConfig.value?.seo?.description || 'Производство и установка москитных сеток. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!')
 const ogImage = computed(() => tenantConfig.value?.branding?.logo_url || (siteOrigin ? `${siteOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
-const faviconUrl = computed(() => tenantConfig.value?.branding?.favicon_url || (siteOrigin ? `${siteOrigin}/api/v1/tenant/favicon` : '/api/v1/tenant/favicon'))
+const faviconUrl = computed(() => {
+  if (tenantConfig.value?.branding?.favicon_url) {
+    return tenantConfig.value.branding.favicon_url
+  }
+  const base = siteOrigin ? `${siteOrigin}/api/v1/tenant/favicon` : '/api/v1/tenant/favicon'
+  const logoUrl = tenantConfig.value?.branding?.logo_url
+  const version = logoUrl ? logoUrl.split('/').pop()?.replace(/\.[^.]+$/, '').substring(0, 8) : 'v1'
+  return `${base}?v=${version}`
+})
 const yandexVerification = computed(() => tenantConfig.value?.seo?.verification_tag)
 const analyticsCode = computed(() => tenantConfig.value?.seo?.analytics_code)
 

@@ -379,7 +379,17 @@ fn resize_to_favicon(data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>>
     use image::ImageFormat;
 
     let img = image::load_from_memory(data)?;
-    let resized = img.resize(32, 32, FilterType::Lanczos3);
+    // Обрезаем по центру до квадрата, затем ресайзим до 32x32
+    let (w, h) = (img.width(), img.height());
+    let square = if w != h {
+        let side = w.min(h);
+        let x = (w - side) / 2;
+        let y = (h - side) / 2;
+        img.crop_imm(x, y, side, side)
+    } else {
+        img
+    };
+    let resized = square.resize_exact(32, 32, FilterType::Lanczos3);
     let mut out = std::io::Cursor::new(Vec::new());
     resized.write_to(&mut out, ImageFormat::Png)?;
     Ok(out.into_inner())

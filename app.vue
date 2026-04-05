@@ -80,7 +80,7 @@ useHead({
     { name: 'robots', content: 'index, follow' },
   ],
   link: [
-    { rel: 'canonical', href: canonicalUrl },
+    { rel: 'canonical', href: canonicalUrl, key: 'canonical' },
     { rel: 'icon', type: 'image/png', href: faviconUrl },
     { rel: 'shortcut icon', type: 'image/png', href: faviconUrl },
     { rel: 'apple-touch-icon', href: faviconUrl }

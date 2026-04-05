@@ -78,6 +78,9 @@ useSeoMeta({
 })
 
 useHead({
+  link: [
+    { rel: 'canonical', href: url, key: 'canonical' }
+  ],
   script: [
     { type: 'application/ld+json', children: computed(() => JSON.stringify(serviceSchema.value)) },
     { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) }

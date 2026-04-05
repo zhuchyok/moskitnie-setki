@@ -56,6 +56,9 @@ useHead({
     { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: description },
   ],
+  link: [
+    { rel: 'canonical', href: url, key: 'canonical' }
+  ],
   script: [{ type: 'application/ld+json', children: computed(() => JSON.stringify(serviceSchema.value)) }],
 })
 

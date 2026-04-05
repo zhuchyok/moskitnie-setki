@@ -32,6 +32,9 @@ useHead({
     { property: 'og:description', content: description.value },
     { property: 'og:url', content: url.value },
   ],
+  link: [
+    { rel: 'canonical', href: url.value, key: 'canonical' }
+  ],
   script: [
     {
       type: 'application/ld+json',

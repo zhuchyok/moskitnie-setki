@@ -45,9 +45,6 @@ useHead({
     { name: 'twitter:title', content: title },
     { name: 'twitter:description', content: description },
     { name: 'robots', content: 'noindex, nofollow' },
-  ],
-  link: [
-    { rel: 'canonical', href: url }
   ]
 })
 

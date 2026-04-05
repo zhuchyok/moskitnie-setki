@@ -147,7 +147,8 @@ const galleryImages = [
 
 useHead({
   link: [
-    { rel: 'preload', href: '/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp', as: 'image', type: 'image/webp' }
+    { rel: 'preload', href: '/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp', as: 'image', type: 'image/webp' },
+    { rel: 'canonical', href: url, key: 'canonical' }
   ],
   script: [
     { type: 'application/ld+json', children: computed(() => JSON.stringify(websiteSchema.value)) },

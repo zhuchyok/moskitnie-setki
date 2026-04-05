@@ -10,6 +10,8 @@ Allow: /upload/
 Allow: /images/optimized/
 Disallow: /admin/
 Disallow: /api/
+Disallow: /cabinet/
+Disallow: /dealer/
 Sitemap: ${origin}/sitemap.xml
 Sitemap: ${origin}/sitemap-images.xml
 Host: ${host}

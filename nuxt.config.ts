@@ -69,7 +69,12 @@ export default defineNuxtConfig({
     prerender: {
       routes: ['/admin'],
       failOnError: false
-    }
+    },
+    compressPublicAssets: {
+      gzip: true,
+      brotli: true
+    },
+    minify: true
   },
   routeRules: {
     // Динамические роуты для SEO (server/routes)

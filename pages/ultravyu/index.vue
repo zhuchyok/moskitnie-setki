@@ -125,14 +125,15 @@ const faqItems = computed(() => [
             </div>
           </div>
           <div class="lg:w-1/2 relative flex items-center justify-end">
-            <div class="relative w-full max-w-[640px]">
+            <div class="relative w-full max-w-[640px] aspect-[640/400]">
               <HeroImage
                 src="/images/hero-zamer-common.png"
                 :alt="`Как замерить москитную сетку Ультравью на пластиковом окне в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}`"
                 class="rounded-[3rem] shadow-2xl border-4 border-white w-full h-auto"
                 :width="640"
                 :height="400"
-                loading="lazy"
+                loading="eager"
+                fetchpriority="high"
               />
               
               <!-- Текст поверх картинки -->

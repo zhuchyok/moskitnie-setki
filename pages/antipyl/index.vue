@@ -105,7 +105,7 @@ const faqItems = computed(() => [
     <section class="pt-10 pb-4 bg-white">
       <div class="container mx-auto px-4">
         <div class="flex flex-col lg:flex-row gap-12 items-stretch mb-8 min-h-[440px]">
-          <div class="lg:w-1/2 flex flex-col justify-center min-h-[440px]">
+          <div class="lg:w-1/2 flex flex-col justify-start pt-4 min-h-[440px]">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
               Сетка <span class="text-brand-blue" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антипыль</span> — задерживает 97% пыльцы
             </h1>
@@ -136,8 +136,8 @@ const faqItems = computed(() => [
               </div>
             </div>
           </div>
-          <div class="lg:w-1/2 relative flex items-center justify-end">
-            <div class="relative w-full max-w-[640px] aspect-[640/400]">
+          <div class="lg:w-1/2 relative flex items-start pt-4 justify-end">
+            <div class="relative w-full max-w-[640px]">
               <HeroImage
                 src="/images/hero-zamer-common.png"
                 :alt="`Как замерить москитную сетку Антипыль Poll-Tex на пластиковом окне в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}`"

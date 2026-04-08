@@ -471,6 +471,7 @@ const submitOrder = async () => {
 
   const branch = tenant.config.contacts?.branches?.find(b => b.id === store.delivery || b.name === store.delivery)
   const branchId = branch?.id || tenant.config.branch_id || undefined
+  const deliveryOption = deliveries.value.find(d => d.id === store.delivery)
 
     const orderData = {
       formName: form.name.trim(),
@@ -483,7 +484,7 @@ const submitOrder = async () => {
         return `${i.frameTypeName ? i.frameTypeName + ': ' : ''}${i.typeName} (${i.width}x${i.height}, ${i.color})${methodStr} - ${i.count}шт`;
       }).join('<br>'),
       total_price_value: store.totalPrice,
-      total_order_value: store.allItemsWithInstallation ? 'Монтаж' : store.delivery,
+      total_order_value: store.allItemsWithInstallation ? 'Монтаж' : (deliveryOption?.name || store.delivery),
       measurement: store.measurementSelected,
       discount_type: store.discountType || undefined,
       dealer_id: tenant.config.dealer_id || undefined,

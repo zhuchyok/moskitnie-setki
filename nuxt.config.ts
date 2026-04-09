@@ -34,7 +34,6 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#2A6AB2' },
         { name: 'format-detection', content: 'telephone=no' },
         { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: 'Сетки 21' },
         { property: 'og:description', content: 'Производство и установка москитных сеток в Чебоксарах и Новочебоксарске. Замер за 1 день, цены от 850 ₽.' },
         { property: 'og:image', content: 'https://www.setki21.ru/images/logo_final_v58.png' },
         { property: 'og:locale', content: 'ru_RU' },

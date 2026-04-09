@@ -1,7 +1,11 @@
+import { domainToUnicode } from 'node:url'
+
 export default defineEventHandler((event) => {
-  const host = getHeader(event, 'host') || 'www.setki21.ru'
+  const rawHost = getHeader(event, 'host') || 'www.setki21.ru'
   const protocol = getHeader(event, 'x-forwarded-proto') || 'https'
-  const origin = `${protocol}://${host}`
+  const [hostname, port] = rawHost.split(':')
+  const unicodeHostname = domainToUnicode(hostname)
+  const origin = port ? `${protocol}://${unicodeHostname}:${port}` : `${protocol}://${unicodeHostname}`
 
   const robots = `User-agent: *
 Allow: /
@@ -14,7 +18,7 @@ Disallow: /cabinet/
 Disallow: /dealer/
 Sitemap: ${origin}/sitemap.xml
 Sitemap: ${origin}/sitemap-images.xml
-Host: ${host}
+Host: ${unicodeHostname}
 
 # AI Crawler Settings
 User-agent: GPTBot

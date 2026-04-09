@@ -111,6 +111,50 @@ const breadcrumbSchema = computed(() => ({
 }))
 // Фавикон: favicon_url || logo_url (аудит 2026-03-10); абсолютный URL при SSR от текущего origin
 const requestURL = useRequestURL()
+
+// Словарь город → ISO 3166-2 код региона России
+const CITY_REGION: Record<string, string> = {
+  'Чебоксары': 'RU-CU', 'Новочебоксарск': 'RU-CU', 'Алатырь': 'RU-CU',
+  'Москва': 'RU-MOW', 'Санкт-Петербург': 'RU-SPE', 'Новосибирск': 'RU-NSO',
+  'Екатеринбург': 'RU-SVE', 'Казань': 'RU-TAT', 'Нижний Новгород': 'RU-NIZ',
+  'Самара': 'RU-SAM', 'Уфа': 'RU-BA', 'Ростов-на-Дону': 'RU-ROS',
+  'Краснодар': 'RU-KDA', 'Пермь': 'RU-PER', 'Воронеж': 'RU-VOR',
+  'Волгоград': 'RU-VGG', 'Саратов': 'RU-SAR', 'Тюмень': 'RU-TYU',
+  'Тольятти': 'RU-SAM', 'Ижевск': 'RU-UD', 'Барнаул': 'RU-ALT',
+  'Ульяновск': 'RU-ULY', 'Иркутск': 'RU-IRK', 'Хабаровск': 'RU-KHA',
+  'Ярославль': 'RU-YAR', 'Владивосток': 'RU-PRI', 'Махачкала': 'RU-DA',
+  'Томск': 'RU-TOM', 'Оренбург': 'RU-ORE', 'Кемерово': 'RU-KEM',
+  'Рязань': 'RU-RYA', 'Тула': 'RU-TUL', 'Пенза': 'RU-PNZ',
+  'Липецк': 'RU-LIP', 'Киров': 'RU-KIR', 'Чита': 'RU-ZAB',
+  'Курск': 'RU-KRS', 'Улан-Удэ': 'RU-BU', 'Ставрополь': 'RU-STA',
+  'Белгород': 'RU-BEL', 'Астрахань': 'RU-AST', 'Брянск': 'RU-BRY',
+  'Тверь': 'RU-TVE', 'Магнитогорск': 'RU-CHE', 'Сочи': 'RU-KDA',
+  'Сургут': 'RU-KHM', 'Владимир': 'RU-VLA', 'Архангельск': 'RU-ARK',
+  'Калининград': 'RU-KGD', 'Смоленск': 'RU-SMO', 'Красноярск': 'RU-KYA',
+  'Омск': 'RU-OMS', 'Череповец': 'RU-VLG', 'Вологда': 'RU-VLG',
+}
+
+useSeoMeta({
+  ogSiteName: computed(() => tenant.config.dealer_name || 'Сетки 21'),
+})
+
+const geoCity = computed(() => tenant.config.city || 'Чебоксары')
+const geoRegion = computed(() => {
+  const city = geoCity.value
+  if (CITY_REGION[city]) return CITY_REGION[city]
+  for (const key of Object.keys(CITY_REGION)) {
+    if (city.includes(key) || key.includes(city)) return CITY_REGION[key]
+  }
+  return 'RU'
+})
+
+useHead({
+  meta: computed(() => [
+    { name: 'geo.placename', content: geoCity.value },
+    { name: 'geo.region', content: geoRegion.value },
+    { name: 'geo.country', content: 'RU' },
+  ])
+})
 useHead({
   script: computed(() => [
     { type: 'application/ld+json', children: JSON.stringify(breadcrumbSchema.value) }

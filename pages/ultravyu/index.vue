@@ -56,6 +56,8 @@ const faqSchema = computed(() => ({
   ]
 }))
 
+const localBusinessSchema = useLocalBusinessSchema(url)
+
 useSeoMeta({
   title,
   description,
@@ -76,7 +78,8 @@ useHead({
   ],
   script: [
     { type: 'application/ld+json', children: computed(() => JSON.stringify(productSchema.value)) },
-    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) }
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(localBusinessSchema.value)) },
   ]
 })
 

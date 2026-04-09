@@ -16,47 +16,47 @@ const url = computed(() => {
 })
 const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
-const productSchema = computed(() => ({
-  '@context': 'https://schema.org',
-  '@type': 'Product',
-  name: `Москитная сетка Антимошка в ${tenant.config.city || 'Чебоксарах'}`,
-  description: `Эффективная москитная сетка для защиты от комаров и мошек в ${tenant.config.city || 'Чебоксарах'}`,
-  image: image.value,
-  brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
-  offers: {
-    '@type': 'Offer',
-    url: url.value,
-    email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
-    priceCurrency: 'RUB',
-    price: '1000',
-    priceValidUntil: '2026-12-31',
-    availability: 'https://schema.org/InStock',
-    seller: {
-      '@type': 'LocalBusiness',
-      name: tenant.config.dealer_name || 'Сетки 21',
-      image: image.value,
-      telephone: tenant.config.phone || '+7 (8352) 38-14-20',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
-        addressLocality: tenant.config.city || 'Чебоксары',
-        addressCountry: 'RU'
-      },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        'ratingValue': '4.9',
-        'reviewCount': '154',
-        'bestRating': '5',
-        'worstRating': '1'
+const productSchema = computed(() => {
+  const rating = tenant.config.seo?.rating
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: `Москитная сетка Антимошка в ${tenant.config.city || 'Чебоксарах'}`,
+    description: `Эффективная москитная сетка для защиты от комаров и мошек в ${tenant.config.city || 'Чебоксарах'}`,
+    image: image.value,
+    brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
+    offers: {
+      '@type': 'Offer',
+      url: url.value,
+      email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
+      priceCurrency: 'RUB',
+      price: '1000',
+      priceValidUntil: '2026-12-31',
+      availability: 'https://schema.org/InStock',
+      seller: {
+        '@type': 'LocalBusiness',
+        name: tenant.config.dealer_name || 'Сетки 21',
+        telephone: tenant.config.phone || '+7 (8352) 38-14-20',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
+          addressLocality: tenant.config.city || 'Чебоксары',
+          addressCountry: 'RU'
+        },
       }
-    }
-  },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    'ratingValue': '4.9',
-    'reviewCount': '154'
+    },
   }
-}))
+  if (rating?.ratingValue && rating?.reviewCount) {
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(rating.ratingValue),
+      reviewCount: String(rating.reviewCount),
+      bestRating: '5',
+      worstRating: '1',
+    }
+  }
+  return schema
+})
 
 const faqSchema = computed(() => ({
   '@context': 'https://schema.org',
@@ -67,6 +67,8 @@ const faqSchema = computed(() => ({
     { '@type': 'Question', name: `Подойдёт ли Антимошка для балконной двери в ${tenant.config.city || 'Чебоксарах'}?`, acceptedAnswer: { '@type': 'Answer', text: `Да. Изготавливаем Антимошку любых размеров под створки окон и балконных дверей в ${tenant.config.city || 'Чебоксарах'}. Цена от 1000 ₽, металлический крепёж в комплекте.` } }
   ]
 }))
+
+const localBusinessSchema = useLocalBusinessSchema(url)
 
 useSeoMeta({
   title,
@@ -88,7 +90,8 @@ useHead({
   ],
   script: [
     { type: 'application/ld+json', children: computed(() => JSON.stringify(productSchema.value)) },
-    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) }
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(localBusinessSchema.value)) },
   ]
 })
 

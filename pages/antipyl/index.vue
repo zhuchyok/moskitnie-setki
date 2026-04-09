@@ -16,47 +16,47 @@ const url = computed(() => {
 })
 const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
-const productSchema = computed(() => ({
-  '@context': 'https://schema.org',
-  '@type': 'Product',
-  name: `Москитная сетка Антипыль в ${tenant.config.city || 'Чебоксарах'}`,
-  description: `Специальная сетка-фильтр для защиты от пыли и пыльцы в ${tenant.config.city || 'Чебоксарах'}`,
-  image: image.value,
-  brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
-  offers: {
-    '@type': 'Offer',
-    url: url.value,
-    email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
-    priceCurrency: 'RUB',
-    price: '1400',
-    priceValidUntil: '2026-12-31',
-    availability: 'https://schema.org/InStock',
-    seller: {
-      '@type': 'LocalBusiness',
-      name: tenant.config.dealer_name || 'Сетки 21',
-      image: image.value,
-      telephone: tenant.config.phone || '+7 (8352) 38-14-20',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
-        addressLocality: tenant.config.city || 'Чебоксары',
-        addressCountry: 'RU'
-      },
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        'ratingValue': '4.9',
-        'reviewCount': '154',
-        'bestRating': '5',
-        'worstRating': '1'
+const productSchema = computed(() => {
+  const rating = tenant.config.seo?.rating
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: `Москитная сетка Антипыль в ${tenant.config.city || 'Чебоксарах'}`,
+    description: `Специальная сетка-фильтр для защиты от пыли и пыльцы в ${tenant.config.city || 'Чебоксарах'}`,
+    image: image.value,
+    brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
+    offers: {
+      '@type': 'Offer',
+      url: url.value,
+      email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
+      priceCurrency: 'RUB',
+      price: '1400',
+      priceValidUntil: '2026-12-31',
+      availability: 'https://schema.org/InStock',
+      seller: {
+        '@type': 'LocalBusiness',
+        name: tenant.config.dealer_name || 'Сетки 21',
+        telephone: tenant.config.phone || '+7 (8352) 38-14-20',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
+          addressLocality: tenant.config.city || 'Чебоксары',
+          addressCountry: 'RU'
+        },
       }
-    }
-  },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    'ratingValue': '4.9',
-    'reviewCount': '154'
+    },
   }
-}))
+  if (rating?.ratingValue && rating?.reviewCount) {
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(rating.ratingValue),
+      reviewCount: String(rating.reviewCount),
+      bestRating: '5',
+      worstRating: '1',
+    }
+  }
+  return schema
+})
 
 const faqSchema = computed(() => ({
   '@context': 'https://schema.org',
@@ -67,6 +67,8 @@ const faqSchema = computed(() => ({
     { '@type': 'Question', name: `Чем Антипыль отличается от обычной москитной сетки в ${tenant.config.city || 'Чебоксарах'}?`, acceptedAnswer: { '@type': 'Answer', text: 'Обычная сетка задерживает насекомых и крупный мусор. Антипыль (Poll-Tex) дополнительно притягивает мелкую пыль и пыльцу за счёт электростатики — это фильтр для воздуха в окно.' } }
   ]
 }))
+
+const localBusinessSchema = useLocalBusinessSchema(url)
 
 useSeoMeta({
   title,
@@ -88,7 +90,8 @@ useHead({
   ],
   script: [
     { type: 'application/ld+json', children: computed(() => JSON.stringify(productSchema.value)) },
-    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) }
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(localBusinessSchema.value)) },
   ]
 })
 

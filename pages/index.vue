@@ -12,62 +12,82 @@ const unicodeOrigin = useUnicodeOrigin()
 const url = computed(() => unicodeOrigin ? `${unicodeOrigin}/` : 'https://www.setki21.ru/')
 const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
-const localBusinessSchema = computed(() => ({
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Organization',
-      '@id': `${url.value}#organization`,
-      name: tenant.config.dealer_name || 'Сетки 21',
-      url: url.value,
-      logo: image.value,
-      contactPoint: {
-        '@type': 'ContactPoint',
-        telephone: tenant.config.phone || '+7 (8352) 38-14-20',
-        contactType: 'customer service',
-        areaServed: [tenant.config.city || 'Чебоксары', 'Новочебоксарск'],
-        availableLanguage: 'Russian'
-      }
+const { geoCoords, geoRegionName } = useGeoData()
+
+const localBusinessSchema = computed(() => {
+  const rating = tenant.config.seo?.rating
+  const hours = tenant.config.contacts?.hours
+  const mapLinks: string[] = tenant.config.contacts?.map_links ?? []
+
+  const localBusiness: Record<string, unknown> = {
+    '@type': 'LocalBusiness',
+    '@id': `${url.value}#localbusiness`,
+    parentOrganization: { '@id': `${url.value}#organization` },
+    name: `${tenant.config.dealer_name || 'Сетки 21'} ${tenant.config.city || 'Чебоксары'}`,
+    image: image.value,
+    telephone: tenant.config.phone || '+7 (8352) 38-14-20',
+    email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
+    priceRange: 'RUB',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
+      addressLocality: tenant.config.city || 'Чебоксары',
+      addressRegion: geoRegionName.value || undefined,
+      addressCountry: 'RU'
     },
-    {
-      '@type': 'LocalBusiness',
-      '@id': `${url.value}#localbusiness`,
-      parentOrganization: { '@id': `${url.value}#organization` },
-      name: `${tenant.config.dealer_name || 'Сетки 21'} ${tenant.config.city || 'Чебоксары'}`,
-      image: image.value,
-      telephone: tenant.config.phone || '+7 (8352) 38-14-20',
-      email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
-      priceRange: 'RUB',
-      aggregateRating: {
-        '@type': 'AggregateRating',
-        'ratingValue': '4.9',
-        'reviewCount': '154',
-        'bestRating': '5',
-        'worstRating': '1'
-      },
-      openingHoursSpecification: [
-        {
-          '@type': 'OpeningHoursSpecification',
-          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-          opens: '10:00',
-          closes: '18:00'
-        }
-      ],
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
-        addressLocality: tenant.config.city || 'Чебоксары',
-        addressRegion: tenant.config.city?.includes('Чебоксар') ? 'Чувашия' : '',
-        addressCountry: 'RU'
-      },
-      geo: {
-        '@type': 'GeoCoordinates',
-        latitude: '56.1287',
-        longitude: '47.2087'
+    openingHoursSpecification: hours ?? [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        opens: '10:00',
+        closes: '18:00'
       }
+    ],
+  }
+
+  if (geoCoords.value) {
+    localBusiness.geo = {
+      '@type': 'GeoCoordinates',
+      latitude: geoCoords.value.lat,
+      longitude: geoCoords.value.lon,
     }
-  ]
-}))
+  }
+
+  if (rating?.ratingValue && rating?.reviewCount) {
+    localBusiness.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(rating.ratingValue),
+      reviewCount: String(rating.reviewCount),
+      bestRating: '5',
+      worstRating: '1',
+    }
+  }
+
+  if (mapLinks.length > 0) {
+    localBusiness.sameAs = mapLinks
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${url.value}#organization`,
+        name: tenant.config.dealer_name || 'Сетки 21',
+        url: url.value,
+        logo: image.value,
+        contactPoint: {
+          '@type': 'ContactPoint',
+          telephone: tenant.config.phone || '+7 (8352) 38-14-20',
+          contactType: 'customer service',
+          areaServed: tenant.config.city || 'Чебоксары',
+          availableLanguage: 'Russian'
+        }
+      },
+      localBusiness
+    ]
+  }
+})
 
 const websiteSchema = computed(() => ({
   '@context': 'https://schema.org',
@@ -79,27 +99,33 @@ const websiteSchema = computed(() => ({
   publisher: { '@id': `${url.value}#organization` }
 }))
 
-const productSchema = computed(() => ({
-  '@context': 'https://schema.org',
-  '@type': 'Product',
-  name: 'Рамочная москитная сетка',
-  description: `Рамочная москитная сетка Fiberglass на окна в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}. Металлический крепёж в комплекте, изготовление за 1 день.`,
-  image: 'https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp',
-  brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    'ratingValue': '4.9',
-    'reviewCount': '154'
-  },
-  offers: {
-    '@type': 'Offer',
-    url: url.value,
-    priceCurrency: 'RUB',
-    price: '850',
-    availability: 'https://schema.org/InStock',
-    seller: { '@id': `${url.value}#organization` }
+const productSchema = computed(() => {
+  const rating = tenant.config.seo?.rating
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'Рамочная москитная сетка',
+    description: `Рамочная москитная сетка Fiberglass на окна в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}. Металлический крепёж в комплекте, изготовление за 1 день.`,
+    image: 'https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp',
+    brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
+    offers: {
+      '@type': 'Offer',
+      url: url.value,
+      priceCurrency: 'RUB',
+      price: '850',
+      availability: 'https://schema.org/InStock',
+      seller: { '@id': `${url.value}#organization` }
+    }
   }
-}))
+  if (rating?.ratingValue && rating?.reviewCount) {
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(rating.ratingValue),
+      reviewCount: String(rating.reviewCount),
+    }
+  }
+  return schema
+})
 
 const faqSchema = computed(() => ({
   '@context': 'https://schema.org',

@@ -11,12 +11,9 @@ const url = computed(() => {
 })
 const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
-const serviceSchema = computed(() => ({
-  '@context': 'https://schema.org',
-  '@type': 'Service',
-  name: `Ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах'}`,
-  description: `Замена комплектующих и полотна москитных сеток в ${tenant.config.city || 'Чебоксарах'}`,
-  provider: {
+const serviceSchema = computed(() => {
+  const rating = tenant.config.seo?.rating
+  const provider: Record<string, unknown> = {
     '@type': 'LocalBusiness',
     name: tenant.config.dealer_name || 'Сетки 21',
     image: image.value,
@@ -28,30 +25,39 @@ const serviceSchema = computed(() => ({
       addressLocality: tenant.config.city || 'Чебоксары',
       addressCountry: 'RU'
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      'ratingValue': '4.9',
-      'reviewCount': '154',
-      'bestRating': '5',
-      'worstRating': '1'
-    }
-  },
-  areaServed: [{ '@type': 'City', name: tenant.config.city || 'Чебоксары' }],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Услуги по ремонту',
-    itemListElement: services.map(s => ({
-      '@type': 'Offer',
-      itemOffered: {
-        '@type': 'Service',
-        name: s.name,
-        description: s.desc
-      },
-      priceCurrency: 'RUB',
-      price: s.price
-    }))
   }
-}))
+  if (rating?.ratingValue && rating?.reviewCount) {
+    provider.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(rating.ratingValue),
+      reviewCount: String(rating.reviewCount),
+      bestRating: '5',
+      worstRating: '1',
+    }
+  }
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: `Ремонт москитных сеток в ${tenant.config.city || 'Чебоксарах'}`,
+    description: `Замена комплектующих и полотна москитных сеток в ${tenant.config.city || 'Чебоксарах'}`,
+    provider,
+    areaServed: [{ '@type': 'City', name: tenant.config.city || 'Чебоксары' }],
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Услуги по ремонту',
+      itemListElement: services.map(s => ({
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: s.name,
+          description: s.desc
+        },
+        priceCurrency: 'RUB',
+        price: s.price
+      }))
+    }
+  }
+})
 
 const faqSchema = computed(() => ({
   '@context': 'https://schema.org',
@@ -62,6 +68,8 @@ const faqSchema = computed(() => ({
     { '@type': 'Question', name: `Нужно ли привозить сетку в офис ${tenant.config.dealer_name || 'Сетки 21'}?`, acceptedAnswer: { '@type': 'Answer', text: `Да. Ремонт делаем в офисе компании ${tenant.config.dealer_name || 'Сетки 21'}. Цена от 100 ₽ за замену ручек, от 400 ₽ за замену полотна.` } }
   ]
 }))
+
+const localBusinessSchema = useLocalBusinessSchema(url)
 
 useSeoMeta({
   title,
@@ -83,7 +91,8 @@ useHead({
   ],
   script: [
     { type: 'application/ld+json', children: computed(() => JSON.stringify(serviceSchema.value)) },
-    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) }
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(localBusinessSchema.value)) },
   ]
 })
 

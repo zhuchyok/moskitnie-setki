@@ -12,36 +12,47 @@ const unicodeOrigin = useUnicodeOrigin()
 const url = computed(() => unicodeOrigin ? `${unicodeOrigin}/vstavnye/` : 'https://www.setki21.ru/vstavnye/')
 const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
-const productSchema = computed(() => ({
-  '@context': 'https://schema.org',
-  '@type': 'Product',
-  name: 'Вставная москитная сетка VSN',
-  description: `Москитная сетка внутреннего монтажа без сверления рамы в ${tenant.config.city}`,
-  image: image.value,
-  brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
-  offers: {
-    '@type': 'Offer',
-    url: url.value,
-    email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
-    priceCurrency: 'RUB',
-    price: '1450',
-    priceValidUntil: '2026-12-31',
-    availability: 'https://schema.org/InStock',
-    seller: {
-      '@type': 'LocalBusiness',
-      name: tenant.config.dealer_name || 'Сетки 21',
-      image: image.value,
-      telephone: tenant.config.phone || '+7 (8352) 38-14-20',
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
-        addressLocality: tenant.config.city || 'Чебоксары',
-        addressCountry: 'RU'
+const productSchema = computed(() => {
+  const rating = tenant.config.seo?.rating
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'Вставная москитная сетка VSN',
+    description: `Москитная сетка внутреннего монтажа без сверления рамы в ${tenant.config.city}`,
+    image: image.value,
+    brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
+    offers: {
+      '@type': 'Offer',
+      url: url.value,
+      email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
+      priceCurrency: 'RUB',
+      price: '1450',
+      priceValidUntil: '2026-12-31',
+      availability: 'https://schema.org/InStock',
+      seller: {
+        '@type': 'LocalBusiness',
+        name: tenant.config.dealer_name || 'Сетки 21',
+        telephone: tenant.config.phone || '+7 (8352) 38-14-20',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
+          addressLocality: tenant.config.city || 'Чебоксары',
+          addressCountry: 'RU'
+        }
       }
+    },
+  }
+  if (rating?.ratingValue && rating?.reviewCount) {
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(rating.ratingValue),
+      reviewCount: String(rating.reviewCount),
+      bestRating: '5',
+      worstRating: '1',
     }
-  },
-  aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', reviewCount: '82' }
-}))
+  }
+  return schema
+})
 
 const faqSchema = computed(() => ({
   '@context': 'https://schema.org',
@@ -52,6 +63,8 @@ const faqSchema = computed(() => ({
     { '@type': 'Question', name: 'Чем крепится вставная сетка изнутри?', acceptedAnswer: { '@type': 'Answer', text: 'Сетка фиксируется в проёме рамы специальным крепежом изнутри помещения. Риск выпадения наружу отсутствует, прилегание плотное, вид аккуратный.' } }
   ]
 }))
+
+const localBusinessSchema = useLocalBusinessSchema(url)
 
 useSeoMeta({
   title,
@@ -73,7 +86,8 @@ useHead({
   ],
   script: [
     { type: 'application/ld+json', children: computed(() => JSON.stringify(productSchema.value)) },
-    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) }
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(localBusinessSchema.value)) },
   ]
 })
 

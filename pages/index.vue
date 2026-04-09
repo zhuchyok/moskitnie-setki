@@ -8,9 +8,9 @@ onMounted(() => {
 const title = computed(() => tenant.config.seo?.title || `Москитные сетки на окна в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} — цены от 850 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
 const description = computed(() => tenant.config.seo?.description || `Производство и установка москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!`)
 const keywords = computed(() => tenant.config.seo?.keywords || `москитные сетки, москитная сетка, окна, ${tenant.config.city}, ${tenant.config.dealer_name}, заказать, купить, цена, установка, замер, производство, антикошка, антипыль, vsn`)
-const requestURL = useRequestURL()
-const url = computed(() => requestURL?.origin ? `${requestURL.origin}/` : 'https://www.setki21.ru/')
-const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
+const unicodeOrigin = useUnicodeOrigin()
+const url = computed(() => unicodeOrigin ? `${unicodeOrigin}/` : 'https://www.setki21.ru/')
+const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
 const localBusinessSchema = computed(() => ({
   '@context': 'https://schema.org',

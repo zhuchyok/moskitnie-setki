@@ -5,9 +5,9 @@ const tenant = useTenantStore()
 
 const title = computed(() => `Политика конфиденциальности — ${tenant.config.dealer_name || 'Сетки 21'}`)
 const description = computed(() => `Политика обработки персональных данных компании ${tenant.config.dealer_name || 'Сетки 21'}. Информация о защите персональных данных клиентов.`)
-const requestURL = useRequestURL()
+const unicodeOrigin = useUnicodeOrigin()
 const url = computed(() => {
-  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  const origin = unicodeOrigin || 'https://www.setki21.ru'
   return `${origin}/privacy/`
 })
 const domain = computed(() => {

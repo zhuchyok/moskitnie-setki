@@ -9,12 +9,12 @@ const title = computed(() => tenant.config.seo?.pages?.antimoshka?.title || `М�
 const description = computed(() => tenant.config.seo?.pages?.antimoshka?.description || `Сетки Антимошка с уменьшенной ячейкой 0.8х0.8 мм в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от мелких насекомых и тополиного пуха.`)
 const keywords = computed(() => `антимошка, микромеш, москитная сетка, ${tenant.config.city}, ${tenant.config.dealer_name}, защита от мошек, мелкая сетка, micro mesh`)
 
-const requestURL = useRequestURL()
+const unicodeOrigin = useUnicodeOrigin()
 const url = computed(() => {
-  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  const origin = unicodeOrigin || 'https://www.setki21.ru'
   return `${origin}/antimoshka/`
 })
-const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
+const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',

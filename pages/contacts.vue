@@ -4,12 +4,12 @@ const defaultDealerName = computed(() => tenant.config.city?.includes('Чебо�
 
 const title = computed(() => `Контакты — ${tenant.config.dealer_name || defaultDealerName.value}, ${tenant.config.city || 'Чебоксары'}`)
 const description = computed(() => `Адреса офисов, телефон, режим работы компании ${tenant.config.dealer_name || defaultDealerName.value}. Замер и установка москитных сеток в ${tenant.config.city || 'вашем городе'}.`)
-const requestURL = useRequestURL()
+const unicodeOrigin = useUnicodeOrigin()
 const url = computed(() => {
-  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  const origin = unicodeOrigin || 'https://www.setki21.ru'
   return `${origin}/contacts/`
 })
-const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
+const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
 
 const contactSchema = computed(() => ({
   '@context': 'https://schema.org',

@@ -72,8 +72,7 @@ const callbackToEmail = computed(() => {
 const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
 
 // Хлебные крошки: текущий origin (аудит 2026-03-10 — не хардкод www.setki21.ru)
-const _requestURL = useRequestURL()
-const BASE_URL = _requestURL?.origin || 'https://www.setki21.ru'
+const BASE_URL = useUnicodeOrigin()
 const pathNames: Record<string, string> = {
   '/': 'Главная',
   '/antimoshka': 'Антимошка',

@@ -9,12 +9,12 @@ const title = computed(() => tenant.config.seo?.pages?.antipyl?.title || `Мос
 const description = computed(() => tenant.config.seo?.pages?.antipyl?.description || `Сетки для аллергиков Poll-Tex в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Нейлоновое полотно притягивает пыль и пыльцу. Чистый воздух в вашем доме.`)
 const keywords = computed(() => `антипыль, poll-tex, москитная сетка для аллергиков, ${tenant.config.city}, ${tenant.config.dealer_name}, чистый воздух, защита от пыльцы, нейлоновая сетка`)
 
-const requestURL = useRequestURL()
+const unicodeOrigin = useUnicodeOrigin()
 const url = computed(() => {
-  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  const origin = unicodeOrigin || 'https://www.setki21.ru'
   return `${origin}/antipyl/`
 })
-const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
+const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',

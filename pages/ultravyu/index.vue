@@ -8,12 +8,12 @@ onMounted(() => {
 const title = computed(() => tenant.config.seo?.pages?.ultravyu?.title || `Москитная сетка Ультравью в ${tenant.config.city || 'Чебоксарах'} — цены от 1000 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
 const description = computed(() => tenant.config.seo?.pages?.ultravyu?.description || `Сетки Ультравью с повышенной прозрачностью и мелкой ячейкой в ${tenant.config.city || 'Чебоксарах'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Защита от насекомых и пуха. Заказ за 2 дня.`)
 const keywords = computed(() => `ультравью, ultraview, москитная сетка, ${tenant.config.city}, ${tenant.config.dealer_name}, прозрачная сетка, защита от мошек, тонкая сетка`)
-const requestURL = useRequestURL()
+const unicodeOrigin = useUnicodeOrigin()
 const url = computed(() => {
-  const origin = requestURL?.origin || 'https://www.setki21.ru'
+  const origin = unicodeOrigin || 'https://www.setki21.ru'
   return `${origin}/ultravyu/`
 })
-const image = computed(() => tenant.config.branding?.logo_url || (requestURL?.origin ? `${requestURL.origin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
+const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_new.png` : 'https://www.setki21.ru/images/logo_new.png'))
 
 const productSchema = computed(() => ({
   '@context': 'https://schema.org',

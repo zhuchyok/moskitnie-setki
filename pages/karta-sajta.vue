@@ -5,8 +5,8 @@ const defaultDealerName = computed(() => tenant.config.city?.includes('Чебо�
 const title = computed(() => `Карта сайта — ${tenant.config.dealer_name || defaultDealerName.value}`)
 const description = computed(() => `Карта сайта компании ${tenant.config.dealer_name || defaultDealerName.value}. Удобная навигация по всем разделам: Антикошка, Антипыль, Антимошка, ремонт и установка москитных сеток.`)
 
-const requestURL = useRequestURL()
-const origin = computed(() => requestURL?.origin || 'https://www.setki21.ru')
+const unicodeOrigin = useUnicodeOrigin()
+const origin = computed(() => unicodeOrigin || 'https://www.setki21.ru')
 const url = computed(() => {
   return `${origin.value}/karta-sajta/`
 })

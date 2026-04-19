@@ -12,7 +12,9 @@ export default defineEventHandler(async (event) => {
     // 1. Получаем данные дилера из API (Rust)
     const domain = body.domain.replace('www.', '')
     const dealerData = await $fetch(`${config.public.apiBase}/v1/tenant/config`, {
-      query: { domain }
+      headers: {
+        'Host': domain
+      }
     }) as any
 
     if (!dealerData) {

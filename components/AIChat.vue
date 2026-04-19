@@ -132,6 +132,7 @@ const sendMessage = async () => {
   scrollToBottom()
 
     try {
+      console.log('[AI_CHAT] Sending message:', text)
       const response = await $fetch('/api/chat/public/send', {
         method: 'POST',
         body: {
@@ -140,6 +141,7 @@ const sendMessage = async () => {
           session_id: localStorage.getItem('ai_session_id') || (Math.random().toString(36).substring(7))
         }
       })
+      console.log('[AI_CHAT] Response received:', response)
 
     messages.push({ role: 'assistant', content: response.content })
   } catch (e) {

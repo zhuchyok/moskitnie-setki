@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
           <p><strong>Телефон:</strong> ${escapeHtml(body.phone)}</p>
           ${body.city ? `<p><strong>Город:</strong> ${escapeHtml(body.city)}</p>` : ''}
           ${body.domain ? `<p><strong>Сайт:</strong> ${escapeHtml(body.domain)}</p>` : ''}
-          ${body.extra_services ? `<p><strong>🎁 Также интересует:</strong> ${escapeHtml(body.extra_services)}</p>` : ''}
+          ${body.extra_services ? `<p><strong>Также интересует:</strong> ${escapeHtml(body.extra_services)}</p>` : ''}
         </div>
         <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
         <p style="color: #666; font-size: 12px;">

@@ -169,7 +169,7 @@ export default defineEventHandler(async (event) => {
                   : `<p style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">📏 Замер:</span> Своими силами (см. детали в составе заказа)</p>`
                 }
                 ${trimmed.discount_type === 'srochnyi' ? `<p style="margin: 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">⚡ Срочность:</span> Приоритетный заказ (+400 ₽)</p>` : ''}
-                ${trimmed.extra_services ? `<p style="margin: 8px 0 0 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">🎁 Также интересует:</span> ${escapeHtml(trimmed.extra_services)}</p>` : ''}
+                ${trimmed.extra_services ? `<p style="margin: 8px 0 0 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">Также интересует:</span> ${escapeHtml(trimmed.extra_services)}</p>` : ''}
               </div>
             </div>
 

@@ -5,8 +5,8 @@ export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig()
   
   // Проксируем запрос к Ollama напрямую с сервера (так как API Rust не имеет этого эндпоинта)
-  // Используем адрес сервера, где запущен Ollama
-  const OLLAMA_URL = 'http://45.10.43.248:11434/api/generate'
+  // Используем IP шлюза Docker для обращения к хосту
+  const OLLAMA_URL = 'http://172.19.0.1:11434/api/generate'
   
   try {
     // 1. Получаем данные дилера из API (Rust)

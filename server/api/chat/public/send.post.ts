@@ -95,8 +95,9 @@ export default defineEventHandler(async (event) => {
         system: systemPrompt,
         stream: false,
         options: {
-          temperature: 0.3,
-          num_predict: 300
+          temperature: 0.1,
+          num_predict: 400,
+          top_p: 0.9
         }
       }
     }) as any

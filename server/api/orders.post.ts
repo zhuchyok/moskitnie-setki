@@ -32,6 +32,7 @@ export default defineEventHandler(async (event) => {
       list_order: String(body.list_order ?? '').trim(),
       total_price_value: body.total_price_value,
       total_order_value: body.total_order_value ? String(body.total_order_value).trim() : undefined,
+      extra_services: body.extra_services ? String(body.extra_services).trim() : undefined,
       measurement: body.measurement,
       discount_type: body.discount_type,
       dealer_id: (body.dealer_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.dealer_id)) ? body.dealer_id : undefined,
@@ -168,6 +169,7 @@ export default defineEventHandler(async (event) => {
                   : `<p style="margin: 0 0 8px 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">📏 Замер:</span> Своими силами (см. детали в составе заказа)</p>`
                 }
                 ${trimmed.discount_type === 'srochnyi' ? `<p style="margin: 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">⚡ Срочность:</span> Приоритетный заказ (+400 ₽)</p>` : ''}
+                ${trimmed.extra_services ? `<p style="margin: 8px 0 0 0; font-size: 14px; font-weight: bold;"><span style="opacity: 0.7;">🎁 Также интересует:</span> ${escapeHtml(trimmed.extra_services)}</p>` : ''}
               </div>
             </div>
 

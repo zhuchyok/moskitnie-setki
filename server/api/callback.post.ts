@@ -19,7 +19,8 @@ export default defineEventHandler(async (event) => {
       agreePrivacy: raw?.agreePrivacy === true,
       toEmail: raw?.toEmail ? String(raw.toEmail).trim() : '',
       city: raw?.city ? String(raw.city).trim() : '',
-      domain: raw?.domain ? String(raw.domain).trim() : ''
+      domain: raw?.domain ? String(raw.domain).trim() : '',
+      extra_services: raw?.extra_services ? String(raw.extra_services).trim() : ''
     }
 
     const validation = validateCallbackBody({
@@ -74,6 +75,7 @@ export default defineEventHandler(async (event) => {
           <p><strong>Телефон:</strong> ${escapeHtml(body.phone)}</p>
           ${body.city ? `<p><strong>Город:</strong> ${escapeHtml(body.city)}</p>` : ''}
           ${body.domain ? `<p><strong>Сайт:</strong> ${escapeHtml(body.domain)}</p>` : ''}
+          ${body.extra_services ? `<p><strong>🎁 Также интересует:</strong> ${escapeHtml(body.extra_services)}</p>` : ''}
         </div>
         <hr style="border: none; border-top: 1px solid #dee2e6; margin: 30px 0;">
         <p style="color: #666; font-size: 12px;">

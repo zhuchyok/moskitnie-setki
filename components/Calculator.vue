@@ -6,11 +6,43 @@ const tenant = useTenantStore()
 const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2A6AB2')
 
 const extraServicesOptions = [
-  { id: 'windows', name: 'Окна и остекление', icon: '🪟' },
-  { id: 'balcony', name: 'Отделка балконов', icon: '🏗️' },
-  { id: 'ceilings', name: 'Натяжные потолки', icon: '✨' },
-  { id: 'blinds', name: 'Жалюзи', icon: '☀️' },
-  { id: 'doors', name: 'Двери', icon: '🚪' }
+  { 
+    id: 'windows', 
+    name: 'Окна и остекление', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12">
+      <path d="M3 3h18v18H3zM12 3v18M3 12h18M9 3v9M15 3v9M9 12v9M15 12v9" />
+    </svg>`
+  },
+  { 
+    id: 'balcony', 
+    name: 'Отделка балконов', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12">
+      <path d="M3 11h18M3 15h18M3 19h18M5 11v8M9 11v8M13 11v8M17 11v8M19 11v8M3 7h18l-2-4H5z" />
+    </svg>`
+  },
+  { 
+    id: 'ceilings', 
+    name: 'Натяжные потолки', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12">
+      <path d="M3 8l9-3 9 3v4l-9 3-9-3z" />
+      <path d="M7 14l-1 3M12 16v3M17 14l1 3" />
+      <path d="M12 2l1 1.5M4 6l1.5.5M20 6l-1.5.5" />
+    </svg>`
+  },
+  { 
+    id: 'blinds', 
+    name: 'Жалюзи', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12">
+      <path d="M4 3h16M4 7h16M4 11h16M4 15h16M4 19h16M8 3v16" />
+    </svg>`
+  },
+  { 
+    id: 'doors', 
+    name: 'Двери', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12">
+      <path d="M5 3h14v18H5zM15 12v.01" />
+    </svg>`
+  }
 ]
 
 const THUMB_SIZE = 42
@@ -1422,7 +1454,7 @@ const submitOrder = async () => {
                           : 'bg-gray-50/50 border-gray-100 text-gray-400 hover:border-gray-200'
                       ]"
                       :style="form.extraServices.includes(service.id) ? { borderColor: brandPrimary, color: brandPrimary } : {}">
-                <span class="text-2xl">{{ service.icon }}</span>
+                <span class="flex items-center justify-center" v-html="service.icon"></span>
                 <span class="text-center leading-tight">{{ service.name }}</span>
               </button>
             </div>

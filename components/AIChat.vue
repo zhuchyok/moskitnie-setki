@@ -131,16 +131,15 @@ const sendMessage = async () => {
   isLoading.value = true
   scrollToBottom()
 
-  try {
-    const response = await $fetch('/api/chat/public/send', {
-      method: 'POST',
-      baseURL: 'https://api.setki21.ru', // Временный хардкод для теста, потом через config
-      body: {
-        message: text,
-        domain: window.location.hostname,
-        session_id: localStorage.getItem('ai_session_id') || (Math.random().toString(36).substring(7))
-      }
-    })
+    try {
+      const response = await $fetch('/api/chat/public/send', {
+        method: 'POST',
+        body: {
+          message: text,
+          domain: window.location.hostname,
+          session_id: localStorage.getItem('ai_session_id') || (Math.random().toString(36).substring(7))
+        }
+      })
 
     messages.push({ role: 'assistant', content: response.content })
   } catch (e) {

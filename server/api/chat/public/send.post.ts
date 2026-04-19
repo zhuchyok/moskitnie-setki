@@ -4,63 +4,68 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const config = useRuntimeConfig()
   
-  // Проксируем запрос к Ollama напрямую с сервера (так как API Rust не имеет этого эндпоинта)
-  // Используем IP шлюза Docker для обращения к хосту
+  // Используем IP шлюза Docker для обращения к хосту (Ollama)
   const OLLAMA_URL = 'http://172.19.0.1:11434/api/generate'
   
   try {
-    // 1. Получаем данные дилера из API (Rust)
     const domain = body.domain.replace('www.', '')
-    console.log('[AI_PROXY] Fetching config for domain:', domain)
-    const dealerData = await $fetch(`${config.public.apiBase}/v1/tenant/config`, {
-      headers: {
-        'host': domain,
-        'x-forwarded-host': domain
-      }
-    }) as any
+    
+    // 1. Получаем конфиг и цены параллельно
+    const [dealerData, pricingData] = await Promise.all([
+      $fetch(`${config.public.apiBase}/v1/tenant/config`, {
+        headers: { 'host': domain, 'x-forwarded-host': domain }
+      }),
+      $fetch(`${config.public.apiBase}/v1/pricing`, {
+        headers: { 'host': domain }
+      })
+    ]) as [any, any]
 
     if (!dealerData) {
       return { content: 'Извините, не удалось загрузить данные дилера.' }
     }
 
-    // 2. Формируем системный промпт
-    const pricesInfo = dealerData.pricing?.mesh?.map((p: any) => `- ${p.name}: от ${Math.round(p.price * dealerData.markup?.client || 1)} руб.`).join('\n') || ''
+    // 2. Формируем список цен
+    const markup = pricingData.markup?.client || 2.13
+    const pricesInfo = pricingData.mesh?.map((p: any) => 
+      `- ${p.name}: от ${Math.round(p.price * markup)} руб.`
+    ).join('\n') || ''
     
+    // 3. Формируем системный промпт
     const systemPrompt = `
-    Ты — умный ассистент компании по производству москитных сеток.
-    Твоя цель: помогать клиентам, отвечать на вопросы о сетках и мягко подводить к заказу.
+    Ты — профессиональный консультант компании по производству москитных сеток.
+    Твоя задача: помогать клиентам выбрать подходящую сетку и отвечать на вопросы о ценах.
     
     ИНФОРМАЦИЯ О ТЕКУЩЕМ ДИЛЕРЕ:
-    Название: ${dealerData.dealer_name}
+    Название: ${dealerData.dealer_name || 'Сетки 21'}
     Город: ${dealerData.city}
     Телефон: ${dealerData.phone}
     Email: ${dealerData.email}
-    Адрес: ${dealerData.address}
+    Адрес: ${dealerData.address || 'указан на странице контактов'}
     Режим работы: ${dealerData.branding?.working_hours || 'не указан'}
     
-    АКТУАЛЬНЫЕ ЦЕНЫ:
+    АКТУАЛЬНЫЕ ЦЕНЫ (за 1 кв.м. изделия):
     ${pricesInfo}
-    (Цены могут меняться в зависимости от размера, уточни у менеджера).
     
-    СТИЛЬ ОБЩЕНИЯ:
-    - Вежливый, профессиональный, лаконичный.
-    - Используй только русский язык.
-    - Если клиент хочет заказать, попроси его оставить телефон или воспользоваться калькулятором на сайте.
-    
-    ОГРАНИЧЕНИЯ:
-    - Не выдумывай несуществующие услуги.
-    - Если не знаешь ответа, предложи связаться по телефону ${dealerData.phone}.
+    ВАЖНЫЕ ПРАВИЛА:
+    - Отвечай вежливо и только на русском языке.
+    - Если клиент спрашивает цену, называй цену из списка выше.
+    - Всегда уточняй, что окончательная стоимость зависит от точных размеров и типа крепления.
+    - Предлагай вызвать замерщика или воспользоваться калькулятором на сайте для точного расчета.
+    - Если клиент хочет заказать, попроси его оставить контактный телефон.
     `
 
-    // 3. Запрос к Ollama
-    console.log('[AI_PROXY] System Prompt:', systemPrompt)
+    // 4. Запрос к Ollama
     const response = await $fetch(OLLAMA_URL, {
       method: 'POST',
       body: {
         model: 'qwen2.5:0.5b',
         prompt: body.message,
         system: systemPrompt,
-        stream: false
+        stream: false,
+        options: {
+          temperature: 0.7,
+          num_predict: 200
+        }
       }
     }) as any
 

@@ -79,6 +79,7 @@ useHead({
     { property: 'og:url', content: canonicalUrl },
     { name: 'twitter:image', content: ogImage },
     { name: 'robots', content: 'index, follow' },
+    { name: 'yandex-verification', content: yandexVerification },
   ],
   link: [
     { rel: 'canonical', href: canonicalUrl, key: 'canonical' },

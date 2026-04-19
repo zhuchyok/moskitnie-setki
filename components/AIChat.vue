@@ -133,7 +133,7 @@ const sendMessage = async () => {
 
     try {
       console.log('[AI_CHAT] Sending message:', text)
-      const response = await $fetch('/api/chat/public/send', {
+      const response = await $fetch('/api_nuxt/chat/public/send', {
         method: 'POST',
         body: {
           message: text,

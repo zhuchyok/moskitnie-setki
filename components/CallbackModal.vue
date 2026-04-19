@@ -16,8 +16,59 @@ const isModalOpen = defineModel<boolean>('open', { default: false })
 const form = reactive({
   name: '',
   phone: '',
-  agree: false
+  agree: false,
+  showExtras: false,
+  extraServices: [] as string[]
 })
+
+const extraServicesOptions = [
+  { 
+    id: 'windows', 
+    name: 'Окна и остекление', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10">
+      <path d="M3 3h18v18H3zM12 3v18M3 12h18M9 3v9M15 3v9M9 12v9M15 12v9" />
+    </svg>`
+  },
+  { 
+    id: 'balcony', 
+    name: 'Отделка балконов', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10">
+      <path d="M3 11h18M3 15h18M3 19h18M5 11v8M9 11v8M13 11v8M17 11v8M19 11v8M3 7h18l-2-4H5z" />
+    </svg>`
+  },
+  { 
+    id: 'ceilings', 
+    name: 'Натяжные потолки', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10">
+      <path d="M3 8l9-3 9 3v4l-9 3-9-3z" />
+      <path d="M7 14l-1 3M12 16v3M17 14l1 3" />
+      <path d="M12 2l1 1.5M4 6l1.5.5M20 6l-1.5.5" />
+    </svg>`
+  },
+  { 
+    id: 'blinds', 
+    name: 'Жалюзи', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10">
+      <path d="M4 3h16M4 7h16M4 11h16M4 15h16M4 19h16M8 3v16" />
+    </svg>`
+  },
+  { 
+    id: 'doors', 
+    name: 'Двери', 
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10">
+      <path d="M5 3h14v18H5zM15 12v.01" />
+    </svg>`
+  }
+]
+
+const toggleExtraService = (id: string) => {
+  const index = form.extraServices.indexOf(id)
+  if (index === -1) {
+    form.extraServices.push(id)
+  } else {
+    form.extraServices.splice(index, 1)
+  }
+}
 
 const formErrors = reactive<Record<string, string>>({ name: '', phone: '' })
 const submitError = ref('')
@@ -103,7 +154,10 @@ async function handleSubmit() {
       phone: form.phone.trim(),
       agreePrivacy: form.agree,
       city: tenant.config.city || '',
-      domain: tenant.config.domain || ''
+      domain: tenant.config.domain || '',
+      extra_services: (form.extraServices && form.extraServices.length > 0) 
+        ? form.extraServices.map(id => extraServicesOptions.find(o => o.id === id)?.name).join(', ') 
+        : undefined
     }
     if (props.toEmail) body.toEmail = props.toEmail
 
@@ -199,6 +253,36 @@ function closeModal() {
                   <p v-if="formErrors.phone" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.phone }}</p>
                 </div>
 
+                <label class="flex items-center gap-4 cursor-pointer group p-2">
+                  <div class="relative flex items-center">
+                    <input type="checkbox" v-model="form.showExtras" class="peer appearance-none w-6 h-6 border-2 border-gray-100 rounded-xl transition-all shadow-sm" :style="{ backgroundColor: form.showExtras ? brandPrimary : 'transparent', borderColor: form.showExtras ? brandPrimary : '#f3f4f6' }" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-1 text-white opacity-0 peer-checked:opacity-100 transition-all scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span class="text-[9px] md:text-[10px] text-gray-400 font-black leading-tight uppercase tracking-widest group-hover:text-gray-600 transition-colors">
+                    Меня также интересуют окна, балконы, потолки или жалюзи <span :style="{ color: brandPrimary }">(отметьте, чтобы получить скидку 10% на эти услуги)</span>
+                  </span>
+                </label>
+
+                <transition name="fade-slide">
+                  <div v-if="form.showExtras" class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-1">
+                    <button v-for="service in extraServicesOptions" :key="service.id"
+                            type="button"
+                            @click="toggleExtraService(service.id)"
+                            :class="[
+                              'flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border-2 transition-all text-[9px] font-black uppercase tracking-wider',
+                              form.extraServices.includes(service.id)
+                                ? 'bg-white shadow-xl scale-[1.05]'
+                                : 'bg-gray-50/50 border-gray-100 text-gray-400 hover:border-gray-200'
+                            ]"
+                            :style="form.extraServices.includes(service.id) ? { borderColor: brandPrimary, color: brandPrimary } : {}">
+                      <span class="flex items-center justify-center scale-75" v-html="service.icon"></span>
+                      <span class="text-center leading-tight">{{ service.name }}</span>
+                    </button>
+                  </div>
+                </transition>
+
                 <label class="flex items-start gap-4 cursor-pointer group p-1">
                   <div class="relative flex items-center mt-1">
                     <input type="checkbox"
@@ -241,5 +325,20 @@ function closeModal() {
 /* Fix for hover on buttons with dynamic colors */
 button:not([disabled]):not(.text-white):hover {
   opacity: 0.9;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 </style>

@@ -34,7 +34,7 @@
         <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50" ref="messagesContainer">
           <div v-for="(msg, index) in messages" :key="index" :class="['flex', msg.role === 'user' ? 'justify-end' : 'justify-start']">
             <div :class="[
-              'max-w-[85%] p-3 rounded-2xl text-sm shadow-sm',
+              'max-w-[85%] p-3 rounded-2xl text-sm shadow-sm whitespace-pre-wrap',
               msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'
             ]" :style="msg.role === 'user' ? { backgroundColor: brandPrimary } : {}">
               {{ msg.content }}

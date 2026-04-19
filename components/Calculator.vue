@@ -5,6 +5,14 @@ const pricingStore = usePricingStore()
 const tenant = useTenantStore()
 const brandPrimary = computed(() => tenant.config.branding?.primary_color || '#2A6AB2')
 
+const extraServicesOptions = [
+  { id: 'windows', name: 'Окна и остекление', icon: '🪟' },
+  { id: 'balcony', name: 'Отделка балконов', icon: '🏗️' },
+  { id: 'ceilings', name: 'Натяжные потолки', icon: '✨' },
+  { id: 'blinds', name: 'Жалюзи', icon: '☀️' },
+  { id: 'doors', name: 'Двери', icon: '🚪' }
+]
+
 const THUMB_SIZE = 42
 const DOT_SIZE = 13
 const H_SLIDER_W = 210
@@ -355,8 +363,19 @@ const form = reactive({
   phone: '',
   address: '',
   comment: '',
-  agree: false
+  agree: false,
+  showExtras: false,
+  extraServices: [] as string[]
 })
+
+const toggleExtraService = (id: string) => {
+  const index = form.extraServices.indexOf(id)
+  if (index === -1) {
+    form.extraServices.push(id)
+  } else {
+    form.extraServices.splice(index, 1)
+  }
+}
 
 /** Ошибки валидации по полям (отображаются под полем) */
 const formErrors = reactive<Record<string, string>>({ name: '', phone: '', address: '', comment: '' })
@@ -485,6 +504,9 @@ const submitOrder = async () => {
       }).join('<br>'),
       total_price_value: store.totalPrice,
       total_order_value: store.allItemsWithInstallation ? 'Монтаж' : (deliveryOption?.name || store.delivery),
+      extra_services: (form.extraServices && form.extraServices.length > 0) 
+        ? form.extraServices.map(id => extraServicesOptions.find(o => o.id === id)?.name).join(', ') 
+        : undefined,
       measurement: store.measurementSelected,
       discount_type: store.discountType || undefined,
       dealer_id: tenant.config.dealer_id || undefined,
@@ -1376,6 +1398,36 @@ const submitOrder = async () => {
                       ]"></textarea>
             <p v-if="formErrors.comment" class="text-red-500 text-xs font-bold ml-4">{{ formErrors.comment }}</p>
           </div>
+          <label class="flex items-center gap-4 cursor-pointer group p-2">
+            <div class="relative flex items-center">
+              <input type="checkbox" v-model="form.showExtras" class="peer appearance-none w-7 h-7 border-2 border-gray-100 rounded-xl transition-all shadow-sm" :style="{ backgroundColor: form.showExtras ? brandPrimary : 'transparent', borderColor: form.showExtras ? brandPrimary : '#f3f4f6' }" />
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-1 text-white opacity-0 peer-checked:opacity-100 transition-all scale-50 peer-checked:scale-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <span class="text-[10px] md:text-xs text-gray-400 font-black leading-tight uppercase tracking-widest group-hover:text-gray-600 transition-colors">
+              🎁 Меня также интересуют окна, балконы, потолки или жалюзи <span :style="{ color: brandPrimary }">(отметьте, чтобы получить скидку 10% на эти услуги)</span>
+            </span>
+          </label>
+
+          <transition name="fade-slide">
+            <div v-if="form.showExtras" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 p-2">
+              <button v-for="service in extraServicesOptions" :key="service.id"
+                      type="button"
+                      @click="toggleExtraService(service.id)"
+                      :class="[
+                        'flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border-2 transition-all text-[10px] font-black uppercase tracking-wider',
+                        form.extraServices.includes(service.id)
+                          ? 'bg-white shadow-xl scale-[1.05]'
+                          : 'bg-gray-50/50 border-gray-100 text-gray-400 hover:border-gray-200'
+                      ]"
+                      :style="form.extraServices.includes(service.id) ? { borderColor: brandPrimary, color: brandPrimary } : {}">
+                <span class="text-2xl">{{ service.icon }}</span>
+                <span class="text-center leading-tight">{{ service.name }}</span>
+              </button>
+            </div>
+          </transition>
+
           <label class="flex items-center gap-4 cursor-pointer group p-2">
             <div class="relative flex items-center">
               <input type="checkbox" v-model="form.agree" required class="peer appearance-none w-7 h-7 border-2 border-gray-100 rounded-xl transition-all shadow-sm" :style="{ backgroundColor: form.agree ? brandPrimary : 'transparent', borderColor: form.agree ? brandPrimary : '#f3f4f6' }" />

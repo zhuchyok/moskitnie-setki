@@ -11,9 +11,11 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. Получаем данные дилера из API (Rust)
     const domain = body.domain.replace('www.', '')
+    console.log('[AI_PROXY] Fetching config for domain:', domain)
     const dealerData = await $fetch(`${config.public.apiBase}/v1/tenant/config`, {
       headers: {
-        'Host': domain
+        'host': domain,
+        'x-forwarded-host': domain
       }
     }) as any
 

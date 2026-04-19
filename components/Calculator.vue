@@ -1406,7 +1406,7 @@ const submitOrder = async () => {
               </svg>
             </div>
             <span class="text-[10px] md:text-xs text-gray-400 font-black leading-tight uppercase tracking-widest group-hover:text-gray-600 transition-colors">
-              🎁 Меня также интересуют окна, балконы, потолки или жалюзи <span :style="{ color: brandPrimary }">(отметьте, чтобы получить скидку 10% на эти услуги)</span>
+              Меня также интересуют окна, балконы, потолки или жалюзи <span :style="{ color: brandPrimary }">(отметьте, чтобы получить скидку 10% на эти услуги)</span>
             </span>
           </label>
 

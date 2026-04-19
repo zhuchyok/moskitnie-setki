@@ -138,7 +138,8 @@ const sendMessage = async () => {
         body: {
           message: text,
           domain: window.location.hostname,
-          session_id: localStorage.getItem('ai_session_id') || (Math.random().toString(36).substring(7))
+          session_id: localStorage.getItem('ai_session_id') || (Math.random().toString(36).substring(7)),
+          history: messages.map(m => ({ role: m.role, content: m.content }))
         }
       })
       console.log('[AI_CHAT] Response received:', response)

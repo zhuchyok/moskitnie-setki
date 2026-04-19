@@ -53,6 +53,7 @@ export default defineEventHandler(async (event) => {
     `
 
     // 3. Запрос к Ollama
+    console.log('[AI_PROXY] System Prompt:', systemPrompt)
     const response = await $fetch(OLLAMA_URL, {
       method: 'POST',
       body: {

@@ -437,7 +437,6 @@ useHead({
     </Transition>
 
     <CallbackModal v-model:open="showCallbackModal" :to-email="callbackToEmail" />
-    <AIChat />
   </div>
 </template>
 

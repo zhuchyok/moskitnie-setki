@@ -676,7 +676,7 @@ const submitOrder = async () => {
                      @touchend="isDraggingHeight = false"
                      class="horizontal-range hide-thumb"
                      style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%); margin: 0;"/>
-              <div class="absolute flex items-center justify-center"
+              <div class="absolute flex items-center justify-center pointer-events-none"
                    :style="{
                      left: heightThumbCenter + 'px',
                      top: '50%',
@@ -697,6 +697,7 @@ const submitOrder = async () => {
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px] cursor-pointer pointer-events-auto"
                      @click.stop="startEditHeight"
                      @mousedown.stop
+                     @touchstart.stop
                      :style="{
                        backgroundColor: brandPrimary,
                        left: '50%',
@@ -773,7 +774,7 @@ const submitOrder = async () => {
                      @mouseup="isDraggingWidth = false"
                      @touchend="isDraggingWidth = false"
                      class="horizontal-range hide-thumb w-full"/>
-              <div class="absolute flex items-center justify-center"
+              <div class="absolute flex items-center justify-center pointer-events-none"
                    :style="{
                      left: widthThumbCenter + 'px',
                      top: '50%',
@@ -794,6 +795,7 @@ const submitOrder = async () => {
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px] cursor-pointer pointer-events-auto"
                      @click.stop="startEditWidth"
                      @mousedown.stop
+                     @touchstart.stop
                      :style="{
                        backgroundColor: brandPrimary,
                        bottom: '22px',

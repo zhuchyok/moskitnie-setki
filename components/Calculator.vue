@@ -1065,7 +1065,7 @@ const submitOrder = async () => {
                           <div v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
                                class="flex flex-col gap-3">
                             <!-- Картинка метода замера -->
-                            <div class="aspect-[4/3] rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-white relative flex items-center justify-center p-3"
+                            <div class="aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-white relative flex items-center justify-center p-5"
                                  :style="{ 
                                    borderColor: store.config.measurementMethod === m.id ? brandPrimary : '#f3f4f6',
                                    boxShadow: store.config.measurementMethod === m.id ? `0 10px 20px -5px ${brandPrimary}33` : 'none'

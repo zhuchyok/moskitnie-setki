@@ -704,8 +704,8 @@ const submitOrder = async () => {
                      }">
                   <span style="transform: rotate(-90deg); display: inline-block;">{{ store.config.height }}</span>
                   <!-- Хвостик облачка (теперь смотрит вниз в экранных координатах) -->
-                  <div class="absolute right-[-4px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-r-[4px]"
-                       :style="{ borderRightColor: brandPrimary }"></div>
+                  <div class="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
+                       :style="{ borderTopColor: brandPrimary }"></div>
                 </div>
               </div>
             </div>

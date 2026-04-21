@@ -692,13 +692,13 @@ const submitOrder = async () => {
                   boxShadow: `0 2px 6px ${brandPrimary}44`,
                   transition: 'all 0.2s ease'
                 }"></div>
-                <!-- Облачко с цифрой (всегда горизонтальное и над точкой в экранных координатах) -->
+                <!-- Облачко с цифрой (теперь всегда сверху точки в экранных координатах) -->
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
                      :style="{
                        backgroundColor: brandPrimary,
                        left: '50%',
                        top: '50%',
-                       transform: 'translate(-50%, -50%) rotate(90deg) translateY(-35px)',
+                       transform: 'translate(-50%, -50%) rotate(90deg) translateY(-40px)',
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">

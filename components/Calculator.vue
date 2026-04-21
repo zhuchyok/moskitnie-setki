@@ -680,7 +680,7 @@ const submitOrder = async () => {
                    :style="{
                      left: heightThumbCenter + 'px',
                      top: '50%',
-                     transform: 'translate(-50%, -50%)',
+                     transform: isDraggingHeight ? 'translate(-50%, -50%) scale(1.1)' : 'translate(-50%, -50%)',
                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                    }">
                 <!-- Точка ползунка -->
@@ -763,7 +763,7 @@ const submitOrder = async () => {
                    :style="{
                      left: widthThumbCenter + 'px',
                      top: '50%',
-                     transform: 'translateX(-50%) translateY(-50%)',
+                     transform: isDraggingWidth ? 'translateX(-50%) translateY(-50%) scale(1.1)' : 'translateX(-50%) translateY(-50%)',
                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                    }">
                 <!-- Точка ползунка -->

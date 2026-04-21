@@ -702,7 +702,7 @@ const submitOrder = async () => {
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">
-                  <span style="transform: rotate(-90deg); display: inline-block;">{{ store.config.height }}</span>
+                  <span style="transform: rotate(-90deg); display: inline-block; white-space: nowrap;">{{ store.config.height }}</span>
                   <!-- Хвостик облачка (теперь смотрит вниз в экранных координатах) -->
                   <div class="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
                        :style="{ borderTopColor: brandPrimary }"></div>

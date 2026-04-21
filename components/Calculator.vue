@@ -779,7 +779,7 @@ const submitOrder = async () => {
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
                      :style="{
                        backgroundColor: brandPrimary,
-                       bottom: '18px',
+                       bottom: '22px',
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">

@@ -1060,12 +1060,12 @@ const submitOrder = async () => {
                 <!-- Метод замера -->
                 <div class="w-full min-w-0">
                   <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Как вы измеряли?</label>
-                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 w-full">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6 w-full">
                     <template v-for="m in measurementMethods" :key="m.id">
                           <div v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
-                               class="flex flex-col gap-4">
+                               class="flex flex-col gap-3 max-w-[220px] mx-auto w-full">
                             <!-- Картинка метода замера -->
-                            <div class="aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-white relative flex items-center justify-center p-4"
+                            <div class="aspect-[4/3] rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-white relative flex items-center justify-center p-3"
                                  :style="{ 
                                    borderColor: store.config.measurementMethod === m.id ? brandPrimary : '#f3f4f6',
                                    boxShadow: store.config.measurementMethod === m.id ? `0 10px 20px -5px ${brandPrimary}33` : 'none'
@@ -1076,13 +1076,13 @@ const submitOrder = async () => {
 
                             <button @click="selectMeasurementMethod(m.id as any)"
                                     :class="[
-                                      'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center measurement-method-btn',
+                                      'h-9 px-2 rounded-xl text-[9px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center measurement-method-btn',
                                       store.config.measurementMethod === m.id
-                                        ? 'text-white border-transparent shadow-xl transform -translate-y-0.5'
+                                        ? 'text-white border-transparent shadow-lg transform -translate-y-0.5'
                                         : 'bg-white text-gray-400 border-gray-100'
                                     ]"
                                     :style="store.config.measurementMethod === m.id
-                                      ? { backgroundColor: brandPrimary, boxShadow: `0 20px 25px -5px ${brandPrimary}33` }
+                                      ? { backgroundColor: brandPrimary, boxShadow: `0 15px 20px -5px ${brandPrimary}33` }
                                       : { '--brand-primary': brandPrimary, color: store.config.measurementMethod === m.id ? 'white' : undefined, borderColor: store.config.measurementMethod === m.id ? 'transparent' : undefined }">
                               {{ m.name }}
                             </button>
@@ -1092,7 +1092,7 @@ const submitOrder = async () => {
                   
                   <!-- Динамическая подсказка под кнопками -->
                   <div v-if="store.config.measurementMethod" 
-                       class="mt-3 p-4 rounded-2xl border animate-in fade-in slide-in-from-top-2 duration-300"
+                       class="mt-4 p-4 rounded-xl border animate-in fade-in slide-in-from-top-2 duration-300"
                        :style="{ borderColor: brandPrimary + '1A', backgroundColor: brandPrimary + '0D' }">
                     <div class="flex gap-3 items-start">
                       <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" :style="{ backgroundColor: brandPrimary + '1A' }">
@@ -1100,7 +1100,7 @@ const submitOrder = async () => {
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
-                      <p class="text-[9px] font-bold leading-tight uppercase tracking-wider" :style="{ color: brandPrimary }">
+                      <p class="text-[10px] font-bold leading-tight uppercase tracking-wider" :style="{ color: brandPrimary }">
                         <template v-if="store.config.frameType === 'vstavnaya' && store.config.measurementMethod === 'proem'">
                           ИЗМЕРИЛИ ОТКРЫТЫЙ ПРОЕМ ОТ КРАЯ ДО КРАЯ РЕЗИНКИ. <br/>МЫ АВТОМАТИЧЕСКИ УВЕЛИЧИЛИ РАЗМЕР НА 17 ММ ПО ШИРИНЕ И 12 ММ ПО ВЫСОТЕ.
                         </template>

@@ -714,7 +714,7 @@ const submitOrder = async () => {
                          @click.stop
                          @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
                          class="w-12 bg-white text-center rounded outline-none font-black"
-                         :style="{ color: brandPrimary, transform: 'rotate(-90deg)' }"
+                         :style="{ color: brandPrimary }"
                          autofocus />
                   <span v-else style="display: inline-block; white-space: nowrap;">{{ store.config.height }}</span>
                   <!-- Хвостик облачка (теперь смотрит вниз в экранных координатах) -->

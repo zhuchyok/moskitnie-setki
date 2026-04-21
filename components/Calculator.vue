@@ -698,7 +698,7 @@ const submitOrder = async () => {
                        backgroundColor: brandPrimary,
                        left: '50%',
                        top: '50%',
-                       transform: 'translate(-50%, -50%) rotate(90deg) translateY(-40px)',
+                       transform: 'translate(-50%, -50%) rotate(90deg) translateY(-32px)',
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">
@@ -779,7 +779,7 @@ const submitOrder = async () => {
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
                      :style="{
                        backgroundColor: brandPrimary,
-                       bottom: '25px',
+                       bottom: '18px',
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">

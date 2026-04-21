@@ -941,10 +941,10 @@ const submitOrder = async () => {
 
                 <!-- Ручки / Монтаж / Количество (Перенесено с Шага 2) -->
                 <ClientOnly>
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12" style="width: 100%">
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12 mx-auto" style="width: 100%; max-width: 600px;">
                     
                     <!-- Тип ручек -->
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex flex-col items-center">
                       <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Тип ручек</p>
                       <div class="flex items-center justify-center gap-2 sm:gap-3 min-h-[50px]">
                         <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
@@ -968,7 +968,7 @@ const submitOrder = async () => {
                     </div>
 
                     <!-- Монтаж -->
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex flex-col items-center">
                       <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Монтаж</p>
                       <div class="flex items-center justify-center gap-3 min-h-[50px]">
                         <button @click="store.updateConfig({ installation: !store.config.installation })"
@@ -992,7 +992,7 @@ const submitOrder = async () => {
                     </div>
 
                     <!-- Количество -->
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex flex-col items-center">
                       <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Количество</p>
                       <div class="flex items-center justify-center gap-3 min-h-[50px]">
                         <button @click="store.updateConfig({ count: Math.max(1, store.config.count - 1) })"
@@ -1019,7 +1019,7 @@ const submitOrder = async () => {
 
                   </div>
                   <template #fallback>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12 h-[120px]" style="width: 100%" aria-hidden="true">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12 h-[120px] mx-auto" style="width: 100%; max-width: 600px;" aria-hidden="true">
                       <div class="flex flex-col items-center gap-2">
                         <div class="h-3 w-16 bg-gray-100 rounded animate-pulse" />
                         <div class="h-10 w-24 bg-gray-50 rounded-lg animate-pulse" />

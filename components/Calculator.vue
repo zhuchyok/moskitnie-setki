@@ -664,7 +664,7 @@ const submitOrder = async () => {
           <!-- Ползунок высоты (вертикальный справа) -->
           <div class="absolute overflow-visible flex items-center justify-center" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px;">
             <div class="relative flex-shrink-0" style="width: 280px; height: 20px; transform: rotate(-90deg); transform-origin: center center;">
-              <input type="range" min="200" max="2000" step="10" 
+              <input type="range" min="200" max="2000" step="5" 
                      :value="store.config.height"
                      @input="(e) => { 
                        store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
@@ -748,7 +748,7 @@ const submitOrder = async () => {
           <!-- Ползунок ширины (горизонтальный снизу) -->
           <div class="absolute left-1/2 -translate-x-1/2" style="width: 210px; bottom: -38px;">
             <div class="relative w-full flex items-center" :style="{ height: THUMB_SIZE + 'px' }">
-              <input type="range" min="200" max="1500" step="10" 
+              <input type="range" min="200" max="1500" step="5" 
                      :value="store.config.width"
                      @input="(e) => { 
                        store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
@@ -1630,16 +1630,17 @@ input[type="range"]::-webkit-slider-thumb {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   margin: auto 0;
+  touch-action: none;
 }
 .hide-thumb::-webkit-slider-thumb {
   opacity: 0;
-  width: 36px;
-  height: 36px;
+  width: 60px;
+  height: 60px;
 }
 .hide-thumb::-moz-range-thumb {
   opacity: 0;
-  width: 36px;
-  height: 36px;
+  width: 60px;
+  height: 60px;
 }
 
 /* Анимации для Мастера */

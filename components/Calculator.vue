@@ -664,6 +664,7 @@ const submitOrder = async () => {
           <!-- Ползунок высоты (вертикальный справа) -->
           <div class="absolute overflow-visible flex items-center justify-center" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px;">
             <div class="relative flex-shrink-0" style="width: 20px; height: 280px;">
+              <!-- Тонкая серая линия (вращаем только сам инпут) -->
               <input type="range" min="200" max="2000" step="5" 
                      :value="store.config.height"
                      @input="(e) => { 
@@ -674,25 +675,27 @@ const submitOrder = async () => {
                      @touchstart="isDraggingHeight = true"
                      @mouseup="isDraggingHeight = false"
                      @touchend="isDraggingHeight = false"
-                     class="vertical-range hide-thumb"
-                     style="position: absolute; height: 100%; width: 20px; left: 50%; transform: translateX(-50%); margin: 0; -webkit-appearance: slider-vertical; appearance: slider-vertical; cursor: pointer;"/>
-              <div class="absolute pointer-events-none flex items-center justify-center"
+                     class="horizontal-range hide-thumb"
+                     style="position: absolute; width: 280px; height: 20px; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-90deg); margin: 0;"/>
+              
+              <!-- Кастомная точка и облачко (в нормальных координатах) -->
+              <div class="absolute pointer-events-none"
                    :style="{
                      left: '50%',
                      bottom: ((store.config.height - 200) / (2000 - 200) * 100) + '%',
                      transform: 'translate(-50%, 50%)',
                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                    }">
-                <!-- Точка ползунка -->
+                <!-- Точка -->
                 <div :style="{
                   width: (isDraggingHeight ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
                   height: (isDraggingHeight ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
                   backgroundColor: brandPrimary,
                   borderRadius: '50%',
                   boxShadow: `0 2px 6px ${brandPrimary}44`,
-                  transition: 'all 0.2s ease'
                 }"></div>
-                <!-- Облачко с цифрой (теперь всегда сверху точки) -->
+                
+                <!-- Облачко (всегда сверху точки) -->
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
                      :style="{
                        backgroundColor: brandPrimary,
@@ -703,7 +706,7 @@ const submitOrder = async () => {
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">
                   {{ store.config.height }}
-                  <!-- Хвостик облачка -->
+                  <!-- Хвостик -->
                   <div class="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
                        :style="{ borderTopColor: brandPrimary }"></div>
                 </div>
@@ -1640,23 +1643,6 @@ input[type="range"]::-webkit-slider-thumb {
   opacity: 0;
   width: 36px;
   height: 36px;
-}
-
-/* Стили для вертикального ползунка (убираем синий фон в Chrome/Safari) */
-.vertical-range {
-  -webkit-appearance: slider-vertical;
-  appearance: slider-vertical;
-  background: transparent !important;
-}
-.vertical-range::-webkit-slider-runnable-track {
-  background: #e5e7eb !important;
-  width: 3px !important;
-  border-radius: 9999px;
-}
-.vertical-range::-moz-range-track {
-  background: #e5e7eb !important;
-  width: 3px !important;
-  border-radius: 9999px;
 }
 
 /* Анимации для Мастера */

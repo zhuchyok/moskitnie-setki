@@ -695,16 +695,28 @@ const submitOrder = async () => {
                 }"></div>
                 <!-- Облачко с цифрой (теперь всегда сверху точки в экранных координатах) -->
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px] cursor-pointer pointer-events-auto"
-                     @click="startEditHeight"
+                     @click.stop="startEditHeight"
+                     @mousedown.stop
                      :style="{
                        backgroundColor: brandPrimary,
                        left: '50%',
                        top: '50%',
                        transform: isDraggingHeight ? 'translate(-50%, -50%) rotate(90deg) translateY(-32px) scale(1.1)' : 'translate(-50%, -50%) rotate(90deg) translateY(-32px)',
                        fontSize: '14px',
-                       boxShadow: `0 4px 12px ${brandPrimary}66`
+                       boxShadow: `0 4px 12px ${brandPrimary}66`,
+                       zIndex: 60
                      }">
-                  <span style="display: inline-block; white-space: nowrap;">{{ store.config.height }}</span>
+                  <input v-if="editingHeight"
+                         type="text"
+                         v-model="tempHeight"
+                         @blur="saveHeight"
+                         @keyup.enter="saveHeight"
+                         @click.stop
+                         @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
+                         class="w-12 bg-white text-center rounded outline-none font-black"
+                         :style="{ color: brandPrimary, transform: 'rotate(-90deg)' }"
+                         autofocus />
+                  <span v-else style="display: inline-block; white-space: nowrap;">{{ store.config.height }}</span>
                   <!-- Хвостик облачка (теперь смотрит вниз в экранных координатах) -->
                   <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
                        :style="{ borderTopColor: brandPrimary }"></div>
@@ -780,14 +792,26 @@ const submitOrder = async () => {
                 }"></div>
                 <!-- Облачко с цифрой -->
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px] cursor-pointer pointer-events-auto"
-                     @click="startEditWidth"
+                     @click.stop="startEditWidth"
+                     @mousedown.stop
                      :style="{
                        backgroundColor: brandPrimary,
                        bottom: '22px',
                        fontSize: '14px',
-                       boxShadow: `0 4px 12px ${brandPrimary}66`
+                       boxShadow: `0 4px 12px ${brandPrimary}66`,
+                       zIndex: 60
                      }">
-                  {{ store.config.width }}
+                  <input v-if="editingWidth"
+                         type="text"
+                         v-model="tempWidth"
+                         @blur="saveWidth"
+                         @keyup.enter="saveWidth"
+                         @click.stop
+                         @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
+                         class="w-12 bg-white text-center rounded outline-none font-black"
+                         :style="{ color: brandPrimary }"
+                         autofocus />
+                  <template v-else>{{ store.config.width }}</template>
                   <!-- Хвостик облачка -->
                   <div class="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
                        :style="{ borderTopColor: brandPrimary }"></div>

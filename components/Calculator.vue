@@ -676,12 +676,13 @@ const submitOrder = async () => {
                      @touchend="isDraggingHeight = false"
                      class="horizontal-range hide-thumb"
                      style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%); margin: 0;"/>
-              <div class="absolute pointer-events-none flex items-center justify-center"
+              <div class="absolute flex items-center justify-center"
                    :style="{
                      left: heightThumbCenter + 'px',
                      top: '50%',
                      transform: isDraggingHeight ? 'translate(-50%, -50%) scale(1.1)' : 'translate(-50%, -50%)',
                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                     zIndex: 50
                    }">
                 <!-- Точка ползунка -->
                 <div :style="{
@@ -760,12 +761,13 @@ const submitOrder = async () => {
                      @mouseup="isDraggingWidth = false"
                      @touchend="isDraggingWidth = false"
                      class="horizontal-range hide-thumb w-full"/>
-              <div class="absolute pointer-events-none flex items-center justify-center"
+              <div class="absolute flex items-center justify-center"
                    :style="{
                      left: widthThumbCenter + 'px',
                      top: '50%',
                      transform: isDraggingWidth ? 'translateX(-50%) translateY(-50%) scale(1.1)' : 'translateX(-50%) translateY(-50%)',
                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                     zIndex: 50
                    }">
                 <!-- Точка ползунка -->
                 <div :style="{

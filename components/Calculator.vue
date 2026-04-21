@@ -938,12 +938,8 @@ const submitOrder = async () => {
                     </template>
                   </ClientOnly>
                 </div>
-              </div>
 
-              <!-- Шаг 2: Опции + Метод замера -->
-              <div v-if="currentStep === 2" class="space-y-10 pt-2">
-
-                <!-- Ручки / Монтаж / Количество -->
+                <!-- Ручки / Монтаж / Количество (Перенесено с Шага 2) -->
                 <ClientOnly>
                   <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12" style="width: 100%">
                     
@@ -1039,9 +1035,10 @@ const submitOrder = async () => {
                     </div>
                   </template>
                 </ClientOnly>
+              </div>
 
-                <!-- Разделитель -->
-                <div class="border-t border-gray-100"></div>
+              <!-- Шаг 2: Метод замера -->
+              <div v-if="currentStep === 2" class="space-y-10 pt-2">
 
                 <!-- Метод замера -->
                 <div class="w-full min-w-0">

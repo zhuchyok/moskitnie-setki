@@ -1642,6 +1642,23 @@ input[type="range"]::-webkit-slider-thumb {
   height: 36px;
 }
 
+/* Стили для вертикального ползунка (убираем синий фон в Chrome/Safari) */
+.vertical-range {
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  background: transparent !important;
+}
+.vertical-range::-webkit-slider-runnable-track {
+  background: #e5e7eb !important;
+  width: 3px !important;
+  border-radius: 9999px;
+}
+.vertical-range::-moz-range-track {
+  background: #e5e7eb !important;
+  width: 3px !important;
+  border-radius: 9999px;
+}
+
 /* Анимации для Мастера */
 .fade-slide-enter-active,
 .fade-slide-leave-active {

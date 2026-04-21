@@ -1060,7 +1060,7 @@ const submitOrder = async () => {
                 <!-- Метод замера -->
                 <div class="w-full min-w-0">
                   <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Как вы измеряли?</label>
-                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-[760px] mx-auto">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-[740px] mx-auto">
                     <template v-for="m in measurementMethods" :key="m.id">
                           <div v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
                                class="flex flex-col gap-3">

@@ -873,8 +873,8 @@ const submitOrder = async () => {
                   </div>
                 </div>
 
-                <!-- Тип рамки -->
-                <div class="w-full min-w-0">
+                <!-- Тип рамки (скрыт для пользователей, доступен только в админке) -->
+                <div v-if="false" class="w-full min-w-0">
                   <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Тип рамки</label>
                   <ClientOnly>
                     <div class="grid grid-cols-2 gap-4" style="width: 100%">

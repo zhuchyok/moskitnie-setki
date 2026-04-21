@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
+import { useAuthStore } from '~/stores/auth'
+const auth = useAuthStore()
 const store = useOrderStore()
 const pricingStore = usePricingStore()
 const tenant = useTenantStore()
@@ -873,8 +875,8 @@ const submitOrder = async () => {
                   </div>
                 </div>
 
-                <!-- Тип рамки (скрыт для пользователей, доступен только в админке) -->
-                <div v-if="false" class="w-full min-w-0">
+                <!-- Тип рамки (скрыт для обычных пользователей, доступен для админов и дилеров) -->
+                <div v-if="auth.isAdmin || auth.user?.role === 'dealer' || auth.user?.role === 'subdealer'" class="w-full min-w-0">
                   <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Тип рамки</label>
                   <ClientOnly>
                     <div class="grid grid-cols-2 gap-4" style="width: 100%">

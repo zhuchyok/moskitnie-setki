@@ -1068,13 +1068,13 @@ const submitOrder = async () => {
                           <div v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
                                class="flex flex-col gap-4">
                             <!-- Картинка метода замера -->
-                            <div class="aspect-video rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-white relative"
+                            <div class="aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-white relative flex items-center justify-center p-2"
                                  :style="{ 
                                    borderColor: store.config.measurementMethod === m.id ? brandPrimary : '#f3f4f6',
                                    boxShadow: store.config.measurementMethod === m.id ? `0 10px 20px -5px ${brandPrimary}33` : 'none'
                                  }">
                               <img :src="m.image" :alt="m.name" 
-                                   class="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity" />
+                                   class="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-all duration-500 scale-110" />
                             </div>
 
                             <button @click="selectMeasurementMethod(m.id as any)"

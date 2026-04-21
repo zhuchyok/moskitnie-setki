@@ -1060,12 +1060,12 @@ const submitOrder = async () => {
                 <!-- Метод замера -->
                 <div class="w-full min-w-0">
                   <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Как вы измеряли?</label>
-                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-2xl mx-auto">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 w-full max-w-3xl mx-auto">
                     <template v-for="m in measurementMethods" :key="m.id">
                           <div v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
                                class="flex flex-col gap-3">
                             <!-- Картинка метода замера -->
-                            <div class="aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-white relative flex items-center justify-center p-4"
+                            <div class="aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-white relative flex items-center justify-center p-3"
                                  :style="{ 
                                    borderColor: store.config.measurementMethod === m.id ? brandPrimary : '#f3f4f6',
                                    boxShadow: store.config.measurementMethod === m.id ? `0 10px 20px -5px ${brandPrimary}33` : 'none'
@@ -1076,13 +1076,13 @@ const submitOrder = async () => {
 
                             <button @click="selectMeasurementMethod(m.id as any)"
                                     :class="[
-                                      'h-8 px-2 rounded-xl text-[8px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center measurement-method-btn',
+                                      'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center measurement-method-btn',
                                       store.config.measurementMethod === m.id
-                                        ? 'text-white border-transparent shadow-lg transform -translate-y-0.5'
+                                        ? 'text-white border-transparent shadow-xl transform -translate-y-0.5'
                                         : 'bg-white text-gray-400 border-gray-100'
                                     ]"
                                     :style="store.config.measurementMethod === m.id
-                                      ? { backgroundColor: brandPrimary, boxShadow: `0 15px 20px -5px ${brandPrimary}33` }
+                                      ? { backgroundColor: brandPrimary, boxShadow: `0 20px 25px -5px ${brandPrimary}33` }
                                       : { '--brand-primary': brandPrimary, color: store.config.measurementMethod === m.id ? 'white' : undefined, borderColor: store.config.measurementMethod === m.id ? 'transparent' : undefined }">
                               {{ m.name }}
                             </button>

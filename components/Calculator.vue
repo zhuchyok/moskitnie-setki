@@ -663,8 +663,7 @@ const submitOrder = async () => {
         <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
           <!-- Ползунок высоты (вертикальный справа) -->
           <div class="absolute overflow-visible flex items-center justify-center" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px;">
-            <div class="relative flex-shrink-0" style="width: 20px; height: 280px;">
-              <!-- Тонкая серая линия (вращаем только сам инпут) -->
+            <div class="relative flex-shrink-0" style="width: 280px; height: 20px; transform: rotate(-90deg); transform-origin: center center;">
               <input type="range" min="200" max="2000" step="5" 
                      :value="store.config.height"
                      @input="(e) => { 
@@ -676,37 +675,35 @@ const submitOrder = async () => {
                      @mouseup="isDraggingHeight = false"
                      @touchend="isDraggingHeight = false"
                      class="horizontal-range hide-thumb"
-                     style="position: absolute; width: 280px; height: 20px; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-90deg); margin: 0;"/>
-              
-              <!-- Кастомная точка и облачко (в нормальных координатах) -->
-              <div class="absolute pointer-events-none"
+                     style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%); margin: 0;"/>
+              <div class="absolute pointer-events-none flex items-center justify-center"
                    :style="{
-                     left: '50%',
-                     bottom: ((store.config.height - 200) / (2000 - 200) * 100) + '%',
-                     transform: 'translate(-50%, 50%)',
+                     left: heightThumbCenter + 'px',
+                     top: '50%',
+                     transform: 'translate(-50%, -50%)',
                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                    }">
-                <!-- Точка -->
+                <!-- Точка ползунка -->
                 <div :style="{
                   width: (isDraggingHeight ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
                   height: (isDraggingHeight ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
                   backgroundColor: brandPrimary,
                   borderRadius: '50%',
                   boxShadow: `0 2px 6px ${brandPrimary}44`,
+                  transition: 'all 0.2s ease'
                 }"></div>
-                
-                <!-- Облачко (всегда сверху точки) -->
+                <!-- Облачко с цифрой (всегда горизонтальное и над точкой) -->
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
                      :style="{
                        backgroundColor: brandPrimary,
                        bottom: '25px',
                        left: '50%',
-                       transform: 'translateX(-50%)',
+                       transform: 'translateX(-50%) rotate(90deg)',
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">
                   {{ store.config.height }}
-                  <!-- Хвостик -->
+                  <!-- Хвостик облачка -->
                   <div class="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
                        :style="{ borderTopColor: brandPrimary }"></div>
                 </div>

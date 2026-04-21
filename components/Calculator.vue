@@ -364,16 +364,16 @@ const startEditHeight = () => {
 }
 
 const saveWidth = () => {
-  let val = parseInt(tempWidth.value) || 350
-  val = Math.max(200, Math.min(9999, val))
+  let val = parseInt(String(tempWidth.value)) || 350
+  val = Math.max(200, Math.min(1500, val))
   store.updateConfig({ width: val })
   store.setMeasurementMethod('') // Сбрасываем метод замера при ручном изменении
   editingWidth.value = false
 }
 
 const saveHeight = () => {
-  let val = parseInt(tempHeight.value) || 1000
-  val = Math.max(200, Math.min(9999, val))
+  let val = parseInt(String(tempHeight.value)) || 1000
+  val = Math.max(200, Math.min(2000, val))
   store.updateConfig({ height: val })
   store.setMeasurementMethod('') // Сбрасываем метод замера при ручном изменении
   editingHeight.value = false

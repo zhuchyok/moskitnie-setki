@@ -678,18 +678,18 @@ const submitOrder = async () => {
                      style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%); margin: 0;"/>
               <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
                    :style="{
-                     width: (isDraggingHeight ? THUMB_SIZE : DOT_SIZE) + 'px',
-                     height: (isDraggingHeight ? THUMB_SIZE : DOT_SIZE) + 'px',
+                     width: (isDraggingHeight ? THUMB_SIZE : DOT_SIZE + 10) + 'px',
+                     height: (isDraggingHeight ? THUMB_SIZE : DOT_SIZE + 10) + 'px',
                      left: heightThumbCenter + 'px',
                      top: '50%',
                      transform: 'translate(-50%, -50%)',
                      backgroundColor: brandPrimary,
-                     boxShadow: isDraggingHeight ? `0 2px 12px ${brandPrimary}66` : `0 1px 4px ${brandPrimary}44`,
+                     boxShadow: isDraggingHeight ? `0 4px 15px ${brandPrimary}88` : `0 2px 6px ${brandPrimary}44`,
                      color: 'white',
-                     fontSize: isDraggingHeight ? '9px' : '0px',
-                     transition: 'width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease, font-size 0.1s ease',
+                     fontSize: isDraggingHeight ? '14px' : '11px',
+                     transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                    }">
-                <span v-if="isDraggingHeight">{{ store.config.height }}</span>
+                <span style="transform: rotate(90deg); display: inline-block;">{{ store.config.height }}</span>
               </div>
             </div>
           </div>
@@ -744,18 +744,18 @@ const submitOrder = async () => {
                      class="horizontal-range hide-thumb w-full"/>
               <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
                    :style="{
-                     width: (isDraggingWidth ? THUMB_SIZE : DOT_SIZE) + 'px',
-                     height: (isDraggingWidth ? THUMB_SIZE : DOT_SIZE) + 'px',
+                     width: (isDraggingWidth ? THUMB_SIZE : DOT_SIZE + 10) + 'px',
+                     height: (isDraggingWidth ? THUMB_SIZE : DOT_SIZE + 10) + 'px',
                      left: widthThumbCenter + 'px',
                      top: '50%',
                      transform: 'translateX(-50%) translateY(-50%)',
                      backgroundColor: brandPrimary,
-                     boxShadow: isDraggingWidth ? `0 2px 12px ${brandPrimary}66` : `0 1px 4px ${brandPrimary}44`,
+                     boxShadow: isDraggingWidth ? `0 4px 15px ${brandPrimary}88` : `0 2px 6px ${brandPrimary}44`,
                      color: 'white',
-                     fontSize: isDraggingWidth ? '9px' : '0px',
-                     transition: 'width 0.15s ease, height 0.15s ease, box-shadow 0.15s ease, font-size 0.1s ease',
+                     fontSize: isDraggingWidth ? '14px' : '11px',
+                     transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                    }">
-                <span v-if="isDraggingWidth">{{ store.config.width }}</span>
+                <span>{{ store.config.width }}</span>
               </div>
             </div>
           </div>

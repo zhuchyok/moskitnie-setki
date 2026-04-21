@@ -676,20 +676,36 @@ const submitOrder = async () => {
                      @touchend="isDraggingHeight = false"
                      class="horizontal-range hide-thumb"
                      style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%); margin: 0;"/>
-              <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
+              <div class="absolute pointer-events-none flex items-center justify-center"
                    :style="{
-                     width: (isDraggingHeight ? THUMB_SIZE : DOT_SIZE + 10) + 'px',
-                     height: (isDraggingHeight ? THUMB_SIZE : DOT_SIZE + 10) + 'px',
                      left: heightThumbCenter + 'px',
                      top: '50%',
                      transform: 'translate(-50%, -50%)',
-                     backgroundColor: brandPrimary,
-                     boxShadow: isDraggingHeight ? `0 4px 15px ${brandPrimary}88` : `0 2px 6px ${brandPrimary}44`,
-                     color: 'white',
-                     fontSize: isDraggingHeight ? '14px' : '11px',
                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                    }">
-                <span style="transform: rotate(90deg); display: inline-block;">{{ store.config.height }}</span>
+                <!-- Точка ползунка -->
+                <div :style="{
+                  width: (isDraggingHeight ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
+                  height: (isDraggingHeight ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
+                  backgroundColor: brandPrimary,
+                  borderRadius: '50%',
+                  boxShadow: `0 2px 6px ${brandPrimary}44`,
+                  transition: 'all 0.2s ease'
+                }"></div>
+                <!-- Облачко с цифрой (всегда горизонтальное) -->
+                <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
+                     :style="{
+                       backgroundColor: brandPrimary,
+                       right: '25px',
+                       transform: 'rotate(90deg)',
+                       fontSize: '14px',
+                       boxShadow: `0 4px 12px ${brandPrimary}66`
+                     }">
+                  {{ store.config.height }}
+                  <!-- Хвостик облачка -->
+                  <div class="absolute right-[-4px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-l-[4px]"
+                       :style="{ borderLeftColor: brandPrimary }"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -742,20 +758,35 @@ const submitOrder = async () => {
                      @mouseup="isDraggingWidth = false"
                      @touchend="isDraggingWidth = false"
                      class="horizontal-range hide-thumb w-full"/>
-              <div class="absolute pointer-events-none flex items-center justify-center rounded-full font-black leading-none"
+              <div class="absolute pointer-events-none flex items-center justify-center"
                    :style="{
-                     width: (isDraggingWidth ? THUMB_SIZE : DOT_SIZE + 10) + 'px',
-                     height: (isDraggingWidth ? THUMB_SIZE : DOT_SIZE + 10) + 'px',
                      left: widthThumbCenter + 'px',
                      top: '50%',
                      transform: 'translateX(-50%) translateY(-50%)',
-                     backgroundColor: brandPrimary,
-                     boxShadow: isDraggingWidth ? `0 4px 15px ${brandPrimary}88` : `0 2px 6px ${brandPrimary}44`,
-                     color: 'white',
-                     fontSize: isDraggingWidth ? '14px' : '11px',
                      transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                    }">
-                <span>{{ store.config.width }}</span>
+                <!-- Точка ползунка -->
+                <div :style="{
+                  width: (isDraggingWidth ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
+                  height: (isDraggingWidth ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
+                  backgroundColor: brandPrimary,
+                  borderRadius: '50%',
+                  boxShadow: `0 2px 6px ${brandPrimary}44`,
+                  transition: 'all 0.2s ease'
+                }"></div>
+                <!-- Облачко с цифрой -->
+                <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
+                     :style="{
+                       backgroundColor: brandPrimary,
+                       bottom: '25px',
+                       fontSize: '14px',
+                       boxShadow: `0 4px 12px ${brandPrimary}66`
+                     }">
+                  {{ store.config.width }}
+                  <!-- Хвостик облачка -->
+                  <div class="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
+                       :style="{ borderTopColor: brandPrimary }"></div>
+                </div>
               </div>
             </div>
           </div>

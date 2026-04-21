@@ -698,12 +698,12 @@ const submitOrder = async () => {
                        backgroundColor: brandPrimary,
                        left: '50%',
                        top: '50%',
-                       transform: 'translate(-50%, -50%) rotate(90deg) translateY(-35px)',
+                       transform: 'translate(-50%, -50%) rotate(90deg) translateY(-40px)',
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">
                   {{ store.config.height }}
-                  <!-- Хвостик облачка (теперь на боку, который после поворота станет низом) -->
+                  <!-- Хвостик облачка -->
                   <div class="absolute right-[-4px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent border-l-[4px]"
                        :style="{ borderLeftColor: brandPrimary }"></div>
                 </div>

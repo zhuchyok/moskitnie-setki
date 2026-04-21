@@ -693,12 +693,13 @@ const submitOrder = async () => {
                   transition: 'all 0.2s ease'
                 }"></div>
                 <!-- Облачко с цифрой (теперь всегда сверху точки в экранных координатах) -->
-                <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
+                <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px] cursor-pointer pointer-events-auto"
+                     @click="startEditHeight"
                      :style="{
                        backgroundColor: brandPrimary,
                        left: '50%',
                        top: '50%',
-                       transform: 'translate(-50%, -50%) rotate(90deg) translateY(-32px)',
+                       transform: isDraggingHeight ? 'translate(-50%, -50%) rotate(90deg) translateY(-32px) scale(1.1)' : 'translate(-50%, -50%) rotate(90deg) translateY(-32px)',
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">
@@ -776,7 +777,8 @@ const submitOrder = async () => {
                   transition: 'all 0.2s ease'
                 }"></div>
                 <!-- Облачко с цифрой -->
-                <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
+                <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px] cursor-pointer pointer-events-auto"
+                     @click="startEditWidth"
                      :style="{
                        backgroundColor: brandPrimary,
                        bottom: '22px',

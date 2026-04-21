@@ -692,19 +692,19 @@ const submitOrder = async () => {
                   boxShadow: `0 2px 6px ${brandPrimary}44`,
                   transition: 'all 0.2s ease'
                 }"></div>
-                <!-- Облачко с цифрой (теперь реально над точкой и со стрелкой вниз) -->
+                <!-- Облачко с цифрой (всегда горизонтальное и идеально над точкой) -->
                 <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px]"
                      :style="{
                        backgroundColor: brandPrimary,
-                       left: (heightThumbCenter) + 'px',
+                       left: '50%',
                        top: '50%',
-                       transform: 'translate(-50%, -50%) rotate(90deg) translate(-30px, -25px)',
+                       transform: 'translate(-50%, -50%) rotate(90deg) translateY(-40px)',
                        fontSize: '14px',
                        boxShadow: `0 4px 12px ${brandPrimary}66`
                      }">
                   {{ store.config.height }}
-                  <!-- Хвостик облачка (теперь снизу) -->
-                  <div class="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
+                  <!-- Хвостик облачка (теперь указывает вниз на точку после поворота) -->
+                  <div class="absolute left-1/2 -translate-x-1/2 bottom-[-4px] w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px] rotate-[-90deg]"
                        :style="{ borderTopColor: brandPrimary }"></div>
                 </div>
               </div>

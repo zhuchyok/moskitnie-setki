@@ -1092,15 +1092,15 @@ const submitOrder = async () => {
                   
                   <!-- Динамическая подсказка под кнопками -->
                   <div v-if="store.config.measurementMethod" 
-                       class="mt-5 p-5 rounded-2xl border animate-in fade-in slide-in-from-top-2 duration-300"
+                       class="mt-3 p-4 rounded-2xl border animate-in fade-in slide-in-from-top-2 duration-300"
                        :style="{ borderColor: brandPrimary + '1A', backgroundColor: brandPrimary + '0D' }">
-                    <div class="flex gap-4 items-start">
-                      <div class="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5" :style="{ backgroundColor: brandPrimary + '1A' }">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" :style="{ color: brandPrimary }">
+                    <div class="flex gap-3 items-start">
+                      <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" :style="{ backgroundColor: brandPrimary + '1A' }">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" :style="{ color: brandPrimary }">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
-                      <p class="text-[11px] font-bold leading-tight uppercase tracking-wider" :style="{ color: brandPrimary }">
+                      <p class="text-[9px] font-bold leading-tight uppercase tracking-wider" :style="{ color: brandPrimary }">
                         <template v-if="store.config.frameType === 'vstavnaya' && store.config.measurementMethod === 'proem'">
                           ИЗМЕРИЛИ ОТКРЫТЫЙ ПРОЕМ ОТ КРАЯ ДО КРАЯ РЕЗИНКИ. <br/>МЫ АВТОМАТИЧЕСКИ УВЕЛИЧИЛИ РАЗМЕР НА 17 ММ ПО ШИРИНЕ И 12 ММ ПО ВЫСОТЕ.
                         </template>

@@ -386,19 +386,22 @@ const measurementMethods = [
     id: 'stvorka', 
     name: 'По створке окна', 
     desc: 'ИЗМЕРИЛИ ВНУТРЕННЮЮ СТОРОНУ ЗАКРЫТОЙ СТВОРКИ. <br/>МЫ АВТОМАТИЧЕСКИ УМЕНЬШИЛИ РАЗМЕР НА 5 ММ ДЛЯ ПОЛУЧЕНИЯ ТОЧНЫХ ГАБАРИТОВ ГОТОВОГО ИЗДЕЛИЯ.',
-    image: '/images/measure-stvorka.png'
+    image: '/images/measure-methods.png',
+    crop: 'left'
   },
   { 
     id: 'proem', 
     name: 'По проему', 
     desc: 'ИЗМЕРИЛИ ОТКРЫТЫЙ ПРОЕМ ОТ КРАЯ ДО КРАЯ РЕЗИНКИ. <br/>МЫ АВТОМАТИЧЕСКИ УВЕЛИЧИЛИ РАЗМЕР НА 50 ММ ДЛЯ ПОЛУЧЕНИЯ ГАБАРИТОВ ГОТОВОЙ СЕТКИ.',
-    image: '/images/measure-proem.png'
+    image: '/images/measure-methods.png',
+    crop: 'center'
   },
   { 
     id: 'old_mesh', 
     name: 'По старой сетке', 
     desc: 'ВЫ УКАЗАЛИ ТОЧНЫЕ РАЗМЕРЫ ГОТОВОГО ИЗДЕЛИЯ. <br/>ИЗГОТОВИМ СЕТКУ СТРОГО ПО ЭТИМ ПАРАМЕТРАМ БЕЗ ДОПОЛНИТЕЛЬНЫХ КОРРЕКТИРОВОК.',
-    image: '/images/measure-old.png'
+    image: '/images/measure-methods.png',
+    crop: 'right'
   }
 ]
 
@@ -1068,12 +1071,16 @@ const submitOrder = async () => {
                           <div v-if="!(store.config.frameType === 'vstavnaya' && m.id === 'stvorka')"
                                class="flex flex-col gap-4">
                             <!-- Картинка метода замера -->
-                            <div class="aspect-video rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-gray-50"
+                            <div class="aspect-video rounded-2xl overflow-hidden border-2 transition-all duration-300 bg-gray-50 relative"
                                  :style="{ 
                                    borderColor: store.config.measurementMethod === m.id ? brandPrimary : '#f3f4f6',
                                    boxShadow: store.config.measurementMethod === m.id ? `0 10px 20px -5px ${brandPrimary}33` : 'none'
                                  }">
-                              <img :src="m.image" :alt="m.name" class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                              <img :src="m.image" :alt="m.name" 
+                                   class="absolute w-[300%] h-full max-w-none object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                   :style="{
+                                     left: m.crop === 'left' ? '0' : (m.crop === 'center' ? '-100%' : '-200%')
+                                   }" />
                             </div>
 
                             <button @click="selectMeasurementMethod(m.id as any)"

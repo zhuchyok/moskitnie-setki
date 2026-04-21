@@ -386,22 +386,19 @@ const measurementMethods = [
     id: 'stvorka', 
     name: 'По створке окна', 
     desc: 'ИЗМЕРИЛИ ВНУТРЕННЮЮ СТОРОНУ ЗАКРЫТОЙ СТВОРКИ. <br/>МЫ АВТОМАТИЧЕСКИ УМЕНЬШИЛИ РАЗМЕР НА 5 ММ ДЛЯ ПОЛУЧЕНИЯ ТОЧНЫХ ГАБАРИТОВ ГОТОВОГО ИЗДЕЛИЯ.',
-    image: '/images/measure-methods-clean.png',
-    crop: 'left'
+    image: '/images/measure-stvorka.png'
   },
   { 
     id: 'proem', 
     name: 'По проему', 
     desc: 'ИЗМЕРИЛИ ОТКРЫТЫЙ ПРОЕМ ОТ КРАЯ ДО КРАЯ РЕЗИНКИ. <br/>МЫ АВТОМАТИЧЕСКИ УВЕЛИЧИЛИ РАЗМЕР НА 50 ММ ДЛЯ ПОЛУЧЕНИЯ ГАБАРИТОВ ГОТОВОЙ СЕТКИ.',
-    image: '/images/measure-methods-clean.png',
-    crop: 'center'
+    image: '/images/measure-proem.png'
   },
   { 
     id: 'old_mesh', 
     name: 'По старой сетке', 
     desc: 'ВЫ УКАЗАЛИ ТОЧНЫЕ РАЗМЕРЫ ГОТОВОГО ИЗДЕЛИЯ. <br/>ИЗГОТОВИМ СЕТКУ СТРОГО ПО ЭТИМ ПАРАМЕТРАМ БЕЗ ДОПОЛНИТЕЛЬНЫХ КОРРЕКТИРОВОК.',
-    image: '/images/measure-methods-clean.png',
-    crop: 'right'
+    image: '/images/measure-old.png'
   }
 ]
 
@@ -1077,10 +1074,7 @@ const submitOrder = async () => {
                                    boxShadow: store.config.measurementMethod === m.id ? `0 10px 20px -5px ${brandPrimary}33` : 'none'
                                  }">
                               <img :src="m.image" :alt="m.name" 
-                                   class="absolute w-[300%] h-full max-w-none object-contain opacity-90 group-hover:opacity-100 transition-opacity"
-                                   :style="{
-                                     left: m.crop === 'left' ? '0' : (m.crop === 'center' ? '-100%' : '-200%')
-                                   }" />
+                                   class="w-full h-full object-contain opacity-90 group-hover:opacity-100 transition-opacity" />
                             </div>
 
                             <button @click="selectMeasurementMethod(m.id as any)"

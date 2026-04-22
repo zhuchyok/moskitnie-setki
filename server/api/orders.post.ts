@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
     let dealerData: any = null
 
     try {
-      const apiUrl = process.env.API_URL || 'http://moskit-api:8080'
+      const apiUrl = process.env.API_URL || 'http://setki21-api-new:8080'
       
       // Получаем данные дилера для письма (город, название)
       if (trimmed.dealer_id) {

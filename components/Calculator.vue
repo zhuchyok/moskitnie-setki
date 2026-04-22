@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import ExtraServices from '~/components/calculator/ExtraServices.vue'
+import Visualizer from '~/components/calculator/Visualizer.vue'
 import { useAuthStore } from '~/stores/auth'
 const auth = useAuthStore()
 const store = useOrderStore()
@@ -627,219 +628,32 @@ const submitOrder = async () => {
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 h-auto lg:min-h-[680px] lg:h-[740px]">
       <!-- Визуализация (Левая часть) -->
       <div class="lg:w-4/12 bg-gray-50/50 p-10 flex flex-col items-center justify-center relative border-r border-gray-100 h-full">
-        <!-- Размеры над сеткой -->
-        <div class="mb-5 flex gap-8 justify-center w-full text-[13px] font-black uppercase tracking-widest text-gray-500">
-          <!-- Ширина -->
-          <div class="flex items-center gap-2 group" :style="{ '--brand-primary': brandPrimary }">
-            <span class="w-3 h-3 rounded-full flex-shrink-0 transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
-            <div class="flex items-baseline gap-1">
-              <input v-if="editingWidth" 
-                     type="text" 
-                     v-model="tempWidth" 
-                     @blur="saveWidth" 
-                     @keyup.enter="saveWidth"
-                     @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
-                     maxlength="4"
-                     class="w-16 text-base font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
-                     :style="{ color: brandPrimary, borderColor: brandPrimary }"
-                     autofocus />
-              <span v-else 
-                    @click="startEditWidth" 
-                    class="text-base font-black border-b border-dashed border-gray-300 transition-colors cursor-pointer"
-                    :style="{ color: brandPrimary }">
-                {{ store.config.width }}
-              </span>
-              <small class="text-[10px] text-gray-400 ml-0.5 font-bold">ММ</small>
-            </div>
-          </div>
-
-          <!-- Высота -->
-          <div class="flex items-center gap-2 group" :style="{ '--brand-primary': brandPrimary }">
-            <span class="w-3 h-3 rounded-full flex-shrink-0 transition-transform group-hover:scale-125" :style="{ backgroundColor: brandPrimary, boxShadow: `0 4px 6px -1px ${brandPrimary}66` }"></span>
-            <div class="flex items-baseline gap-1">
-              <input v-if="editingHeight" 
-                     type="text" 
-                     v-model="tempHeight" 
-                     @blur="saveHeight" 
-                     @keyup.enter="saveHeight"
-                     @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
-                     maxlength="4"
-                     class="w-16 text-base font-black text-center bg-blue-50 border-b-2 outline-none py-0.5" 
-                     :style="{ color: brandPrimary, borderColor: brandPrimary }"
-                     autofocus />
-              <span v-else 
-                    @click="startEditHeight" 
-                    class="text-base font-black border-b border-dashed border-gray-300 transition-colors cursor-pointer"
-                    :style="{ color: brandPrimary }">
-                {{ store.config.height }}
-              </span>
-              <small class="text-[10px] text-gray-400 ml-0.5 font-bold">ММ</small>
-            </div>
-          </div>
-        </div>
-        <!-- Контейнер для сетки и ползунков -->
-        <div class="relative flex items-center justify-center w-full h-full max-w-[320px] max-h-[450px]">
-          <!-- Ползунок высоты (вертикальный справа) -->
-          <div class="absolute overflow-visible flex items-center justify-center" style="right: -2.5rem; top: 12.5%; height: 75%; width: 20px;">
-            <div class="relative flex-shrink-0" style="width: 280px; height: 20px; transform: rotate(-90deg); transform-origin: center center;">
-              <input type="range" min="200" max="2000" step="5" 
-                     :value="store.config.height"
-                     @input="(e) => { 
-                       store.updateConfig({ height: parseInt((e.target as HTMLInputElement).value) });
-                       store.setMeasurementMethod('');
-                     }"
-                     @mousedown="isDraggingHeight = true"
-                     @touchstart="isDraggingHeight = true"
-                     @mouseup="isDraggingHeight = false"
-                     @touchend="isDraggingHeight = false"
-                     class="horizontal-range hide-thumb"
-                     style="position: absolute; width: 100%; top: 50%; transform: translateY(-50%); margin: 0;"/>
-              <div class="absolute flex items-center justify-center pointer-events-none"
-                   :style="{
-                     left: heightThumbCenter + 'px',
-                     top: '50%',
-                     transform: isDraggingHeight ? 'translate(-50%, -50%) scale(1.1)' : 'translate(-50%, -50%)',
-                     transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                     zIndex: 50
-                   }">
-                <!-- Точка ползунка -->
-                <div :style="{
-                  width: (isDraggingHeight ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
-                  height: (isDraggingHeight ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
-                  backgroundColor: brandPrimary,
-                  borderRadius: '50%',
-                  boxShadow: `0 2px 6px ${brandPrimary}44`,
-                  transition: 'all 0.2s ease'
-                }"></div>
-                <!-- Облачко с цифрой (теперь всегда сверху точки в экранных координатах) -->
-                <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px] cursor-pointer pointer-events-auto"
-                     @click.stop="startEditHeight"
-                     @mousedown.stop
-                     @touchstart.stop
-                     :style="{
-                       backgroundColor: brandPrimary,
-                       left: '50%',
-                       top: '50%',
-                       transform: isDraggingHeight ? 'translate(-50%, -50%) rotate(90deg) translateY(-32px) scale(1.1)' : 'translate(-50%, -50%) rotate(90deg) translateY(-32px)',
-                       fontSize: '14px',
-                       boxShadow: `0 4px 12px ${brandPrimary}66`,
-                       zIndex: 60
-                     }">
-                  <input v-if="editingHeight"
-                         type="text"
-                         v-model="tempHeight"
-                         @blur="saveHeight"
-                         @keyup.enter="saveHeight"
-                         @click.stop
-                         @input="tempHeight = String(tempHeight).replace(/\D/g, '').slice(0, 4)"
-                         class="w-12 bg-white text-center rounded outline-none font-black"
-                         :style="{ color: brandPrimary }"
-                         autofocus />
-                  <span v-else style="display: inline-block; white-space: nowrap;">{{ store.config.height }}</span>
-                  <!-- Хвостик облачка (теперь смотрит вниз в экранных координатах) -->
-                  <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
-                       :style="{ borderTopColor: brandPrimary }"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Основная рамка сетки -->
-          <div class="relative border-[8px] bg-white shadow-2xl transition-all duration-500 ease-out flex items-center justify-center overflow-hidden"
-               :style="{ 
-                 width: Math.min(280, Math.max(150, store.config.width / 4)) + 'px', 
-                 height: Math.min(350, Math.max(200, store.config.height / 4)) + 'px',
-                 borderColor: frameColor
-               }">
-            <!-- Сетка линиями (эффект плетения) - ТЕПЕРЬ НА ЗАДНЕМ ПЛАНЕ -->
-            <div class="absolute inset-0 transition-all duration-500 z-0"
-                 :style="{ 
-                   backgroundImage: `
-                     linear-gradient(to right, #000 ${meshThickness}, transparent ${meshThickness}),
-                     linear-gradient(to bottom, #000 ${meshThickness}, transparent ${meshThickness})
-                   `,
-                   backgroundSize: meshSize + 'px ' + meshSize + 'px',
-                   opacity: meshOpacity
-                 }"></div>
-            
-            <!-- Перегородка посередине - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-            <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-2 transition-colors duration-500 z-10 shadow-sm"
-                 :style="{ backgroundColor: frameColor }"></div>
-            
-            <!-- Ручки для вставной (сверху и снизу) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-            <template v-if="store.config.frameType === 'vstavnaya'">
-              <div class="absolute top-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mt-2.5 z-20"></div>
-              <div class="absolute bottom-0 left-1/2 -translate-x-1/2 h-5 w-1.5 bg-brand-dark/50 rounded-full -mb-2.5 z-20"></div>
-            </template>
-            <!-- Ручки для остальных (по бокам, чуть ниже перегородки) - ТЕПЕРЬ НА ПЕРЕДНЕМ ПЛАНЕ -->
-            <template v-else>
-              <div class="absolute left-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -ml-2.5 z-20"></div>
-              <div class="absolute right-0 top-[55%] w-5 h-1.5 bg-brand-dark/50 rounded-full -mr-2.5 z-20"></div>
-            </template>
-          </div>
-
-          <!-- Ползунок ширины (горизонтальный снизу) -->
-          <div class="absolute left-1/2 -translate-x-1/2" style="width: 210px; bottom: -38px;">
-            <div class="relative w-full flex items-center" :style="{ height: THUMB_SIZE + 'px' }">
-              <input type="range" min="200" max="1500" step="5" 
-                     :value="store.config.width"
-                     @input="(e) => { 
-                       store.updateConfig({ width: parseInt((e.target as HTMLInputElement).value) });
-                       store.setMeasurementMethod('');
-                     }"
-                     @mousedown="isDraggingWidth = true"
-                     @touchstart="isDraggingWidth = true"
-                     @mouseup="isDraggingWidth = false"
-                     @touchend="isDraggingWidth = false"
-                     class="horizontal-range hide-thumb w-full"/>
-              <div class="absolute flex items-center justify-center pointer-events-none"
-                   :style="{
-                     left: widthThumbCenter + 'px',
-                     top: '50%',
-                     transform: isDraggingWidth ? 'translateX(-50%) translateY(-50%) scale(1.1)' : 'translateX(-50%) translateY(-50%)',
-                     transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                     zIndex: 50
-                   }">
-                <!-- Точка ползунка -->
-                <div :style="{
-                  width: (isDraggingWidth ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
-                  height: (isDraggingWidth ? DOT_SIZE + 4 : DOT_SIZE + 2) + 'px',
-                  backgroundColor: brandPrimary,
-                  borderRadius: '50%',
-                  boxShadow: `0 2px 6px ${brandPrimary}44`,
-                  transition: 'all 0.2s ease'
-                }"></div>
-                <!-- Облачко с цифрой -->
-                <div class="absolute font-black text-white px-2 py-1 rounded-lg shadow-xl flex items-center justify-center min-w-[45px] cursor-pointer pointer-events-auto"
-                     @click.stop="startEditWidth"
-                     @mousedown.stop
-                     @touchstart.stop
-                     :style="{
-                       backgroundColor: brandPrimary,
-                       bottom: '22px',
-                       fontSize: '14px',
-                       boxShadow: `0 4px 12px ${brandPrimary}66`,
-                       zIndex: 60
-                     }">
-                  <input v-if="editingWidth"
-                         type="text"
-                         v-model="tempWidth"
-                         @blur="saveWidth"
-                         @keyup.enter="saveWidth"
-                         @click.stop
-                         @input="tempWidth = String(tempWidth).replace(/\D/g, '').slice(0, 4)"
-                         class="w-12 bg-white text-center rounded outline-none font-black"
-                         :style="{ color: brandPrimary }"
-                         autofocus />
-                  <template v-else>{{ store.config.width }}</template>
-                  <!-- Хвостик облачка -->
-                  <div class="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[4px]"
-                       :style="{ borderTopColor: brandPrimary }"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Visualizer
+          v-model:width="store.config.width"
+          v-model:height="store.config.height"
+          v-model:isDraggingWidth="isDraggingWidth"
+          v-model:isDraggingHeight="isDraggingHeight"
+          v-model:tempWidth="tempWidth"
+          v-model:tempHeight="tempHeight"
+          :frameColor="frameColor"
+          :brandPrimary="brandPrimary"
+          :editingWidth="editingWidth"
+          :editingHeight="editingHeight"
+          :heightThumbCenter="heightThumbCenter"
+          :widthThumbCenter="widthThumbCenter"
+          :dotSize="DOT_SIZE"
+          :thumbSize="THUMB_SIZE"
+          :vSliderW="V_SLIDER_W"
+          :hSliderW="H_SLIDER_W"
+          :meshThickness="meshThickness"
+          :meshSize="meshSize"
+          :meshOpacity="meshOpacity"
+          :frameType="store.config.frameType"
+          @startEditWidth="startEditWidth"
+          @startEditHeight="startEditHeight"
+          @saveWidth="saveWidth"
+          @saveHeight="saveHeight"
+        />
       </div>
 
       <div class="lg:w-8/12 px-10 md:px-16 pt-12 pb-8 lg:pb-8 flex flex-col justify-start min-w-0 overflow-hidden">
@@ -1831,5 +1645,29 @@ button.option-arrow:hover {
 }
 .calc-link-brand:hover {
   opacity: 0.7 !important;
+}
+
+/* Глобальные стили для ползунков (используются в Visualizer.vue) */
+:deep(.horizontal-range) {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  background: #e5e7eb;
+  border-radius: 9999px;
+  outline: none;
+  cursor: pointer;
+}
+
+:deep(.hide-thumb::-webkit-slider-thumb) {
+  -webkit-appearance: none;
+  opacity: 0;
+  width: 60px;
+  height: 60px;
+}
+
+:deep(.hide-thumb::-moz-range-thumb) {
+  opacity: 0;
+  width: 60px;
+  height: 60px;
 }
 </style>

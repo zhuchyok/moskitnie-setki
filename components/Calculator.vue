@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import ExtraServices from '~/components/calculator/ExtraServices.vue'
+import ParameterSelectors from '~/components/calculator/ParameterSelectors.vue'
 import Visualizer from '~/components/calculator/Visualizer.vue'
 import { useAuthStore } from '~/stores/auth'
 const auth = useAuthStore()
@@ -682,92 +683,19 @@ const submitOrder = async () => {
             <div :key="currentStep" class="space-y-10 pb-4">
               <!-- Шаг 1: Конфигурация -->
               <div v-if="currentStep === 1" class="space-y-10 flex flex-col h-full">
-                <!-- Тип полотна -->
-                <div class="w-full min-w-0">
-                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Тип полотна</label>
-                  <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full">
-                    <button v-for="t in types" :key="t.id"
-                            @click="selectType(t.id, t.name)"
-                            :class="[
-                              'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap flex items-center justify-center',
-                              store.config.type === t.id 
-                                ? 'text-white border-transparent shadow-2xl transform -translate-y-1' 
-                                : 'bg-white text-gray-400 border-gray-100'
-                            ]"
-                            :style="store.config.type === t.id 
-                              ? { backgroundColor: brandPrimary, boxShadow: `0 25px 50px -12px ${brandPrimary}4D` }
-                              : { 
-                                '--hover-border-color': brandPrimary + '33',
-                                '--hover-text-color': brandPrimary
-                              }">
-                      {{ t.name }}
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Тип рамки (скрыт для обычных пользователей, доступен для админов и дилеров) -->
-                <div v-if="auth.isAdmin || auth.user?.role === 'dealer' || auth.user?.role === 'subdealer'" class="w-full min-w-0">
-                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Тип рамки</label>
-                  <ClientOnly>
-                    <div class="grid grid-cols-2 gap-4" style="width: 100%">
-                      <button v-for="ft in frameTypes" :key="ft.id"
-                              @click="selectFrameType(ft.id)"
-                              :class="[
-                                'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest text-center whitespace-nowrap w-full flex items-center justify-center',
-                                store.config.frameType === ft.id 
-                                  ? 'text-white border-transparent shadow-xl transform -translate-y-0.5' 
-                                  : 'bg-white text-gray-400 border-gray-100'
-                              ]"
-                              :style="store.config.frameType === ft.id
-                                ? { backgroundColor: brandPrimary, boxShadow: `0 20px 25px -5px ${brandPrimary}33` }
-                                : { 
-                                  '--hover-border-color': brandPrimary + '33',
-                                  '--hover-text-color': brandPrimary
-                                }">
-                        {{ ft.name }}
-                      </button>
-                    </div>
-                    <template #fallback>
-                      <div class="grid grid-cols-2 gap-4 h-[52px]" style="width: 100%" aria-hidden="true">
-                        <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse" />
-                        <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse" />
-                      </div>
-                    </template>
-                  </ClientOnly>
-                </div>
-
-                <!-- Цвет рамки -->
-                <div class="w-full min-w-0">
-                  <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-5">Цвет рамки</label>
-                  <ClientOnly>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" style="width: 100%">
-                      <button v-for="color in colors" :key="color.id"
-                              @click="selectColor(color.id)"
-                              :class="[
-                                'h-10 px-2 rounded-2xl text-[10px] font-black transition-all border-2 uppercase tracking-widest whitespace-nowrap w-full flex items-center justify-center',
-                                store.config.color === color.id 
-                                  ? 'text-white border-transparent shadow-xl transform -translate-y-0.5' 
-                                  : 'bg-white text-gray-400 border-gray-100'
-                              ]"
-                              :style="store.config.color === color.id
-                                ? { backgroundColor: brandPrimary, boxShadow: `0 20px 25px -5px ${brandPrimary}33` }
-                                : { 
-                                  '--hover-border-color': brandPrimary + '33',
-                                  '--hover-text-color': brandPrimary
-                                }">
-                        {{ color.name }}
-                      </button>
-                    </div>
-                    <template #fallback>
-                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 h-[52px]" style="width: 100%" aria-hidden="true">
-                        <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse" />
-                        <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse" />
-                        <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse hidden sm:block" />
-                        <div class="rounded-2xl border-2 border-gray-100 bg-gray-50 animate-pulse hidden sm:block" />
-                      </div>
-                    </template>
-                  </ClientOnly>
-                </div>
+                <ParameterSelectors
+                  :types="types"
+                  :frame-types="frameTypes"
+                  :colors="colors"
+                  :selected-type="store.config.type"
+                  :selected-frame-type="store.config.frameType"
+                  :selected-color="store.config.color"
+                  :brand-primary="brandPrimary"
+                  :is-admin-or-dealer="auth.isAdmin || auth.user?.role === 'dealer' || auth.user?.role === 'subdealer'"
+                  @select-type="selectType"
+                  @select-frame-type="selectFrameType"
+                  @select-color="selectColor"
+                />
 
                 <!-- Ручки / Монтаж / Количество (Перенесено с Шага 2) -->
                 <div class="flex-1 flex flex-col justify-center py-4">

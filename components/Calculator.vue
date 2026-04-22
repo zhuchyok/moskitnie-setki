@@ -2,6 +2,7 @@
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import ExtraServices from '~/components/calculator/ExtraServices.vue'
 import ParameterSelectors from '~/components/calculator/ParameterSelectors.vue'
+import QuickOptions from '~/components/calculator/QuickOptions.vue'
 import Visualizer from '~/components/calculator/Visualizer.vue'
 import { useAuthStore } from '~/stores/auth'
 const auth = useAuthStore()
@@ -700,83 +701,12 @@ const submitOrder = async () => {
                 <!-- Ручки / Монтаж / Количество (Перенесено с Шага 2) -->
                 <div class="flex-1 flex flex-col justify-center py-4">
                   <ClientOnly>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12" style="width: 100%">
-                      
-                      <!-- Тип ручек -->
-                      <div class="min-w-0">
-                        <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Тип ручек</p>
-                        <div class="flex items-center justify-center gap-2 sm:gap-3 min-h-[50px]">
-                          <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
-                                  class="transition-colors active:scale-90 option-arrow" :style="{ '--brand-primary': brandPrimary, '--hover-text-color': brandPrimary }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                            </svg>
-                          </button>
-                          <div class="flex items-baseline justify-center min-w-[80px]">
-                            <span class="font-black text-2xl leading-none transition-colors uppercase cursor-pointer select-none option-value" :style="{ color: brandPrimary }" @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })">
-                              {{ store.config.handleType === 'pvc' ? 'ПВХ' : 'МЕТАЛ' }}
-                            </span>
-                          </div>
-                          <button @click="store.updateConfig({ handleType: store.config.handleType === 'pvc' ? 'metal' : 'pvc' })"
-                                  class="transition-colors active:scale-90 option-arrow" :style="{ '--brand-primary': brandPrimary, '--hover-text-color': brandPrimary }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Монтаж -->
-                      <div class="min-w-0">
-                        <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Монтаж</p>
-                        <div class="flex items-center justify-center gap-3 min-h-[50px]">
-                          <button @click="store.updateConfig({ installation: !store.config.installation })"
-                                  class="transition-colors active:scale-90 option-arrow" :style="{ '--brand-primary': brandPrimary, '--hover-text-color': brandPrimary }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                            </svg>
-                          </button>
-                          <div class="flex items-baseline justify-center min-w-[60px]">
-                            <span class="font-black text-2xl leading-none transition-colors uppercase cursor-pointer select-none option-value" :style="{ color: brandPrimary }" @click="store.updateConfig({ installation: !store.config.installation })">
-                              {{ store.config.installation ? 'ДА' : 'НЕТ' }}
-                            </span>
-                          </div>
-                          <button @click="store.updateConfig({ installation: !store.config.installation })"
-                                  class="transition-colors active:scale-90 option-arrow" :style="{ '--brand-primary': brandPrimary, '--hover-text-color': brandPrimary }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <!-- Количество -->
-                      <div class="min-w-0">
-                        <p class="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em] mb-5 text-center">Количество</p>
-                        <div class="flex items-center justify-center gap-3 min-h-[50px]">
-                          <button @click="store.updateConfig({ count: Math.max(1, store.config.count - 1) })"
-                                  class="transition-colors active:scale-90 option-arrow" :style="{ '--brand-primary': brandPrimary, '--hover-text-color': brandPrimary }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                            </svg>
-                          </button>
-                          <div class="flex items-baseline justify-center min-w-[40px]">
-                            <input type="text" 
-                                   v-model.number="store.config.count"
-                                   @input="store.config.count = Math.max(1, parseInt(String(store.config.count)) || 1)"
-                                   class="w-12 text-center bg-transparent border-none focus:outline-none font-black text-2xl leading-none transition-colors option-value"
-                                   :style="{ color: brandPrimary }" />
-                          </div>
-                          <button @click="store.updateConfig({ count: store.config.count + 1 })"
-                                  class="transition-colors active:scale-90 option-arrow" :style="{ '--brand-primary': brandPrimary, '--hover-text-color': brandPrimary }">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                    </div>
+                    <QuickOptions
+                      v-model:handle-type="store.config.handleType"
+                      v-model:installation="store.config.installation"
+                      v-model:count="store.config.count"
+                      :brand-primary="brandPrimary"
+                    />
                     <template #fallback>
                       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12 h-[120px]" style="width: 100%" aria-hidden="true">
                         <div class="flex flex-col items-center gap-2">

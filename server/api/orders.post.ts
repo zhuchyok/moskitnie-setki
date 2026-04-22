@@ -55,11 +55,12 @@ export default defineEventHandler(async (event) => {
 
     try {
       const apiUrl = process.env.API_URL || 'http://setki21-api-new:8080'
+      const cleanApiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl
       
       // Получаем данные дилера для письма (город, название)
       if (trimmed.dealer_id) {
         try {
-          dealerData = await $fetch(`${apiUrl}/api/v1/tenant/config`, {
+          dealerData = await $fetch(`${cleanApiUrl}/api/v1/tenant/config`, {
             headers: { 'host': getHeader(event, 'host') || '' },
             query: { dealer_id: trimmed.dealer_id }
           })
@@ -88,7 +89,7 @@ export default defineEventHandler(async (event) => {
         })
       }
 
-      const dbResponse: any = await $fetch(`${apiUrl}/api/v1/dealer/orders`, {
+      const dbResponse: any = await $fetch(`${cleanApiUrl}/api/v1/dealer/orders`, {
         method: 'POST',
         body: orderPayload
       })

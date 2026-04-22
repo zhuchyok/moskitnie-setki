@@ -90,11 +90,11 @@ export const useTenantStore = defineStore('tenant', () => {
       }
 
       // Используем полный URL для SSR всегда.
-      const ssrBaseUrl = runtimeConfig.public.apiBase || 'http://setki21-api-new:8080/api'
-      const cleanSsrBaseUrl = ssrBaseUrl.endsWith('/') ? ssrBaseUrl.slice(0, -1) : ssrBaseUrl
+      const ssrBaseUrl = runtimeConfig.public.apiBase
+      const cleanSsrBaseUrl = ssrBaseUrl?.endsWith('/') ? ssrBaseUrl.slice(0, -1) : ssrBaseUrl
       
       // Если на сервере ssrBaseUrl не начинается с http, значит переменная не задана корректно
-      const isAbsolute = cleanSsrBaseUrl.startsWith('http')
+      const isAbsolute = cleanSsrBaseUrl?.startsWith('http')
       
       const finalFetchPath = (import.meta.server && isAbsolute)
         ? `${cleanSsrBaseUrl}/v1/tenant/config` 
@@ -111,7 +111,7 @@ export const useTenantStore = defineStore('tenant', () => {
         let fetchUrl = finalFetchPath
         if (!fetchUrl.startsWith('http')) {
           // Фолбек если что-то пошло не так с конфигом
-          fetchUrl = `http://setki21-api-new:8080/api/v1/tenant/config`
+          fetchUrl = `${runtimeConfig.public.apiBase}/v1/tenant/config`
         }
           
         try {

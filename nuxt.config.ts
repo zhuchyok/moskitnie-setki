@@ -83,7 +83,7 @@ export default defineNuxtConfig({
       // apiUrl: пустая строка = same-origin (/api на текущем домене).
       // apiBase: для SSR используем внутренний URL (http://api:8080/api), для клиента — /api.
       apiUrl: process.env.NUXT_PUBLIC_API_URL || '',
-      apiBase: process.env.API_URL ? process.env.API_URL + '/api' : '/api'
+      apiBase: process.env.API_URL ? process.env.API_URL + '/api' : 'http://setki21-api-new:8080/api'
     }
   },
   build: {

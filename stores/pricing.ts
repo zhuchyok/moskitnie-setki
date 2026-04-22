@@ -53,7 +53,7 @@ export const usePricingStore = defineStore('pricing', {
 
       if (import.meta.server && !finalUrl.startsWith('http')) {
         // Фолбек для SSR
-        finalUrl = `http://setki21-api-new:8080/api/v1/pricing`
+        finalUrl = `${runtimeConfig.public.apiBase}/v1/pricing`
       }
 
       if (import.meta.server) {

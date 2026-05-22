@@ -6,7 +6,11 @@
 
 1. **Quality-gate smoke**
    - Команда: `npm run cro:quality-gate:ci`
-   - Ожидание: `status=PASS`, `passed=16/16`.
+   - Ожидание: `status=PASS`, `passed=total`.
+   - Автоподхват доменов новых дилеров:
+     - опционально `CRO_GATE_DEALERS_API_URL` (по умолчанию `https://setki21.ru/api/v1/admin/dealers`)
+     - опционально `CRO_GATE_BEARER_TOKEN` (если endpoint защищен в будущем)
+   - При недоступности API используется fallback-список доменов в скрипте.
 2. **Build**
    - Команда: `npm run build`
    - Ожидание: успешная сборка без критичных ошибок.
@@ -46,3 +50,12 @@
 - Файлы отчетов:
   - `docs/reports/cro-quality-gates/<timestamp>.json`
   - `docs/reports/cro-quality-gates/<timestamp>.md`
+
+## 5. Полная автоматизация (daily)
+
+- Настроен GitHub Actions workflow: `.github/workflows/cro-quality-gate.yml`
+- Автозапуск: ежедневно `03:15 UTC` + ручной `workflow_dispatch`.
+- В workflow:
+  - автоподхват доменов из `https://setki21.ru/api/v1/admin/dealers`,
+  - прогон `npm run cro:quality-gate`,
+  - сохранение отчетов в artifacts (retention 14 дней).

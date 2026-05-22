@@ -1,5 +1,6 @@
 type TrafficSegment = 'paid' | 'organic'
 type ExperimentVariant = 'A' | 'B'
+type RolloutWave = 'wave100'
 
 const PAID_UTM_MEDIUMS = new Set([
   'cpc',
@@ -36,6 +37,7 @@ function hasPaidQueryMarkers(query: Record<string, unknown>): boolean {
 
 export function useTrafficExperiment() {
   const route = useRoute()
+  const requestUrl = useRequestURL()
   const paidTrafficCookie = useCookie<'yes' | undefined>('paid_traffic', {
     maxAge: 60 * 60 * 24 * 30,
     sameSite: 'lax',
@@ -49,6 +51,16 @@ export function useTrafficExperiment() {
     maxAge: 60 * 60 * 24 * 30,
     sameSite: 'lax',
   })
+
+  const currentHost = computed(() => {
+    if (import.meta.client) {
+      return window.location.hostname.toLowerCase().replace(/^www\./, '')
+    }
+    return (requestUrl?.hostname || '').toLowerCase().replace(/^www\./, '')
+  })
+
+  const isWave100Enabled = computed(() => Boolean(currentHost.value))
+  const rolloutWave = computed<RolloutWave>(() => 'wave100')
 
   const hasPaidMarkers = computed(() => hasPaidQueryMarkers(route.query as Record<string, unknown>))
 
@@ -84,7 +96,10 @@ export function useTrafficExperiment() {
 
   const paidVariant = computed<ExperimentVariant>(() => paidVariantCookie.value || 'A')
   const organicVariant = computed<ExperimentVariant>(() => organicVariantCookie.value || 'A')
-  const variant = computed<ExperimentVariant>(() => (isPaidTraffic.value ? paidVariant.value : organicVariant.value))
+  const variant = computed<ExperimentVariant>(() => {
+    if (!isWave100Enabled.value) return 'A'
+    return isPaidTraffic.value ? paidVariant.value : organicVariant.value
+  })
 
   return {
     isPaidTraffic,
@@ -92,5 +107,7 @@ export function useTrafficExperiment() {
     variant,
     paidVariant,
     organicVariant,
+    rolloutWave,
+    isWave100Enabled,
   }
 }

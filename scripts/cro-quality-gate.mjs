@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const DOMAINS = [
+const FALLBACK_DOMAINS = [
   'setki21.ru',
   'setkimoskitki.ru',
   'www.setki21.ru',
@@ -20,6 +20,68 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPORTS_DIR = path.resolve(__dirname, '..', 'docs', 'reports', 'cro-quality-gates');
 const SAVE_REPORT = !process.argv.includes('--no-save');
+const DEALERS_API_URL = process.env.CRO_GATE_DEALERS_API_URL || 'https://setki21.ru/api/v1/admin/dealers';
+const DEALERS_API_TOKEN = process.env.CRO_GATE_BEARER_TOKEN || '';
+
+function normalizeDomain(raw) {
+  const value = String(raw || '').trim().toLowerCase();
+  if (!value) return null;
+  const withProto = value.includes('://') ? value : `https://${value}`;
+  try {
+    const host = new URL(withProto).hostname.toLowerCase().replace(/^www\./, '');
+    return host || null;
+  } catch {
+    return null;
+  }
+}
+
+function expandDomainVariants(domain) {
+  const root = normalizeDomain(domain);
+  if (!root) return [];
+  return [root, `www.${root}`];
+}
+
+async function loadDomains() {
+  try {
+    const headers = {
+      Accept: 'application/json',
+    };
+    if (DEALERS_API_TOKEN) {
+      headers.Authorization = `Bearer ${DEALERS_API_TOKEN}`;
+    }
+
+    const response = await fetch(DEALERS_API_URL, {
+      headers,
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const dealers = await response.json();
+    if (!Array.isArray(dealers)) {
+      throw new Error('Dealers API did not return an array');
+    }
+
+    const domains = new Set();
+    for (const dealer of dealers) {
+      for (const candidate of expandDomainVariants(dealer?.domain)) {
+        domains.add(candidate);
+      }
+    }
+
+    if (!domains.size) {
+      throw new Error('No dealer domains returned by API');
+    }
+
+    const list = Array.from(domains).sort();
+    console.error(`[cro-quality-gate] loaded ${list.length} domains from API`);
+    return list;
+  } catch (error) {
+    console.error(`[cro-quality-gate] failed to load domains from API: ${String(error?.message || error)}`);
+    console.error('[cro-quality-gate] falling back to static domain list');
+    return FALLBACK_DOMAINS;
+  }
+}
 
 function expectedGoal(paid) {
   return paid
@@ -42,14 +104,19 @@ async function runCase(browser, domain, paid) {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForTimeout(1200);
 
-    if (paid) {
-      await page.getByRole('button', { name: 'Рассчитать стоимость' }).first().click();
-    } else {
-      await page.getByRole('button', { name: 'Заказать обратный звонок' }).first().click();
-    }
+    const ctaName = paid ? 'Рассчитать стоимость' : 'Заказать обратный звонок';
+    const cta = page.getByRole('button', { name: ctaName }).first();
+    await cta.click();
 
     await page.waitForTimeout(700);
-    const goal = await page.evaluate(() => window.__goalCalls.at(-1) || null);
+    let goal = await page.evaluate(() => window.__goalCalls.at(-1) || null);
+    if (!goal) {
+      // Safety retry for occasional click/render race on live pages.
+      await page.waitForTimeout(500);
+      await cta.click();
+      await page.waitForTimeout(900);
+      goal = await page.evaluate(() => window.__goalCalls.at(-1) || null);
+    }
 
     const expectation = expectedGoal(paid);
     const ok = Boolean(
@@ -83,10 +150,11 @@ async function runCase(browser, domain, paid) {
 }
 
 async function main() {
+  const domains = await loadDomains();
   const browser = await chromium.launch({ headless: true });
   const rows = [];
   try {
-    for (const domain of DOMAINS) {
+    for (const domain of domains) {
       rows.push(await runCase(browser, domain, true));
       rows.push(await runCase(browser, domain, false));
     }

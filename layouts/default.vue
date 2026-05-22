@@ -3,7 +3,7 @@ import { useTenantStore } from '~/stores/tenant'
 
 const tenant = useTenantStore()
 const route = useRoute()
-const { isPaidTraffic, segment, variant } = useTrafficExperiment()
+const { isPaidTraffic, segment, variant, rolloutWave } = useTrafficExperiment()
 
 const navLinks = [
   { name: 'МОСКИТНАЯ', path: '/' },
@@ -78,6 +78,7 @@ async function handleHeaderCtaClick() {
       ;(window as any).reachMetrikaGoal?.('CTA_CALLBACK_CLICK', {
         segment: segment.value,
         variant_id: variant.value,
+        rollout_wave: rolloutWave.value,
         dealer_domain: window.location.hostname
       })
     } catch (_) {}
@@ -89,6 +90,7 @@ async function handleHeaderCtaClick() {
     ;(window as any).reachMetrikaGoal?.('CTA_CALCULATE_CLICK', {
       segment: segment.value,
       variant_id: variant.value,
+      rollout_wave: rolloutWave.value,
       dealer_domain: window.location.hostname
     })
   } catch (_) {}

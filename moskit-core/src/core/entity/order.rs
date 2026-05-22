@@ -136,7 +136,11 @@ impl Order {
 
         Self {
             id: Uuid::new_v4(),
-            order_number: format!("MS-{}", chrono::Utc::now().format("%Y%m%d%H%M%S")),
+            order_number: format!(
+                "MS-{}-{}",
+                chrono::Utc::now().format("%Y%m%d%H%M%S%3f"),
+                &Uuid::new_v4().simple().to_string()[..6]
+            ),
             dealer_id,
             branch_id: None,
             client_name,

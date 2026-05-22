@@ -28,7 +28,7 @@ impl OrderRepository for PostgresOrderRepository {
                    production_sub_status, installation_status, department_id,
                    total_amount, dealer_cost, dealer_profit, 
                    dealer_price_total, selling_price_total, potential_profit,
-                   comment, created_at, updated_at
+                   comment, NULL::numeric AS installation_price, NULL::numeric AS delivery_price, NULL::numeric AS measurement_price, created_at, updated_at
             FROM orders WHERE id = $1
             "#,
         )
@@ -64,7 +64,7 @@ impl OrderRepository for PostgresOrderRepository {
                    production_sub_status, installation_status, department_id,
                    total_amount, dealer_cost, dealer_profit,
                    dealer_price_total, selling_price_total, potential_profit,
-                   comment, created_at, updated_at
+                   comment, NULL::numeric AS installation_price, NULL::numeric AS delivery_price, NULL::numeric AS measurement_price, created_at, updated_at
             FROM orders WHERE order_number = $1
             "#,
         )
@@ -99,7 +99,7 @@ impl OrderRepository for PostgresOrderRepository {
                    production_sub_status, installation_status, department_id,
                    total_amount, dealer_cost, dealer_profit,
                    dealer_price_total, selling_price_total, potential_profit,
-                   comment, created_at, updated_at
+                   comment, NULL::numeric AS installation_price, NULL::numeric AS delivery_price, NULL::numeric AS measurement_price, created_at, updated_at
             FROM orders WHERE dealer_id = $1
             ORDER BY created_at DESC
             "#,
@@ -210,7 +210,7 @@ impl OrderRepository for PostgresOrderRepository {
                    production_sub_status, installation_status, department_id,
                    total_amount, dealer_cost, dealer_profit,
                    dealer_price_total, selling_price_total, potential_profit,
-                   comment, created_at, updated_at
+                   comment, NULL::numeric AS installation_price, NULL::numeric AS delivery_price, NULL::numeric AS measurement_price, created_at, updated_at
             FROM orders
             ORDER BY created_at DESC
             LIMIT $1 OFFSET $2
@@ -232,7 +232,7 @@ impl OrderRepository for PostgresOrderRepository {
                    production_sub_status, installation_status, department_id,
                    total_amount, dealer_cost, dealer_profit,
                    dealer_price_total, selling_price_total, potential_profit,
-                   comment, created_at, updated_at
+                   comment, NULL::numeric AS installation_price, NULL::numeric AS delivery_price, NULL::numeric AS measurement_price, created_at, updated_at
             FROM orders
             WHERE status = $1
             ORDER BY created_at DESC

@@ -9,6 +9,47 @@ function normalizePhone(value: string): string | null {
   return normalized.length === 11 ? normalized : null
 }
 
+
+function mapMeshType(value: unknown): string {
+  const raw = String(value || '').trim().toLowerCase()
+  const map: Record<string, string> = {
+    standart: 'СТАНДАРТ',
+    standard: 'СТАНДАРТ',
+    antimoshka: 'АНТИМОШКА',
+    antikoshka: 'АНТИКОШКА',
+    ultravyu: 'УЛЬТРАВЬЮ',
+    antipyl: 'АНТИПЫЛЬ'
+  }
+  return map[raw] || String(value || '').trim()
+}
+
+function mapFrameType(value: unknown): string {
+  const raw = String(value || '').trim().toLowerCase()
+  const map: Record<string, string> = {
+    standart: 'РАМОЧНАЯ',
+    standard: 'РАМОЧНАЯ',
+    vstavnaya: 'ВСТАВНАЯ',
+    рамочная: 'РАМОЧНАЯ',
+    вставная: 'ВСТАВНАЯ'
+  }
+  return map[raw] || String(value || '').trim()
+}
+
+function mapHandleType(value: unknown): string {
+  const raw = String(value || '').trim().toLowerCase()
+  const map: Record<string, string> = {
+    pvc: 'ПВХ',
+    pvh: 'ПВХ',
+    plastic: 'ПВХ',
+    пластик: 'ПВХ',
+    металл: 'МЕТАЛЛ',
+    metal: 'МЕТАЛЛ',
+    алюминий: 'МЕТАЛЛ',
+    aluminium: 'МЕТАЛЛ'
+  }
+  return map[raw] || String(value || '').trim()
+}
+
 export default defineEventHandler(async (event) => {
   // CORS headers
   setHeader(event, 'Access-Control-Allow-Origin', '*')
@@ -124,6 +165,52 @@ export default defineEventHandler(async (event) => {
     const dealerName = dealerData?.dealer_name || 'Сетки 21'
     const brandColor = dealerData?.branding?.primary_color || '#2A6AB2'
 
+    // Формируем состав заказа и итог для письма только из items (контур, который уходит в БД),
+    // чтобы email и админка показывали одинаковую цену.
+    const normalizedItems = trimmed.items.map((item: any) => {
+      const quantity = Number(item?.quantity ?? 1)
+      const unitPrice = Number(item?.price ?? 0)
+      const params = item?.params || {}
+      const width = Number(params?.width ?? 0)
+      const height = Number(params?.height ?? 0)
+      const color = params?.color ? String(params.color) : ''
+      const frame = mapFrameType(params?.frame_type)
+      const mesh = mapMeshType(params?.mesh_type)
+      const measurementMethod = params?.measurement_method ? String(params.measurement_method) : ''
+      const handleType = mapHandleType(params?.handle_type)
+      const installation = typeof params?.installation === 'boolean' ? params.installation : false
+
+      return {
+        name: String(item?.name || 'СЕТКА'),
+        quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+        unitPrice: Number.isFinite(unitPrice) && unitPrice >= 0 ? unitPrice : 0,
+        width: Number.isFinite(width) && width > 0 ? width : 0,
+        height: Number.isFinite(height) && height > 0 ? height : 0,
+        color,
+        frame,
+        mesh,
+        measurementMethod,
+        handleType,
+        installation
+      }
+    })
+
+    const orderLinesHtml = normalizedItems.length > 0
+      ? normalizedItems.map((item) => {
+          const sizePart = item.width > 0 && item.height > 0 ? `${item.width}x${item.height}` : 'РАЗМЕР НЕ УКАЗАН'
+          const framePart = item.frame ? `${item.frame}: ` : ''
+          const meshPart = item.mesh ? `${item.mesh} ` : ''
+          const colorPart = item.color || 'БЕЗ ЦВЕТА'
+          const handlePart = item.handleType ? `, РУЧКИ: ${item.handleType}` : ''
+          const installPart = item.installation ? ', МОНТАЖ: ДА' : ', МОНТАЖ: НЕТ'
+          const measurePart = item.measurementMethod ? `, ЗАМЕР: ${item.measurementMethod}` : ''
+          const line = `${framePart}${meshPart}(${sizePart}, ${colorPart}${handlePart}${installPart}${measurePart}) - ${item.quantity} шт`
+          return `<div style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">${escapeHtml(line)}</div>`
+        }).join('')
+      : '<div style="padding: 8px 0;">СОСТАВ ЗАКАЗА НЕ ПЕРЕДАН</div>'
+
+    const emailTotal = normalizedItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0)
+
     const htmlContent = `
       <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f9fafb; padding: 40px 20px;">
         <div style="background-color: #ffffff; border-radius: 24px; overflow: hidden; shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
@@ -149,11 +236,11 @@ export default defineEventHandler(async (event) => {
               <h3 style="color: #9ca3af; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; font-weight: 900;">Состав заказа</h3>
               <div style="border: 2px solid #f3f4f6; border-radius: 16px; padding: 20px;">
                 <div style="font-size: 14px; line-height: 1.6; color: #374151;">
-                  ${trimmed.list_order.split(/<br\s*\/?>/gi).map(s => `<div style="padding: 8px 0; border-bottom: 1px solid #f3f4f6;">${escapeHtml(s)}</div>`).join('')}
+                  ${orderLinesHtml}
                 </div>
                 <div style="margin-top: 20px; text-align: right;">
                   <span style="color: #9ca3af; font-size: 12px; text-transform: uppercase; font-weight: bold;">Итого к оплате:</span>
-                  <div style="color: ${brandColor}; font-size: 32px; font-weight: 900; margin-top: 5px;">${trimmed.total_price_value} ₽</div>
+                  <div style="color: ${brandColor}; font-size: 32px; font-weight: 900; margin-top: 5px;">${emailTotal.toLocaleString('ru-RU')} ₽</div>
                 </div>
               </div>
             </div>

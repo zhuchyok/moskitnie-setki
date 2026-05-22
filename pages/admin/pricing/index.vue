@@ -3,6 +3,25 @@ import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
 
+const CATEGORY_KEYS = ['standart', 'antimoshka', 'antikoshka', 'ultravyu', 'antipyl', 'vstavnaya'] as const
+const CATEGORY_LABELS: Record<(typeof CATEGORY_KEYS)[number], string> = {
+  standart: 'СТАНДАРТНАЯ',
+  antimoshka: 'АНТИМОШКА',
+  antikoshka: 'АНТИКОШКА',
+  ultravyu: 'УЛЬТРАВЬЮ',
+  antipyl: 'АНТИПЫЛЬ',
+  vstavnaya: 'ВСТАВНАЯ VSN'
+}
+
+const defaultCategoryCoefficients = () => ({
+  standart: { dealer: 1.28, client: 2.13 },
+  antimoshka: { dealer: 1.28, client: 2.13 },
+  antikoshka: { dealer: 1.28, client: 2.13 },
+  ultravyu: { dealer: 1.28, client: 2.13 },
+  antipyl: { dealer: 1.28, client: 2.13 },
+  vstavnaya: { dealer: 1.28, client: 2.13 }
+})
+
 definePageMeta({
   layout: 'default',
   middleware: ['auth']
@@ -21,6 +40,7 @@ const pricing = reactive({
   markup: {
     dealer: 0,
     client: 0,
+    category_coefficients: defaultCategoryCoefficients(),
     manufacturing_base: 0,
     manufacturing_percent: 0,
     measurement_base: 0,
@@ -56,13 +76,21 @@ const fetchPricing = async () => {
       const defaults = { 
         dealer: 0, client: 0, manufacturing_base: 0, manufacturing_percent: 0,
         measurement_base: 0, measurement_percent: 0, measurement_profit_factor: 5,
-        urgent_profit_factor: 0, installation_profit_factor: 0, delivery_profit_factor: 0
+        urgent_profit_factor: 0, installation_profit_factor: 0, delivery_profit_factor: 0,
+        category_coefficients: defaultCategoryCoefficients()
       }
       pricing.mesh = response.mesh || []
       pricing.profiles = response.profiles || []
       pricing.components = response.components || []
       pricing.services = (response.services || []).filter((s: any) => s.id !== 'measurement')
-      pricing.markup = { ...defaults, ...(response.markup || {}) }
+      pricing.markup = {
+        ...defaults,
+        ...(response.markup || {}),
+        category_coefficients: {
+          ...defaultCategoryCoefficients(),
+          ...((response.markup || {}).category_coefficients || {})
+        }
+      }
     }
   } catch (e) {
     console.error('Failed to fetch pricing', e)
@@ -288,16 +316,37 @@ onMounted(fetchPricing)
             <h2 class="text-xl font-black text-brand-dark uppercase tracking-tighter">Глобальные наценки</h2>
           </div>
           <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div class="space-y-4">
-              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Коэффициент дилера</label>
-              <div class="flex items-center gap-4">
-                <input v-model.number="pricing.markup.dealer" type="number" step="0.01" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 font-black text-2xl text-brand-blue outline-none transition-all" />
-              </div>
-            </div>
-            <div class="space-y-4">
-              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Коэффициент клиента</label>
-              <div class="flex items-center gap-4">
-                <input v-model.number="pricing.markup.client" type="number" step="0.01" class="flex-1 bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 font-black text-2xl text-brand-blue outline-none transition-all" />
+            <div class="md:col-span-2 space-y-4">
+              <label class="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Коэффициенты наценки по категориям</label>
+              <p class="text-[9px] text-gray-400 mt-2 uppercase">Коэф. клиента — наценка от цены дилера производителя для клиента. Коэф. дилера — наценка от цены дилера производителя для дилеров текущего дилера.</p>
+              <div class="space-y-4">
+                <div
+                  v-for="key in CATEGORY_KEYS"
+                  :key="key"
+                  class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-2xl"
+                >
+                  <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center">
+                    {{ CATEGORY_LABELS[key] }}
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2">Коэф. наценки дилера</label>
+                    <input
+                      v-model.number="pricing.markup.category_coefficients[key].dealer"
+                      type="number"
+                      step="0.01"
+                      class="w-full bg-white border-2 border-transparent focus:border-brand-blue rounded-xl px-4 py-2 text-right font-black text-brand-blue outline-none transition-all"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2">Коэф. наценки клиента</label>
+                    <input
+                      v-model.number="pricing.markup.category_coefficients[key].client"
+                      type="number"
+                      step="0.01"
+                      class="w-full bg-white border-2 border-transparent focus:border-brand-blue rounded-xl px-4 py-2 text-right font-black text-brand-blue outline-none transition-all"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
             <div class="space-y-4">

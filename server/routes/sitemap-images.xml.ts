@@ -1,11 +1,11 @@
-import { domainToUnicode } from 'node:url'
+import { domainToASCII } from 'node:url'
 
 export default defineEventHandler((event) => {
   const rawHost = getHeader(event, 'host') || 'www.setki21.ru'
   const protocol = getHeader(event, 'x-forwarded-proto') || 'https'
   const [hostname, port] = rawHost.split(':')
-  const unicodeHostname = domainToUnicode(hostname)
-  const origin = port ? `${protocol}://${unicodeHostname}:${port}` : `${protocol}://${unicodeHostname}`
+  const asciiHostname = domainToASCII(hostname.toLowerCase()) || hostname.toLowerCase()
+  const origin = port ? `${protocol}://${asciiHostname}:${port}` : `${protocol}://${asciiHostname}`
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

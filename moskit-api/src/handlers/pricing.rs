@@ -4,16 +4,37 @@ use axum::{Json, extract::State};
 use crate::handlers::{ok, ApiResult, bad_request};
 use crate::AppState;
 use std::sync::Arc;
-use moskit_core::entity::{GlobalPricing, PricingItem, MarkupConfig};
+use moskit_core::entity::{GlobalPricing, PricingItem, MarkupConfig, MarkupCategoryCoefficient};
 use moskit_core::repository::{SettingsRepository, PostgresSettingsRepository};
 use rust_decimal_macros::dec;
+
+fn default_markup_category_coefficients() -> std::collections::HashMap<String, MarkupCategoryCoefficient> {
+    [
+        ("standart", MarkupCategoryCoefficient { dealer: dec!(1.28), client: dec!(2.13) }),
+        ("antimoshka", MarkupCategoryCoefficient { dealer: dec!(1.28), client: dec!(2.13) }),
+        ("antikoshka", MarkupCategoryCoefficient { dealer: dec!(1.28), client: dec!(2.13) }),
+        ("ultravyu", MarkupCategoryCoefficient { dealer: dec!(1.28), client: dec!(2.13) }),
+        ("antipyl", MarkupCategoryCoefficient { dealer: dec!(1.28), client: dec!(2.13) }),
+        ("vstavnaya", MarkupCategoryCoefficient { dealer: dec!(1.28), client: dec!(2.13) }),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v))
+    .collect()
+}
+
+fn enrich_markup_with_defaults(mut pricing: GlobalPricing) -> Result<GlobalPricing, String> {
+    if pricing.markup.category_coefficients.is_empty() {
+        pricing.markup.category_coefficients = default_markup_category_coefficients();
+    }
+    Ok(pricing)
+}
 
 pub async fn get_global_pricing_internal(repo: &PostgresSettingsRepository) -> Result<GlobalPricing, String> {
     let value = repo.get_value("global_pricing").await.map_err(|e| e.to_string())?;
 
     if let Some(value) = value {
         let pricing: GlobalPricing = serde_json::from_value(value).map_err(|e| e.to_string())?;
-        return Ok(pricing);
+        return enrich_markup_with_defaults(pricing);
     }
 
     // Fallback на дефолты если в БД пусто
@@ -41,6 +62,7 @@ pub async fn get_global_pricing_internal(repo: &PostgresSettingsRepository) -> R
         let markup = MarkupConfig {
             dealer: dec!(1.43),
             client: dec!(2.13),
+            category_coefficients: default_markup_category_coefficients(),
             manufacturing_base: dec!(50.0),
             manufacturing_percent: dec!(5.0),
             measurement_base: dec!(270.0),

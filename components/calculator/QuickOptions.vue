@@ -13,7 +13,8 @@ const emit = defineEmits<{
 }>()
 
 const toggleHandle = () => {
-  emit('update:handleType', props.handleType === 'pvc' ? 'metal' : 'pvc')
+  const current = props.handleType === 'metal' ? 'metal' : 'pvc'
+  emit('update:handleType', current === 'pvc' ? 'metal' : 'pvc')
 }
 
 const toggleInstallation = () => {
@@ -44,7 +45,7 @@ const onCountInput = (e: Event) => {
         </button>
         <div class="flex items-baseline justify-center min-w-[80px]">
           <span class="font-black text-2xl leading-none transition-colors uppercase cursor-pointer select-none option-value" :style="{ color: brandPrimary }" @click="toggleHandle">
-            {{ handleType === 'pvc' ? 'ПВХ' : 'МЕТАЛ' }}
+            {{ handleType === 'pvc' ? 'ПВХ' : 'МЕТАЛЛ' }}
           </span>
         </div>
         <button @click="toggleHandle"

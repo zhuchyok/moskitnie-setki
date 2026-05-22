@@ -29,6 +29,27 @@ pub struct UpdateBranchRequest {
     pub is_active: bool,
 }
 
+fn normalize_domain(domain: Option<String>) -> Option<String> {
+    domain
+        .map(|d| {
+            let cleaned = d.trim()
+                .trim_start_matches("http://")
+                .trim_start_matches("https://")
+                .trim_start_matches("www.")
+                .split("/")
+                .next()
+                .unwrap_or("")
+                .split(":")
+                .next()
+                .unwrap_or("")
+                .trim_end_matches(".")
+                .to_lowercase();
+            idna::domain_to_ascii(&cleaned).unwrap_or(cleaned)
+        })
+        .filter(|d| !d.is_empty())
+}
+
+
 /// Список филиалов дилера
 pub async fn list_branches(
     State(state): State<Arc<AppState>>,
@@ -54,7 +75,7 @@ pub async fn create_branch(
         id: Uuid::new_v4(),
         dealer_id: d_id,
         name: payload.name,
-        domain: payload.domain,
+        domain: normalize_domain(payload.domain),
         city: payload.city,
         margin_config: serde_json::json!({
             "branch_multiplier": payload.branch_multiplier.unwrap_or(1.0)
@@ -89,7 +110,7 @@ pub async fn update_branch(
     .ok_or_else(|| bad_request("Branch not found"))?;
 
     branch.name = payload.name;
-    branch.domain = payload.domain;
+    branch.domain = normalize_domain(payload.domain);
     branch.city = payload.city;
     branch.is_active = payload.is_active;
     branch.margin_config = serde_json::json!({
@@ -212,6 +233,7 @@ pub async fn create_subdealer(
             branch_multiplier: 1.0,
             volume_discounts: vec![],
             category_margins: std::collections::HashMap::new(),
+            category_coefficients: std::collections::HashMap::new(),
             urgent_margin_percent: None,
             delivery_margin_percent: None,
             installation_margin_percent: None,

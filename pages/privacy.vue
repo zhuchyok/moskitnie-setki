@@ -20,6 +20,7 @@ const domain = computed(() => {
       return host
     }
   }
+  const requestURL = useRequestURL()
   return requestURL?.host || 'setki21.ru'
 })
 

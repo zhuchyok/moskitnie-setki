@@ -11,6 +11,7 @@ use crate::handlers::{ApiResult, ok, bad_request};
 use moskit_core::repository::{DealerRepository, PostgresDealerRepository};
 use uuid::Uuid;
 use axum::response::{Redirect, IntoResponse};
+use std::collections::HashSet;
 
 #[derive(Debug, Serialize)]
 pub struct TenantConfig {
@@ -32,6 +33,62 @@ pub struct TenantQuery {
     pub dealer_id: Option<String>,
 }
 
+fn normalize_host_value(value: &str) -> Option<String> {
+    let cleaned = value
+        .trim()
+        .trim_start_matches("http://")
+        .trim_start_matches("https://")
+        .trim_start_matches("//")
+        .split("/")
+        .next()
+        .unwrap_or("")
+        .split(":")
+        .next()
+        .unwrap_or("")
+        .trim_end_matches(".")
+        .to_lowercase();
+
+    if cleaned.is_empty() {
+        return None;
+    }
+
+    Some(idna::domain_to_ascii(&cleaned).unwrap_or(cleaned))
+}
+
+fn host_lookup_variants(host: &str) -> Vec<String> {
+    let mut variants = Vec::new();
+    let mut seen = HashSet::new();
+
+    let mut push_unique = |value: String| {
+        if !value.is_empty() && seen.insert(value.clone()) {
+            variants.push(value);
+        }
+    };
+
+    if let Some(base_ascii) = normalize_host_value(host) {
+        push_unique(base_ascii.clone());
+
+        if let Some(without_www) = base_ascii.strip_prefix("www.") {
+            push_unique(without_www.to_string());
+        }
+
+        let (unicode, _) = idna::domain_to_unicode(&base_ascii);
+        if let Some(unicode_norm) = normalize_host_value(&unicode) {
+            push_unique(unicode_norm.clone());
+            if let Some(without_www) = unicode_norm.strip_prefix("www.") {
+                push_unique(without_www.to_string());
+            }
+        }
+
+        if !base_ascii.starts_with("www.") {
+            push_unique(format!("www.{}", base_ascii));
+        }
+    }
+
+    variants
+}
+
+
 pub async fn get_tenant_config(
     State(state): State<Arc<AppState>>,
     Host(host): Host,
@@ -47,32 +104,28 @@ pub async fn get_tenant_config(
             None
         }
     } else {
-        // 2. Ищем по домену (сначала филиалы, потом дилеры). www.setki21.ru → пробуем setki21.ru.
-        let host_for_lookup = host.strip_prefix("www.").unwrap_or(host.as_str());
-        let branch = sqlx::query_as::<_, moskit_core::entity::DealerBranch>(
-            "SELECT id, dealer_id, name, domain, city, margin_config, is_active, created_at, updated_at FROM dealer_branches WHERE domain = $1"
-        )
-        .bind(&host)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(|e| bad_request(&e.to_string()))?;
-        let branch = match branch {
-            Some(b) => Some(b),
-            None if host_for_lookup != host.as_str() => sqlx::query_as::<_, moskit_core::entity::DealerBranch>(
+        // 2. Ищем по нормализованным вариантам Host (www/без www, idn/punycode, без порта).
+        let host_variants = host_lookup_variants(host.as_str());
+
+        let mut branch = None;
+        for candidate in &host_variants {
+            branch = sqlx::query_as::<_, moskit_core::entity::DealerBranch>(
                 "SELECT id, dealer_id, name, domain, city, margin_config, is_active, created_at, updated_at FROM dealer_branches WHERE domain = $1"
             )
-            .bind(host_for_lookup)
+            .bind(candidate)
             .fetch_optional(&state.pool)
             .await
-            .map_err(|e| bad_request(&e.to_string()))?,
-            other => other,
-        };
+            .map_err(|e| bad_request(&e.to_string()))?;
+            if branch.is_some() {
+                break;
+            }
+        }
 
         if let Some(b) = branch {
             let mut d = repo.find_by_id(b.dealer_id).await
                 .map_err(|e| bad_request(&e.to_string()))?
                 .ok_or_else(|| bad_request("Dealer for branch not found"))?;
-            
+
             // Переопределяем настройки дилера настройками филиала
             if let Some(m) = b.margin_config.get("branch_multiplier").and_then(|v| v.as_f64()) {
                 d.margin_config.branch_multiplier = m;
@@ -80,20 +133,23 @@ pub async fn get_tenant_config(
             if let Some(c) = b.city {
                 d.city = c;
             }
-            
+
             // Возвращаем дилера с пометкой branch_id
             return build_tenant_config(d, Some(b.id));
         }
 
-        // Дилер: по точному Host, при отсутствии — без префикса www (www.setki21.ru → setki21.ru)
-        let mut dealer = repo.find_by_domain(host.as_str()).await
-            .map_err(|e| bad_request(&e.to_string()))?;
-        if dealer.is_none() && host_for_lookup != host.as_str() {
-            dealer = repo.find_by_domain(host_for_lookup).await
+        // Дилер: пробуем все варианты домена
+        let mut dealer = None;
+        for candidate in &host_variants {
+            dealer = repo.find_by_domain(candidate).await
                 .map_err(|e| bad_request(&e.to_string()))?;
+            if dealer.is_some() {
+                break;
+            }
         }
         dealer
     };
+
 
     match dealer {
         Some(d) => build_tenant_config(d, None),
@@ -282,10 +338,12 @@ pub async fn get_tenant_favicon(
             None
         }
     } else {
-        let mut dealer = repo.find_by_domain(host.as_str()).await.ok().flatten();
-        if dealer.is_none() {
-            if let Some(host_no_www) = host.strip_prefix("www.") {
-                dealer = repo.find_by_domain(host_no_www).await.ok().flatten();
+        let host_variants = host_lookup_variants(host.as_str());
+        let mut dealer = None;
+        for candidate in &host_variants {
+            dealer = repo.find_by_domain(candidate).await.ok().flatten();
+            if dealer.is_some() {
+                break;
             }
         }
         dealer

@@ -90,43 +90,47 @@ export const useTenantStore = defineStore('tenant', () => {
       }
 
       // Используем полный URL для SSR всегда.
-      const ssrBaseUrl = runtimeConfig.public.apiBase
-      const cleanSsrBaseUrl = ssrBaseUrl?.endsWith('/') ? ssrBaseUrl.slice(0, -1) : ssrBaseUrl
+      // При наличии ssrOrigin используем API текущего домена как fallback,
+      // чтобы не зависеть от внутреннего DNS имени контейнера API.
+      const ssrBaseUrl = (ssrOrigin ? `${ssrOrigin.replace(/\/$/, '')}/api` : runtimeConfig.public.apiBase)
+      const cleanSsrBaseUrl = ssrBaseUrl.endsWith('/') ? ssrBaseUrl.slice(0, -1) : ssrBaseUrl
       
-      // Если на сервере ssrBaseUrl не начинается с http, значит переменная не задана корректно
-      const isAbsolute = cleanSsrBaseUrl?.startsWith('http')
-      
-      const finalFetchPath = (import.meta.server && isAbsolute)
+      const finalFetchPath = import.meta.server 
         ? `${cleanSsrBaseUrl}/v1/tenant/config` 
         : '/api/v1/tenant/config'
       
       if (import.meta.server) {
-        console.error(`[SSR_DEBUG] apiBase: "${ssrBaseUrl}", finalPath: "${finalFetchPath}"`)
+        // console.log(`[SSR] Fetching config from "${finalFetchPath}" with Host: ${headers['host'] || 'none'}`)
       }
 
       // ВАЖНО: На SSR используем нативный fetch или $fetch с полным URL, 
       // чтобы избежать резолвинга Nuxt как внутреннего роута.
       let data: any = null
       if (import.meta.server) {
+        // Проверяем, является ли путь абсолютным URL
         let fetchUrl = finalFetchPath
         if (!fetchUrl.startsWith('http')) {
-          // Фолбек если что-то пошло не так с конфигом
-          fetchUrl = `${runtimeConfig.public.apiBase}/v1/tenant/config`
+          fetchUrl = `${cleanSsrBaseUrl}/v1/tenant/config`
         }
           
+        const url = new URL(fetchUrl)
+        if (queryParams.dealer_id) url.searchParams.set('dealer_id', queryParams.dealer_id as string)
+        
+        // Очищаем заголовки для нативного fetch
+        const cleanHeaders: Record<string, string> = {}
+        // Принудительно очищаем Host от лишних пробелов и символов
+        if (headers['host']) cleanHeaders['host'] = headers['host'].trim()
+        if (headers['x-forwarded-host']) cleanHeaders['x-forwarded-host'] = headers['x-forwarded-host'].trim()
+        if (headers['x-forwarded-proto']) cleanHeaders['x-forwarded-proto'] = headers['x-forwarded-proto'].trim()
+        
+        // Добавляем User-Agent, чтобы бэкенд не блокировал запрос
+        cleanHeaders['user-agent'] = 'Mozilla/5.0 (Nuxt SSR)'
+        
+        // ВАЖНО: Принудительно выводим в stdout через console.error, так как Nuxt может перехватывать console.log
+        console.error(`[SSR_DEBUG] FETCHING: ${url.toString()} with host: ${cleanHeaders['host']}`)
+        
         try {
-          const urlObj = new URL(fetchUrl)
-          if (queryParams.dealer_id) urlObj.searchParams.set('dealer_id', queryParams.dealer_id as string)
-          
-          const cleanHeaders: Record<string, string> = {}
-          if (headers['host']) cleanHeaders['host'] = headers['host'].trim()
-          if (headers['x-forwarded-host']) cleanHeaders['x-forwarded-host'] = headers['x-forwarded-host'].trim()
-          if (headers['x-forwarded-proto']) cleanHeaders['x-forwarded-proto'] = headers['x-forwarded-proto'].trim()
-          cleanHeaders['user-agent'] = 'Mozilla/5.0 (Nuxt SSR)'
-          
-          console.error(`[SSR_DEBUG] FETCHING: ${urlObj.toString()} with host: ${cleanHeaders['host']}`)
-          
-          const response = await fetch(urlObj.toString(), {
+          const response = await fetch(url.toString(), {
             headers: cleanHeaders
           })
           // console.error(`[SSR_DEBUG] RESPONSE: ${response.status}`)
@@ -172,13 +176,16 @@ export const useTenantStore = defineStore('tenant', () => {
         if (data.branding?.logo_url && data.branding.logo_url.startsWith('/')) {
           config.value.branding.logo_url = baseClean + data.branding.logo_url
         }
-        // Фавикон: favicon_url из конфига; если не задан — null (Nuxt использует /favicon.ico через API)
+        // Фавикон: favicon_url из конфига или автогенерируем из logo_url
         if (data.branding?.favicon_url && data.branding.favicon_url.startsWith('/')) {
           config.value.branding.favicon_url = baseClean + data.branding.favicon_url
         } else if (data.branding?.favicon_url) {
           config.value.branding.favicon_url = data.branding.favicon_url
-        } else {
-          config.value.branding.favicon_url = '/api/v1/tenant/favicon'
+        } else if (data.branding?.logo_url) {
+          // favicon_url не задан — автоматически используем logo_url как фавикон
+          config.value.branding.favicon_url = data.branding.logo_url.startsWith('/')
+            ? baseClean + data.branding.logo_url
+            : data.branding.logo_url
         }
         isLoaded.value = true
 

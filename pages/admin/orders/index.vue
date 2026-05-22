@@ -48,6 +48,27 @@ const fetchOrders = async () => {
   }
 }
 
+const deleteOrder = async (orderId: string) => {
+  if (!auth.isAdmin) return
+  if (!window.confirm('Удалить заказ? Действие необратимо.')) return
+
+  try {
+    const config = useRuntimeConfig()
+    const apiBase = config.public.apiUrl || ''
+    const response = await fetch(apiBase + '/api/v1/admin/orders/' + orderId, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': 'Bearer ' + auth.token
+      }
+    })
+    if (!response.ok) throw new Error('delete_failed')
+    orders.value = orders.value.filter((item: any) => item.orderId !== orderId)
+  } catch (e) {
+    console.error('Failed to delete order', e)
+    alert('Не удалось удалить заказ')
+  }
+}
+
 const mapStatus = (status: string) => {
   const statuses: Record<string, { label: string, color: string }> = {
     'new': { label: 'Новый', color: 'gray' },
@@ -89,7 +110,7 @@ onMounted(fetchOrders)
                 <th v-if="auth.isAdmin" class="p-10">Дилер</th>
                 <th class="p-10">Сумма</th>
                 <th class="p-10">Статус</th>
-                <th class="p-10"></th>
+                <th class="p-10 text-right">Действия</th>
               </tr>
             </thead>
             <tbody class="text-sm font-bold text-brand-dark">
@@ -109,7 +130,19 @@ onMounted(fetchOrders)
                   </span>
                 </td>
                 <td class="p-10 text-right">
-                  <NuxtLink :to="`/admin/orders/${order.orderId}`" class="text-brand-blue hover:underline font-black text-[10px] uppercase tracking-widest">Просмотр</NuxtLink>
+                  <div class="inline-flex items-center gap-4">
+                    <NuxtLink :to="`/admin/orders/${order.orderId}`" class="text-brand-blue hover:underline font-black text-[10px] uppercase tracking-widest">Просмотр</NuxtLink>
+                    <button
+                      v-if="auth.isAdmin"
+                      class="text-red-400 hover:text-red-600 transition-colors"
+                      @click="deleteOrder(order.orderId)"
+                      title="Удалить заказ"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.366-.446.957-.724 1.607-.724h.272c.65 0 1.241.278 1.607.724l.423.526H15a1 1 0 110 2h-.293l-.658 9.322A2 2 0 0112.055 17H7.945a2 2 0 01-1.994-1.678L5.293 5.625H5a1 1 0 110-2h2.57l.687-.526zM8 7a1 1 0 012 0v6a1 1 0 11-2 0V7zm4-1a1 1 0 00-1 1v6a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>

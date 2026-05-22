@@ -1,9 +1,27 @@
 import { defineStore } from 'pinia'
 import { type ColorId, type MeshType, type FrameType, type HandleType, COLOR_NAMES, FRAME_TYPE_NAMES, MESH_TYPE_NAMES } from '~/types/mesh'
 import { PRICING_CONFIG, DELIVERY_OPTIONS, URGENT_ORDER_OPTION, MEASUREMENT_OPTION } from '~/constants/pricing'
-import { computeCost, computeCostVstavnaya, costToClientPrice, getWork, getRalPaintingAmount, getNetRevenueAfterCard, roundTo, getConfig, type MarginConfig } from '~/services/pricing'
+import { computeCost, computeCostVstavnaya, getWork, getRalPaintingAmount, getNetRevenueAfterCard, roundTo, getConfig, type MarginConfig } from '~/services/pricing'
 import { usePricingStore } from '~/stores/pricing'
 import { useTenantStore } from '~/stores/tenant'
+
+function resolveClientCoefficient(meshType: MeshType, pricing: any, marginConfig?: MarginConfig): number {
+  const dealerClientCoeff = marginConfig?.category_coefficients?.[meshType]?.client
+  const globalClientCoeff = pricing?.markup?.category_coefficients?.[meshType]?.client
+  return Number(dealerClientCoeff ?? globalClientCoeff ?? pricing?.markup?.client ?? PRICING_CONFIG.markup.clientFactorFromCost) || PRICING_CONFIG.markup.clientFactorFromCost
+}
+
+function resolveDealerCoefficient(meshType: MeshType, pricing: any, marginConfig?: MarginConfig): number {
+  const dealerDealerCoeff = marginConfig?.category_coefficients?.[meshType]?.dealer
+  const globalDealerCoeff = pricing?.markup?.category_coefficients?.[meshType]?.dealer
+  return Number(dealerDealerCoeff ?? globalDealerCoeff ?? pricing?.markup?.dealer ?? PRICING_CONFIG.markup.dealerFactor) || PRICING_CONFIG.markup.dealerFactor
+}
+
+function toClientPriceFromCost(cost: number, meshType: MeshType, pricing: any, marginConfig?: MarginConfig): number {
+  // Клиентская цена считается от дилерской: cost * dealerCoeff * clientCoeff.
+  const coeff = resolveDealerCoefficient(meshType, pricing, marginConfig) * resolveClientCoefficient(meshType, pricing, marginConfig)
+  return Math.max(0, roundTo(cost * coeff + PRICING_CONFIG.markup.clientOffsetFromCost, PRICING_CONFIG.markup.clientRound))
+}
 
 export interface OrderItem {
   id: number
@@ -16,6 +34,8 @@ export interface OrderItem {
   count: number
   price: number
   measurementMethod: string
+  handleType: HandleType
+  installation: boolean
 }
 
 export const useOrderStore = defineStore('order', {
@@ -139,7 +159,7 @@ export const useOrderStore = defineStore('order', {
       
       // ВАЖНО: Обновляем clientFactorFromCost в сторе, чтобы он был доступен при гидратации
       if (pricingStore.pricing && pricingStore.pricing.markup) {
-        const config = getConfig(pricingStore.pricing, marginConfig)
+        const config = getConfig(pricingStore.pricing, marginConfig, state.config.type)
         pricingStore.pricing.markup.clientFactorFromCost = config.markup.clientFactorFromCost
         if (import.meta.server) {
           console.error(`[SSR_DEBUG] UPDATED clientFactorFromCost to ${pricingStore.pricing.markup.clientFactorFromCost} in currentPrice`)
@@ -160,8 +180,8 @@ export const useOrderStore = defineStore('order', {
           pricingStore.pricing ?? undefined,
           marginConfig
         )
-        const base = costToClientPrice(cost, pricingStore.pricing ?? undefined, marginConfig)
-        return isMetal ? (base - costToClientPrice(PRICING_CONFIG.fixed.handles, pricingStore.pricing ?? undefined, marginConfig)) : base
+        const base = toClientPriceFromCost(cost, state.config.type, pricingStore.pricing ?? undefined, marginConfig)
+        return isMetal ? (base - toClientPriceFromCost(PRICING_CONFIG.fixed.handles, state.config.type, pricingStore.pricing ?? undefined, marginConfig)) : base
       }
       const cost = computeCost(
         calcWidth,
@@ -171,8 +191,8 @@ export const useOrderStore = defineStore('order', {
         pricingStore.pricing ?? undefined,
         marginConfig
       )
-      const base = costToClientPrice(cost, pricingStore.pricing ?? undefined, marginConfig)
-      return isMetal ? (base - costToClientPrice(PRICING_CONFIG.fixed.handles, pricingStore.pricing ?? undefined, marginConfig)) : base
+      const base = toClientPriceFromCost(cost, state.config.type, pricingStore.pricing ?? undefined, marginConfig)
+      return isMetal ? (base - toClientPriceFromCost(PRICING_CONFIG.fixed.handles, state.config.type, pricingStore.pricing ?? undefined, marginConfig)) : base
     },
     /** Итоговая цена заказа для клиента (сетки + доп. услуги) */
     totalPrice(state): number {
@@ -225,13 +245,13 @@ export const useOrderStore = defineStore('order', {
       return roundTo(basePrice + basePrice * factor, 50)
     },
     /** Доплата за металл. ручки (8₽×2 шт из админки). В калькуляторе для клиента округление 50, для дилера 10. */
-    extrasHandleMetal(): number {
+    extrasHandleMetal(state): number {
       const pricingStore = usePricingStore()
       const tenantStore = useTenantStore()
       const p = pricingStore.pricing
       const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
       const cost = p ? ((p.components.find((c: any) => c.id === 'handle_metal')?.price ?? 8) * 2) : 16
-      return costToClientPrice(cost, p ?? undefined, marginConfig)
+      return toClientPriceFromCost(cost, state.config.type, p ?? undefined, marginConfig)
     },
     /** Покраска по RAL (100 ₽/м.п.) для текущей позиции — выводить отдельно и вычитать из прибыли. 0, если цвет не RAL. */
     currentRalPaintingAmount(state): number {
@@ -288,6 +308,8 @@ export const useOrderStore = defineStore('order', {
         count: this.config.count,
         price,
         measurementMethod: methodLabel,
+        handleType: this.config.handleType,
+        installation: this.config.installation,
       })
     },
     removeItem(id: number) {

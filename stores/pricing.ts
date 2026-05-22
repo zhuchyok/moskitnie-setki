@@ -14,6 +14,10 @@ export interface GlobalPricing {
     markup: {
       dealer: number
       client: number
+      category_coefficients?: Partial<Record<'standart' | 'antimoshka' | 'antikoshka' | 'ultravyu' | 'antipyl' | 'vstavnaya', {
+        dealer: number
+        client: number
+      }>>
       clientFactorFromCost?: number
       manufacturing_base: number
       manufacturing_percent: number
@@ -53,7 +57,7 @@ export const usePricingStore = defineStore('pricing', {
 
       if (import.meta.server && !finalUrl.startsWith('http')) {
         // Фолбек для SSR
-        finalUrl = `${runtimeConfig.public.apiBase}/v1/pricing`
+        finalUrl = `http://setki21-api-new:8080/api/v1/pricing`
       }
 
       if (import.meta.server) {

@@ -70,7 +70,10 @@ const isActive = (path: string) => {
             <span class="admin-nav-text">Обзор</span>
           </NuxtLink>
           <NuxtLink to="/admin/orders" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/orders') }">
-            <span class="admin-nav-text">Все заказы</span>
+            <span class="admin-nav-text">Заявки</span>
+          </NuxtLink>
+          <NuxtLink to="/admin/callbacks" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/callbacks') }">
+            <span class="admin-nav-text">Звонки</span>
           </NuxtLink>
           <NuxtLink to="/admin/production" class="admin-nav-link" :class="{ 'active-link': isActive('/admin/production') }">
             <span class="admin-nav-text">Производство</span>

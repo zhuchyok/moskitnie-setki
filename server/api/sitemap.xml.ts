@@ -1,7 +1,10 @@
 import { defineEventHandler, setHeader } from 'h3'
+import { domainToASCII } from 'node:url'
 
 export default defineEventHandler(async (event) => {
-  const host = event.headers.get('host') || 'www.setki21.ru'
+  const hostHeader = event.headers.get('host') || 'www.setki21.ru'
+  const [rawHost] = hostHeader.split(':')
+  const host = domainToASCII(rawHost.toLowerCase()) || rawHost.toLowerCase()
   const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
   const baseUrl = `${protocol}://${host}`
 
@@ -13,10 +16,10 @@ export default defineEventHandler(async (event) => {
     { url: '/ultravyu/', priority: '0.8' },
     { url: '/vstavnye/', priority: '0.8' },
     { url: '/remont/', priority: '0.7' },
-    { url: '/privacy', priority: '0.4' },
-    { url: '/contacts', priority: '0.6' },
-    { url: '/delivery', priority: '0.6' },
-    { url: '/karta-sajta', priority: '0.4' },
+    { url: '/privacy/', priority: '0.4' },
+    { url: '/contacts/', priority: '0.6' },
+    { url: '/delivery/', priority: '0.6' },
+    { url: '/karta-sajta/', priority: '0.4' },
   ]
 
   const lastmod = new Date().toISOString().split('T')[0]

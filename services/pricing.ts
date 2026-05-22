@@ -6,6 +6,7 @@ import type { ColorId, MeshType, FrameType } from '~/types/mesh'
 import type { GlobalPricing } from '~/stores/pricing'
 
 export interface MarginConfig {
+  category_coefficients?: Partial<Record<MeshType, { dealer?: number; client?: number }>>
   base_margin_percent: number
   city_multiplier: number
   branch_multiplier: number
@@ -20,8 +21,18 @@ function comp(pricing: GlobalPricing, id: string, fallback: number): number {
 }
 
 /** Получить актуальный конфиг (из стора или дефолтный). Все цены из админки. */
-export function getConfig(pricing?: GlobalPricing, marginConfig?: MarginConfig) {
-  if (!pricing) return PRICING_CONFIG
+export function getConfig(pricing?: GlobalPricing, marginConfig?: MarginConfig, selectedMeshType?: MeshType) {
+  if (!pricing) {
+    const fallbackClientCoeff = selectedMeshType ? marginConfig?.category_coefficients?.[selectedMeshType]?.client : undefined
+    if (!fallbackClientCoeff) return PRICING_CONFIG
+    return {
+      ...PRICING_CONFIG,
+      markup: {
+        ...PRICING_CONFIG.markup,
+        clientFactorFromCost: fallbackClientCoeff
+      }
+    }
+  }
 
   const handlePlastic = comp(pricing, 'handle_plastic', 2.2)
   const handleMetalPerPiece = comp(pricing, 'handle_metal', 8)
@@ -32,18 +43,16 @@ export function getConfig(pricing?: GlobalPricing, marginConfig?: MarginConfig) 
   const rivetPrice = comp(pricing, 'rivet', 5)
   const stretchPrice = comp(pricing, 'stretch', 24)
 
-  // Наценки дилера (если есть) или глобальные
-  const dealerBaseMarkupFactor = marginConfig ? (1 + marginConfig.base_margin_percent / 100) : 1
-  const cityMult = marginConfig?.city_multiplier ?? 1
-  const branchMult = marginConfig?.branch_multiplier ?? 1
-  
-  // Итоговый коэффициент для товаров: 
-  // Если есть наценка дилера, она применяется К ЦЕНЕ ДИЛЕРА (которая есть cost * pricing.markup.dealer)
-  // Если нет, используем стандартный клиентский коэффициент
-  const finalClientFactor = marginConfig 
-    ? (pricing.markup.dealer * dealerBaseMarkupFactor * cityMult * branchMult)
-    : pricing.markup.client
-
+  // Категорийные коэффициенты (на уровне дилера имеют приоритет, затем глобальные).
+  const dealerCategoryCoeff = selectedMeshType ? marginConfig?.category_coefficients?.[selectedMeshType] : undefined
+  const globalCategoryCoeff = selectedMeshType ? (pricing.markup as any)?.category_coefficients?.[selectedMeshType] : undefined
+  const dealerCoefficient = dealerCategoryCoeff?.dealer ?? globalCategoryCoeff?.dealer ?? pricing.markup.dealer
+  const clientCoefficient = dealerCategoryCoeff?.client ?? globalCategoryCoeff?.client ?? pricing.markup.client
+  // Клиентская цена считается от дилерской: cost * dealerCoeff * clientCoeff.
+  const finalClientFactor = dealerCoefficient * clientCoefficient
+  if (import.meta.server && selectedMeshType) {
+    console.error(`[PRICE_DEBUG] mesh=${selectedMeshType} dealerCoeff=${dealerCategoryCoeff?.dealer} clientCoeff=${dealerCategoryCoeff?.client} globalClient=${globalCategoryCoeff?.client} usedClientFactor=${finalClientFactor}`)
+  }
 
   return {
     ...PRICING_CONFIG,
@@ -273,11 +282,7 @@ export function computeCost(widthMm: number, heightMm: number, colorId: ColorId,
   const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
   const impostCost = impostLengthM * getImpostPerMeter(colorId, pricing, marginConfig) * v.marginProfile
 
-  const rawCost = fixedTotal + profileCost + cordCost + impostCost + meshCost
-  // Закладываем комиссию банка за оплату картой в себестоимость:
-  // делим на (1 - cardPercent), чтобы после удержания комиссии получить нужную сумму
-  const cardPercent = config.fees?.cardPercent ?? 0.025
-  return rawCost / (1 - cardPercent)
+  return fixedTotal + profileCost + cordCost + impostCost + meshCost
 }
 
 /**
@@ -303,9 +308,7 @@ export function computeCostVstavnaya(widthMm: number, heightMm: number, colorId:
   const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
   const impostCost = impostLengthM * getImpostPerMeter(colorId, pricing, marginConfig) * v.marginProfile
 
-  const rawCost = fixedTotal + profileCost + cordCost + impostCost + meshCost
-  const cardPercent = config.fees?.cardPercent ?? 0.025
-  return rawCost / (1 - cardPercent)
+  return fixedTotal + profileCost + cordCost + impostCost + meshCost
 }
 
 /** Округление до шага (50 или 10) */
@@ -314,8 +317,8 @@ export function roundTo(value: number, step: number): number {
 }
 
 /** Цена для клиента: считается отдельно от себестоимости (не от дилера). */
-export function costToClientPrice(cost: number, pricing?: GlobalPricing, marginConfig?: MarginConfig): number {
-  const config = getConfig(pricing, marginConfig)
+export function costToClientPrice(cost: number, pricing?: GlobalPricing, marginConfig?: MarginConfig, meshType?: MeshType): number {
+  const config = getConfig(pricing, marginConfig, meshType)
   const { clientFactorFromCost, clientOffsetFromCost, clientRound } = config.markup
   const clientPrice = cost * clientFactorFromCost + clientOffsetFromCost
   return Math.max(0, roundTo(clientPrice, clientRound))
@@ -388,17 +391,17 @@ export function calculateItemPrice(
   pricing?: GlobalPricing,
   marginConfig?: MarginConfig
 ): number {
-  const config = getConfig(pricing, marginConfig)
+  const config = getConfig(pricing, marginConfig, meshType)
   const cost = frameType === 'vstavnaya'
     ? computeCostVstavnaya(widthMm, heightMm, colorId, meshType, pricing, marginConfig)
     : computeCost(widthMm, heightMm, colorId, meshType, pricing, marginConfig)
 
-  const base = costToClientPrice(cost, pricing, marginConfig)
+  const base = costToClientPrice(cost, pricing, marginConfig, meshType)
   const installation = hasInstallation ? config.extras.installation : 0
   const metal = handleType === 'metal' ? config.extras.handleMetal : 0
 
   // Если ручки металлические, вычитаем стоимость ПВХ ручек из базы, так как они уже в фиксе
-  const finalBase = handleType === 'metal' ? (base - costToClientPrice(config.fixed.handles, pricing, marginConfig)) : base
+  const finalBase = handleType === 'metal' ? (base - costToClientPrice(config.fixed.handles, pricing, marginConfig, meshType)) : base
 
   return (finalBase + installation + metal) * count
 }

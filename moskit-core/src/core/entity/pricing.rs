@@ -4,6 +4,18 @@ use serde::{Deserialize, Serialize};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CategoryCoefficient {
+    pub dealer: f64,
+    pub client: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkupCategoryCoefficient {
+    pub dealer: Decimal,
+    pub client: Decimal,
+}
+
 /// Конфигурация наценки дилера
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MarginConfig {
@@ -17,6 +29,9 @@ pub struct MarginConfig {
     pub volume_discounts: Vec<VolumeDiscount>,
     /// Наценки по категориям
     pub category_margins: std::collections::HashMap<String, f64>,
+    /// Коэффициенты по категориям (дилер/клиент)
+    #[serde(default)]
+    pub category_coefficients: std::collections::HashMap<String, CategoryCoefficient>,
     /// Наценка на срочность (%)
     pub urgent_margin_percent: Option<f64>,
     /// Наценка на доставку (%)
@@ -57,6 +72,7 @@ impl Default for MarginConfig {
             branch_multiplier: 1.0,
             volume_discounts: Vec::new(),
             category_margins: std::collections::HashMap::new(),
+            category_coefficients: std::collections::HashMap::new(),
             urgent_margin_percent: None,
             delivery_margin_percent: None,
             installation_margin_percent: None,
@@ -100,6 +116,8 @@ pub struct GlobalPricing {
 pub struct MarkupConfig {
     pub dealer: Decimal,
     pub client: Decimal,
+    #[serde(default)]
+    pub category_coefficients: std::collections::HashMap<String, MarkupCategoryCoefficient>,
     pub manufacturing_base: Decimal,
     pub manufacturing_percent: Decimal,
     pub measurement_base: Decimal,

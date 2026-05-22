@@ -199,17 +199,9 @@ pub async fn create_order(
             let base_cost = pricing_service.compute_cost(w as u32, h as u32, ColorId(c as u8), &mesh_type, &frame_type);
             let dp = pricing_service.calculate_dealer_price(base_cost);
             
-            let mut unit_price = dp.actual_price;
-            
-            // Применяем наценку на монтаж, если он выбран
-            if params.get("installation").and_then(|v| v.as_bool()).unwrap_or(false) {
-                let base_installation = if frame_type == FrameType::Vstavnaya {
-                    global_pricing.services.iter().find(|s| s.id == "installation_vsn").map(|s| s.price).unwrap_or(dec!(100.0))
-                } else {
-                    global_pricing.services.iter().find(|s| s.id == "installation").map(|s| s.price).unwrap_or(dec!(300.0))
-                };
-                unit_price += pricing_service.calculate_service_price(base_installation, "installation");
-            }
+            // Источник истины для клиентской цены — фронтенд (цена на сайте в момент оформления).
+            // Так админка/БД совпадают с тем, что видел клиент и что ушло в письмо.
+            let unit_price = item_req.price;
 
             (dp.dealer_cost, unit_price)
         } else {

@@ -51,7 +51,35 @@ const isDealerLoading = ref(false)
 const dealerBranches = ref<any[]>([])
 const isBranchesLoading = ref(false)
 
+const CATEGORY_KEYS = [
+  'standart',
+  'antimoshka',
+  'antikoshka',
+  'ultravyu',
+  'antipyl',
+  'vstavnaya'
+] as const
+
+const CATEGORY_LABELS: Record<(typeof CATEGORY_KEYS)[number], string> = {
+  standart: 'СТАНДАРТНАЯ',
+  antimoshka: 'АНТИМОШКА',
+  antikoshka: 'АНТИКОШКА',
+  ultravyu: 'УЛЬТРАВЬЮ',
+  antipyl: 'АНТИПЫЛЬ',
+  vstavnaya: 'ВСТАВНАЯ VSN'
+}
+
+const defaultCategoryCoefficients = () => ({
+  standart: { dealer: 1.28, client: 2.13 },
+  antimoshka: { dealer: 1.28, client: 2.13 },
+  antikoshka: { dealer: 1.28, client: 2.13 },
+  ultravyu: { dealer: 1.28, client: 2.13 },
+  antipyl: { dealer: 1.28, client: 2.13 },
+  vstavnaya: { dealer: 1.28, client: 2.13 }
+})
+
 const fetchTransactions = async (dealerId: string) => {
+  transactions.value = []
   isTransactionsLoading.value = true
   try {
     const config = useRuntimeConfig()
@@ -69,6 +97,7 @@ const fetchTransactions = async (dealerId: string) => {
 }
 
 const fetchDealerUsers = async (dealerId: string) => {
+  dealerUsers.value = []
   isUsersLoading.value = true
   try {
     const config = useRuntimeConfig()
@@ -86,6 +115,7 @@ const fetchDealerUsers = async (dealerId: string) => {
 }
 
 const fetchDealerBranches = async (dealerId: string) => {
+  dealerBranches.value = []
   isBranchesLoading.value = true
   try {
     const config = useRuntimeConfig()
@@ -188,6 +218,7 @@ const form = reactive({
   delivery_margin_percent: 0,
   installation_margin_percent: 0,
   measurement_margin_percent: 0,
+  category_coefficients: defaultCategoryCoefficients(),
   is_active: true,
   parent_id: null,
   role: 'dealer',
@@ -220,6 +251,32 @@ const form = reactive({
   }
 })
 
+const applyMarginConfigToForm = (source: any) => {
+  const margin = source?.margin_config || {}
+  form.margin_percent = Number(
+    margin.base_margin_percent ?? source?.margin_percent ?? 30
+  ) || 30
+  form.urgent_margin_percent = Number(
+    margin.urgent_margin_percent ?? source?.urgent_margin_percent ?? 0
+  ) || 0
+  form.delivery_margin_percent = Number(
+    margin.delivery_margin_percent ?? source?.delivery_margin_percent ?? 0
+  ) || 0
+  form.installation_margin_percent = Number(
+    margin.installation_margin_percent ?? source?.installation_margin_percent ?? 0
+  ) || 0
+  form.measurement_margin_percent = Number(
+    margin.measurement_margin_percent ?? source?.measurement_margin_percent ?? 0
+  ) || 0
+  const incoming = margin.category_coefficients || {}
+  const defaults = defaultCategoryCoefficients()
+  CATEGORY_KEYS.forEach((key) => {
+    const row = incoming?.[key] || {}
+    form.category_coefficients[key].dealer = Number(row.dealer ?? defaults[key].dealer) || defaults[key].dealer
+    form.category_coefficients[key].client = Number(row.client ?? defaults[key].client) || defaults[key].client
+  })
+}
+
 const addBranch = () => {
   if (!form.contacts.branches) form.contacts.branches = []
   form.contacts.branches.push({ 
@@ -248,6 +305,7 @@ const fetchDealers = async () => {
 
 const openCreateModal = () => {
   form.id = null
+  activeTab.value = "basic"
   form.name = ''
   form.city = ''
   form.phone = ''
@@ -258,6 +316,7 @@ const openCreateModal = () => {
   form.delivery_margin_percent = 0
   form.installation_margin_percent = 0
   form.measurement_margin_percent = 0
+  form.category_coefficients = defaultCategoryCoefficients()
   form.is_active = true
   form.parent_id = null
   form.role = 'dealer'
@@ -279,6 +338,7 @@ const openCreateModal = () => {
 // При открытии редактирования всегда подгружаем полные данные дилера с сервера, чтобы не затирать логотип и branding из устаревшего списка
 const openEditModal = async (dealer: any) => {
   form.id = dealer.id
+  activeTab.value = "basic"
   isModalOpen.value = true
   isDealerLoading.value = true
   try {
@@ -293,11 +353,7 @@ const openEditModal = async (dealer: any) => {
     form.phone = full.phone
     form.email = full.email || ''
     form.domain = full.domain || ''
-    form.margin_percent = full.margin_percent
-    form.urgent_margin_percent = full.urgent_margin_percent || 0
-    form.delivery_margin_percent = full.delivery_margin_percent || 0
-    form.installation_margin_percent = full.installation_margin_percent || 0
-    form.measurement_margin_percent = full.measurement_margin_percent || 0
+    applyMarginConfigToForm(full)
     form.is_active = full.is_active
     form.parent_id = full.parent_id
     form.role = full.role
@@ -315,11 +371,7 @@ const openEditModal = async (dealer: any) => {
     form.phone = dealer.phone
     form.email = dealer.email || ''
     form.domain = dealer.domain || ''
-    form.margin_percent = dealer.margin_percent
-    form.urgent_margin_percent = dealer.urgent_margin_percent || 0
-    form.delivery_margin_percent = dealer.delivery_margin_percent || 0
-    form.installation_margin_percent = dealer.installation_margin_percent || 0
-    form.measurement_margin_percent = dealer.measurement_margin_percent || 0
+    applyMarginConfigToForm(dealer)
     form.is_active = dealer.is_active
     form.parent_id = dealer.parent_id
     form.role = dealer.role
@@ -355,7 +407,28 @@ const handleSave = async () => {
     const config = useRuntimeConfig()
     const apiBase = config.public.apiUrl || ''
     
-    const body = { ...form, domain: (form.domain && form.domain.trim()) || null }
+    const body = {
+      ...form,
+      domain: (form.domain && form.domain.trim()) || null,
+      margin_config: {
+        base_margin_percent: Number(form.margin_percent) || 30,
+        city_multiplier: 1,
+        branch_multiplier: 1,
+        volume_discounts: [],
+        category_margins: {},
+        urgent_margin_percent: Number(form.urgent_margin_percent) || 0,
+        delivery_margin_percent: Number(form.delivery_margin_percent) || 0,
+        installation_margin_percent: Number(form.installation_margin_percent) || 0,
+        measurement_margin_percent: Number(form.measurement_margin_percent) || 0,
+        category_coefficients: CATEGORY_KEYS.reduce((acc, key) => {
+          acc[key] = {
+            dealer: Number(form.category_coefficients[key].dealer) || 1.28,
+            client: Number(form.category_coefficients[key].client) || 2.13
+          }
+          return acc
+        }, {} as Record<string, { dealer: number; client: number }>)
+      }
+    }
     let response: any
     if (form.id) {
       response = await $fetch(`/api/v1/admin/dealers/${form.id}`, {
@@ -629,10 +702,6 @@ onMounted(fetchDealers)
                       </div>
                     </div>
                   </div>
-                  <div class="space-y-2">
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Основная наценка (%)</label>
-                    <input v-model.number="form.margin_percent" type="number" step="0.1" class="w-full bg-gray-50 border-2 border-transparent focus:border-brand-blue rounded-2xl px-6 py-4 outline-none font-bold shadow-inner" />
-                  </div>
                   <div class="space-y-6 pt-4 border-t border-gray-50">
                     <h4 class="text-[10px] font-black text-brand-blue uppercase tracking-[0.2em] ml-4">Дополнительные наценки (%)</h4>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -654,6 +723,41 @@ onMounted(fetchDealers)
                       </div>
                     </div>
                     <p class="text-[8px] text-gray-400 ml-4 uppercase">Наценки применяются к рекомендованным розничным ценам на соответствующие услуги</p>
+                  </div>
+
+                  <div class="space-y-6 pt-4 border-t border-gray-50">
+                    <h4 class="text-[10px] font-black text-brand-blue uppercase tracking-[0.2em] ml-4">Коэффициенты наценки по категориям</h4>
+                    <p class="text-[8px] text-gray-400 ml-4 uppercase">Коэф. клиента — наценка от цены дилера производителя для клиента. Коэф. дилера — наценка от цены дилера производителя для дилеров текущего дилера.</p>
+                    <div class="space-y-4">
+                      <div
+                        v-for="key in CATEGORY_KEYS"
+                        :key="key"
+                        class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-2xl"
+                      >
+                        <div class="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center">
+                          {{ CATEGORY_LABELS[key] }}
+                        </div>
+                        <div class="space-y-2">
+                          <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2">Коэф. наценки дилера</label>
+                          <input
+                            v-model.number="form.category_coefficients[key].dealer"
+                            type="number"
+                            step="0.01"
+                            class="w-full bg-white border-2 border-transparent focus:border-brand-blue rounded-2xl px-4 py-3 outline-none font-bold shadow-inner"
+                          />
+                        </div>
+                        <div class="space-y-2">
+                          <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-2">Коэф. наценки клиента</label>
+                          <input
+                            v-model.number="form.category_coefficients[key].client"
+                            type="number"
+                            step="0.01"
+                            class="w-full bg-white border-2 border-transparent focus:border-brand-blue rounded-2xl px-4 py-3 outline-none font-bold shadow-inner"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <p class="text-[8px] text-gray-400 ml-4 uppercase">По умолчанию: дилер 1.28, клиент 2.13. Используется в расчете стоимости сеток по типу полотна.</p>
                   </div>
                 </div>
 

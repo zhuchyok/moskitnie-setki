@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 import { chromium } from 'playwright';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const DOMAINS = [
   'setki21.ru',
@@ -13,6 +16,10 @@ const DOMAINS = [
 ];
 
 const RUN_ID = new Date().toISOString();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const REPORTS_DIR = path.resolve(__dirname, '..', 'docs', 'reports', 'cro-quality-gates');
+const SAVE_REPORT = !process.argv.includes('--no-save');
 
 function expectedGoal(paid) {
   return paid
@@ -100,6 +107,37 @@ async function main() {
   };
 
   console.log(JSON.stringify(report, null, 2));
+
+  if (SAVE_REPORT) {
+    const stamp = RUN_ID.replaceAll(':', '-').replaceAll('.', '-');
+    const jsonPath = path.join(REPORTS_DIR, `${stamp}.json`);
+    const mdPath = path.join(REPORTS_DIR, `${stamp}.md`);
+    await mkdir(REPORTS_DIR, { recursive: true });
+    await writeFile(jsonPath, `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+    const markdown = [
+      `# CRO Quality Gate`,
+      ``,
+      `- run_id: \`${RUN_ID}\``,
+      `- status: \`${status}\``,
+      `- passed: \`${passed}/${total}\``,
+      ``,
+      `## Cases`,
+      ``,
+      `| Domain | Mode | Result | Goal | Segment | Variant |`,
+      `| --- | --- | --- | --- | --- | --- |`,
+      ...rows.map((row) => {
+        const result = row.ok ? 'PASS' : 'FAIL';
+        const goalName = row.goal?.name || 'n/a';
+        const segment = row.goal?.params?.segment || 'n/a';
+        const variant = row.goal?.params?.variant_id || 'n/a';
+        return `| ${row.domain} | ${row.mode} | ${result} | ${goalName} | ${segment} | ${variant} |`;
+      }),
+      ``,
+    ].join('\n');
+    await writeFile(mdPath, markdown, 'utf8');
+    console.error(`[cro-quality-gate] report saved: ${jsonPath}`);
+    console.error(`[cro-quality-gate] report saved: ${mdPath}`);
+  }
 
   if (status !== 'PASS') {
     process.exitCode = 1;

@@ -8,6 +8,7 @@
     "build": "nuxt build",
     "cro:quality-gate": "node scripts/cro-quality-gate.mjs",
     "cro:quality-gate:ci": "node scripts/cro-quality-gate.mjs --no-save",
+    "cro:rollout-gate": "npm run cro:quality-gate:ci && npm run build",
     "generate": "nuxt generate",
     "generate:hero-webp": "node scripts/generate-hero-webp.mjs",
     "preview": "nuxt preview",

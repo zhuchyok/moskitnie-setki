@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
+    "cro:quality-gate": "node scripts/cro-quality-gate.mjs",
     "generate": "nuxt generate",
     "generate:hero-webp": "node scripts/generate-hero-webp.mjs",
     "preview": "nuxt preview",

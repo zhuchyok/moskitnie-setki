@@ -1,8 +1,31 @@
 import { defineStore } from 'pinia'
+import { type ColorId, type MeshType, type FrameType, type HandleType, COLOR_NAMES, FRAME_TYPE_NAMES, MESH_TYPE_NAMES } from '~/types/mesh'
+import { PRICING_CONFIG, DELIVERY_OPTIONS, URGENT_ORDER_OPTION, MEASUREMENT_OPTION } from '~/constants/pricing'
+import { computeCost, computeCostVstavnaya, getWork, getRalPaintingAmount, getNetRevenueAfterCard, roundTo, getConfig, type MarginConfig } from '~/services/pricing'
+import { usePricingStore } from '~/stores/pricing'
+import { useTenantStore } from '~/stores/tenant'
+
+function resolveClientCoefficient(meshType: MeshType, pricing: any, marginConfig?: MarginConfig): number {
+  const dealerClientCoeff = marginConfig?.category_coefficients?.[meshType]?.client
+  const globalClientCoeff = pricing?.markup?.category_coefficients?.[meshType]?.client
+  return Number(dealerClientCoeff ?? globalClientCoeff ?? pricing?.markup?.client ?? PRICING_CONFIG.markup.clientFactorFromCost) || PRICING_CONFIG.markup.clientFactorFromCost
+}
+
+function resolveDealerCoefficient(meshType: MeshType, pricing: any, marginConfig?: MarginConfig): number {
+  const dealerDealerCoeff = marginConfig?.category_coefficients?.[meshType]?.dealer
+  const globalDealerCoeff = pricing?.markup?.category_coefficients?.[meshType]?.dealer
+  return Number(dealerDealerCoeff ?? globalDealerCoeff ?? pricing?.markup?.dealer ?? PRICING_CONFIG.markup.dealerFactor) || PRICING_CONFIG.markup.dealerFactor
+}
+
+function toClientPriceFromCost(cost: number, meshType: MeshType, pricing: any, marginConfig?: MarginConfig): number {
+  // Клиентская цена считается от дилерской: cost * dealerCoeff * clientCoeff.
+  const coeff = resolveDealerCoefficient(meshType, pricing, marginConfig) * resolveClientCoefficient(meshType, pricing, marginConfig)
+  return Math.max(0, roundTo(cost * coeff + PRICING_CONFIG.markup.clientOffsetFromCost, PRICING_CONFIG.markup.clientRound))
+}
 
 export interface OrderItem {
   id: number
-  type: string
+  type: MeshType
   typeName: string
   frameTypeName: string
   color: string
@@ -10,232 +33,9 @@ export interface OrderItem {
   height: number
   count: number
   price: number
-}
-
-/**
- * Входные цены и параметры расчёта (для будущей админки).
- * Меняйте здесь — пересчёт на всём сайте.
- */
-export const PRICING_CONFIG = {
-  /** Общие: ручки 2 шт × 2,2, стрейч, работа. Уголки/крепления — в fixedRamochnaya. Импост — переменная (ширина−48). */
-  fixed: {
-    handles: 4.4, /* 2 шт × 2,2 руб (ручка + саморез) */
-    stretch: 24,
-    /** Работа: база 60 ₽ + (полотно ₽/м² + профиль ₽/м.п.) × 10% — для всех сеток */
-    workBase: 60,
-    workPercent: 0.1,
-  },
-  /** Фикса рамочной: уголки 4×3,75, ручка 2×2,2, крепление 4×10, крепление поперечины 2×1,8 */
-  fixedRamochnaya: {
-    cornersByColor: { 1: 3.75, 2: 6, 3: 7, 4: 7 }, /* цена за 1 уголок; всего 4 шт */
-    mounts: 40, /* 4 шт × 10 руб (крепление металл + саморезы) */
-    impostMountCount: 2,
-    impostMountPrice: 1.8, /* крепление поперечины, руб за 1 шт */
-  },
-  /** Фикса вставной VSN: уголки 14,8 ₽/шт × 4; крепление (+клепка) 30 ₽/шт × 4; крепление поперечины 2×1,8 */
-  fixedVstavnaya: {
-    cornersByColor: { 1: 14.8, 2: 4.85, 3: 7.15, 4: 7.15 }, /* цена за 1 уголок; всего 4 шт */
-    mountPerPiece: 30,
-    mountCount: 4,
-    impostMountCount: 2,
-    impostMountPrice: 1.8,
-  },
-  /** Переменные: цены за погонный метр (профиль рамный + поперечина усреднённо) и шнур */
-  variable: {
-    /** Цена профиля за м.п. по цветам (1=белая, 2=коричневая, 3=антрацит, 4=RAL) — рамочная */
-    profilePerMeter: { 1: 60, 2: 64.8, 3: 70, 4: 60 },
-    /** Профиль вставной VSN за м.п. по цветам; RAL = белая + наценка покраски 100 */
-    profilePerMeterVstavnaya: { 1: 151, 2: 153, 3: 163, 4: 251 }, /* 4 = RAL: 151 + 100 */
-    /** Поперечина за м.п. по цветам (для RAL к белому + наценка покраски) — общая для рамочной и вставной */
-    impostPerMeter: { 1: 62, 2: 67.2, 3: 75, 4: 62 },
-    /** Наценка покраски RAL: + руб за м.п. к белому профилю/поперечине (рамочные и вставные) */
-    ralPaintingPerMeter: 100,
-    /** Шнур фиксирующий, руб/м.п. (без запаса) */
-    cordPerMeter: 4.6,
-    /** Запасы: 15% профиль и поперечина, 32% полотно, шнур без запаса */
-    marginProfile: 1.15,
-    marginMesh: 1.32,
-    marginCord: 1,
-    /** Минимальная площадь для расчёта, м² */
-    minAreaM2: 0.3,
-  },
-  /** Цена полотна за м² по типам (входные, без запаса — запас в marginMesh) */
-  meshPerM2: {
-    standart: 63,
-    antimoshka: 265,
-    ultravyu: 295,
-    antikoshka: 414,
-    antipyl: 645,
-  },
-  /** Наценка: дилер и клиент — только коэффициент от себестоимости, без вычитания. */
-  markup: {
-    /** Дилер: рамочная 1000×1000 белая стандарт (себ. ≈588) → 840 ₽ */
-    dealerFactor: 1.43,
-    dealerOffset: 0,
-    dealerRound: 10,
-    /** Клиент: прямо от себестоимости (≈587 → 1250 для стандарта белая 1000×1000) */
-    clientFactorFromCost: 2.13,
-    clientOffsetFromCost: 0,
-    clientRound: 50,
-  },
-  /** Доп. услуги в калькуляторе (руб за 1 шт). Ручка ПВХ 2,4 в фиксе; металл +50 к базовой. */
-  extras: {
-    installation: 400,
-    handleMetal: 50,
-  },
-  /** Потери при оплате (для расчёта прибыли). В админке — редактируемо. */
-  fees: {
-    /** Комиссия оплаты картой, доля от суммы заказа (клиент и дилер). */
-    cardPercent: 0.025,
-  },
-}
-
-/** Работа: база + (входная полотно ₽/м² + входная профиль ₽/м.п.) × 10%. */
-function getWork(colorId: number, meshType: string, frameType: 'standart' | 'vstavnaya'): number {
-  const f = PRICING_CONFIG.fixed
-  const meshBase = PRICING_CONFIG.meshPerM2[meshType as keyof typeof PRICING_CONFIG.meshPerM2] ?? PRICING_CONFIG.meshPerM2.standart
-  const v = PRICING_CONFIG.variable
-  const profileInput = frameType === 'vstavnaya'
-    ? ((v.profilePerMeterVstavnaya as Record<number, number>)[colorId] ?? 151)
-    : (getProfilePerMeter(colorId)) // уже из конфига (входная за м.п.)
-  return f.workBase + (meshBase + profileInput) * (f.workPercent ?? 0.1)
-}
-
-/** Фикса рамочной: 4×уголок + 2×ручки + 4×крепление + 2×крепление поперечины (1,8) + стрейч + работа. */
-function getFixedTotal(colorId: number, meshType: string): number {
-  const f = PRICING_CONFIG.fixed
-  const fr = PRICING_CONFIG.fixedRamochnaya
-  const cornerPerPiece = (fr.cornersByColor as Record<number, number>)[colorId] ?? 3.75
-  const cornersTotal = 4 * cornerPerPiece
-  const impostMountTotal = (fr.impostMountCount ?? 2) * (fr.impostMountPrice ?? 1.8)
-  const work = getWork(colorId, meshType, 'standart')
-  return cornersTotal + f.handles + fr.mounts + impostMountTotal + f.stretch + work
-}
-
-/** Фикса вставной VSN: 4×уголок + ручки + 4×крепление (+клепка) + 2×крепление поперечины + стрейч + работа. */
-function getFixedTotalVstavnaya(colorId: number, meshType: string): number {
-  const f = PRICING_CONFIG.fixed
-  const fv = PRICING_CONFIG.fixedVstavnaya
-  const cornerPerPiece = (fv.cornersByColor as Record<number, number>)[colorId] ?? 14.8
-  const cornersTotal = 4 * cornerPerPiece
-  const mountsTotal = (fv.mountCount ?? 4) * (fv.mountPerPiece ?? 30)
-  const impostMountTotal = (fv.impostMountCount ?? 2) * (fv.impostMountPrice ?? 1.8)
-  const work = getWork(colorId, meshType, 'vstavnaya')
-  return cornersTotal + f.handles + mountsTotal + impostMountTotal + f.stretch + work
-}
-
-/** Профиль: длина = периметр − 240 мм, отходы 10%. Поперечина (импост): длина = ширина − 48 мм. Шнур: по периметру. */
-
-/** Цена профиля за м.п. по цвету (RAL = база + наценка покраски). */
-function getProfilePerMeter(colorId: number): number {
-  const v = PRICING_CONFIG.variable
-  const base = (v.profilePerMeter as Record<number, number>)[colorId] ?? 60
-  if (colorId === 4) return base + v.ralPaintingPerMeter
-  return base
-}
-
-/** Цена поперечины (импост) за м.п. по цвету (RAL = база + наценка покраски). */
-function getImpostPerMeter(colorId: number): number {
-  const v = PRICING_CONFIG.variable
-  const base = (v.impostPerMeter as Record<number, number>)[colorId] ?? 62
-  if (colorId === 4) return base + v.ralPaintingPerMeter
-  return base
-}
-
-/** Профиль вставной VSN за м.п. по цвету (151/153/163/401), с запасом 10%. */
-function getProfilePerMeterVstavnaya(colorId: number): number {
-  const v = PRICING_CONFIG.variable
-  const pv = (v.profilePerMeterVstavnaya as Record<number, number>) ?? { 1: 151, 2: 153, 3: 163, 4: 251 }
-  const profile = pv[colorId] ?? pv[1]
-  return profile * v.marginProfile
-}
-
-/**
- * Себестоимость S для рамочной сетки (без доп. монтажа/металл).
- * Профиль: (периметр − 240 мм) × цена/м.п. × 1,1. Шнур: периметр × 4,6 × 1,01. Импост: (ширина − 48 мм) × цена/м.п. × 1,1. Полотно: площадь × цена/м² × 1,26.
- */
-function computeCost(widthMm: number, heightMm: number, colorId: number, meshType: string): number {
-  const w = widthMm / 1000
-  const h = heightMm / 1000
-  const perimeterM = 2 * (w + h)
-  const areaM2 = w * h
-  const areaCalc = Math.max(areaM2, PRICING_CONFIG.variable.minAreaM2)
-
-  const v = PRICING_CONFIG.variable
-  const meshBase = PRICING_CONFIG.meshPerM2[meshType as keyof typeof PRICING_CONFIG.meshPerM2] ?? PRICING_CONFIG.meshPerM2.standart
-  const meshCost = areaCalc * meshBase * v.marginMesh
-
-  const fixedTotal = getFixedTotal(colorId, meshType)
-  const profileLengthM = Math.max(0, perimeterM - 0.24)
-  const profileCost = profileLengthM * getProfilePerMeter(colorId) * v.marginProfile
-  const cordCost = perimeterM * v.cordPerMeter * v.marginCord
-  const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
-  const impostCost = impostLengthM * getImpostPerMeter(colorId) * v.marginProfile
-
-  return fixedTotal + profileCost + cordCost + impostCost + meshCost
-}
-
-/**
- * Себестоимость S для вставной VSN: та же схема — профиль (периметр−240), шнур, импост (ширина−48), полотно (площадь×1,26).
- */
-function computeCostVstavnaya(widthMm: number, heightMm: number, colorId: number, meshType: string): number {
-  const w = widthMm / 1000
-  const h = heightMm / 1000
-  const perimeterM = 2 * (w + h)
-  const areaM2 = w * h
-  const areaCalc = Math.max(areaM2, PRICING_CONFIG.variable.minAreaM2)
-
-  const v = PRICING_CONFIG.variable
-  const meshBase = PRICING_CONFIG.meshPerM2[meshType as keyof typeof PRICING_CONFIG.meshPerM2] ?? PRICING_CONFIG.meshPerM2.standart
-  const meshCost = areaCalc * meshBase * v.marginMesh
-
-  const fixedTotal = getFixedTotalVstavnaya(colorId, meshType)
-  const profileLengthM = Math.max(0, perimeterM - 0.24)
-  const profileCost = profileLengthM * getProfilePerMeterVstavnaya(colorId)
-  const cordCost = perimeterM * v.cordPerMeter * v.marginCord
-  const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
-  const impostCost = impostLengthM * getImpostPerMeter(colorId) * v.marginProfile
-
-  return fixedTotal + profileCost + cordCost + impostCost + meshCost
-}
-
-/** Округление до шага (50 или 10) */
-function roundTo(value: number, step: number): number {
-  return Math.round(value / step) * step
-}
-
-/** Цена для клиента: считается отдельно от себестоимости (не от дилера). */
-function costToClientPrice(cost: number): number {
-  const { clientFactorFromCost, clientOffsetFromCost, clientRound } = PRICING_CONFIG.markup
-  const clientPrice = cost * clientFactorFromCost + clientOffsetFromCost
-  return Math.max(0, roundTo(clientPrice, clientRound))
-}
-
-/** Потеря на оплату картой от суммы заказа (руб). */
-export function getCardFee(revenue: number): number {
-  const p = PRICING_CONFIG.fees?.cardPercent ?? 0.025
-  return revenue * p
-}
-
-/** Выручка после вычета комиссии карты (руб). */
-export function getNetRevenueAfterCard(revenue: number): number {
-  const p = PRICING_CONFIG.fees?.cardPercent ?? 0.025
-  return revenue * (1 - p)
-}
-
-/** Сумма покраски по RAL (100 ₽/м.п.): профиль + импост. Только для colorId === 4 (RAL). Выводится отдельно и вычитается из прибыли. */
-export function getRalPaintingAmount(widthMm: number, heightMm: number, colorId: number): number {
-  if (colorId !== 4) return 0
-  const perimeterM = 2 * (widthMm / 1000 + heightMm / 1000)
-  const profileLengthM = Math.max(0, perimeterM - 0.24)
-  const impostLengthM = Math.max(0, (widthMm - 48) / 1000)
-  const ralPerMeter = PRICING_CONFIG.variable.ralPaintingPerMeter ?? 100
-  return (profileLengthM + impostLengthM) * ralPerMeter
-}
-
-/** Прибыль от заказа: выручка после карты − себестоимость − покраска RAL (если есть). */
-export function getOrderProfit(revenue: number, cost: number, ralAmount: number = 0): number {
-  return getNetRevenueAfterCard(revenue) - cost - ralAmount
+  measurementMethod: string
+  handleType: HandleType
+  installation: boolean
 }
 
 export const useOrderStore = defineStore('order', {
@@ -251,15 +51,16 @@ export const useOrderStore = defineStore('order', {
     },
     items: [] as OrderItem[],
     config: {
-      type: 'standart',
+      type: 'standart' as MeshType,
       typeName: 'СТАНДАРТ',
-      frameType: 'standart',
+      frameType: 'standart' as FrameType,
       width: 350,
       height: 1000,
-      color: 1,
+      color: 1 as ColorId,
       count: 1,
       installation: false,
-      handleType: 'pvc',
+      handleType: 'pvc' as HandleType,
+      measurementMethod: '' as '' | 'stvorka' | 'proem' | 'old_mesh',
     },
     /** Способ получения: по умолчанию доставка (Чебоксары и Новочебоксарск) */
     delivery: 'Доставка',
@@ -296,73 +97,219 @@ export const useOrderStore = defineStore('order', {
       const hasWith = state.items.some((item) => item.typeName.includes(' + МОНТАЖ'))
       return hasWithout && hasWith
     },
+    /** Расчитанная цена доставки для клиента */
+    deliveryPriceCalculated(state): number {
+      const pricingStore = usePricingStore()
+      const tenantStore = useTenantStore()
+      const p = pricingStore.pricing
+      if (!p) return 400
+
+      // Если заказ смешанный (есть и с монтажом, и без), используем себестоимость смежной доставки
+      const baseDelivery = state.isMixedOrder 
+        ? (p.services.find((s: any) => s.id === 'delivery_mixed')?.price ?? 100)
+        : (p.services.find((s: any) => s.id === 'delivery')?.price ?? 300)
+        
+      const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
+      const profitFactor = ((marginConfig?.delivery_margin_percent !== null && marginConfig?.delivery_margin_percent !== undefined) ? marginConfig.delivery_margin_percent : (p.markup.delivery_profit_factor ?? 33)) / 100
+      const finalPrice = Math.round((baseDelivery + (baseDelivery * profitFactor)) / 50) * 50
+      // Смешанная доставка — свой минимум (150), обычная — 400
+      const minDelivery = state.isMixedOrder ? 150 : 400
+      return Math.max(finalPrice, minDelivery)
+    },
+    /** Расчитанная цена замера для отображения в UI */
+    measurementPriceCalculated(state): number {
+      const pricingStore = usePricingStore()
+      const tenantStore = useTenantStore()
+      const p = pricingStore.pricing
+      if (!p) return 400
+      
+      const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
+      
+      // ВАЖНО: Обновляем clientFactorFromCost в сторе, чтобы он был доступен при гидратации
+      const config = getConfig(p, marginConfig)
+      if (p.markup) {
+        p.markup.clientFactorFromCost = config.markup.clientFactorFromCost
+        console.error(`[SSR_DEBUG] UPDATED clientFactorFromCost to ${p.markup.clientFactorFromCost} for host ${tenantStore.config.dealer_name}`)
+      }
+
+      if (state.items.length === 0) return (marginConfig as any)?.measurement_base || p.markup.measurement_base || 400
+      
+      const totalMaterialCost = state.items.reduce((sum, item) => {
+        const colorId: ColorId = item.color === 'КОРИЧНЕВАЯ' ? 2 : (item.color === 'АНТРАЦИТ' ? 3 : (item.color === 'RAL' ? 4 : 1))
+        const cost = item.frameTypeName.includes('ВСТАВНАЯ')
+          ? computeCostVstavnaya(item.width, item.height, colorId, item.type, p, marginConfig)
+          : computeCost(item.width, item.height, colorId, item.type, p, marginConfig)
+        const work = getWork(item.width, item.height, colorId, item.type, item.frameTypeName.includes('ВСТАВНАЯ') ? 'vstavnaya' : 'standart', p, marginConfig)
+        return sum + (cost - work) * item.count
+      }, 0)
+
+      const base = p.markup.measurement_base ?? 270
+      const bonus = totalMaterialCost * ((p.markup.measurement_percent ?? 5) / 100)
+      const profit = totalMaterialCost * (((marginConfig?.measurement_margin_percent !== null && marginConfig?.measurement_margin_percent !== undefined) ? marginConfig.measurement_margin_percent : (p.markup.measurement_profit_factor ?? 5)) / 100)
+      
+      const finalPrice = Math.round((base + (bonus || 0) + (profit || 0)) / 50) * 50
+      return Math.max(finalPrice, 400)
+    },
     currentPrice(state): number {
+      const pricingStore = usePricingStore()
+      const tenantStore = useTenantStore()
+      const isMetal = state.config.handleType === 'metal'
+      
+      const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
+      
+      // ВАЖНО: Обновляем clientFactorFromCost в сторе, чтобы он был доступен при гидратации
+      if (pricingStore.pricing && pricingStore.pricing.markup) {
+        const config = getConfig(pricingStore.pricing, marginConfig, state.config.type)
+        pricingStore.pricing.markup.clientFactorFromCost = config.markup.clientFactorFromCost
+        if (import.meta.server) {
+          console.error(`[SSR_DEBUG] UPDATED clientFactorFromCost to ${pricingStore.pricing.markup.clientFactorFromCost} in currentPrice`)
+        }
+      }
+
+      // Размеры теперь корректируются напрямую в config при выборе метода,
+      // поэтому здесь используем значения как есть.
+      const calcWidth = state.config.width
+      const calcHeight = state.config.height
+
       if (state.config.frameType === 'vstavnaya') {
         const cost = computeCostVstavnaya(
-          state.config.width,
-          state.config.height,
+          calcWidth,
+          calcHeight,
           state.config.color,
-          state.config.type
+          state.config.type,
+          pricingStore.pricing ?? undefined,
+          marginConfig
         )
-        return costToClientPrice(cost)
+        const base = toClientPriceFromCost(cost, state.config.type, pricingStore.pricing ?? undefined, marginConfig)
+        return isMetal ? (base - toClientPriceFromCost(PRICING_CONFIG.fixed.handles, state.config.type, pricingStore.pricing ?? undefined, marginConfig)) : base
       }
       const cost = computeCost(
-        state.config.width,
-        state.config.height,
+        calcWidth,
+        calcHeight,
         state.config.color,
-        state.config.type
+        state.config.type,
+        pricingStore.pricing ?? undefined,
+        marginConfig
       )
-      return costToClientPrice(cost)
+      const base = toClientPriceFromCost(cost, state.config.type, pricingStore.pricing ?? undefined, marginConfig)
+      return isMetal ? (base - toClientPriceFromCost(PRICING_CONFIG.fixed.handles, state.config.type, pricingStore.pricing ?? undefined, marginConfig)) : base
     },
+    /** Итоговая цена заказа для клиента (сетки + доп. услуги) */
     totalPrice(state): number {
+      const pricingStore = usePricingStore()
+      const tenantStore = useTenantStore()
       const itemsTotal = state.items.reduce((sum, item) => sum + item.price, 0)
-      const measurementAdd = state.measurementSelected ? state.measurementPrice : 0
-      const urgentAdd = state.discountType === 'srochnyi' ? 400 : 0
+      
+      const measurementAdd = state.measurementSelected ? this.measurementPriceCalculated : 0
+      
       // Доставка в итог только если в заказе есть сетки без монтажа (когда способ получения показывается)
       const needsDelivery = state.items.some((item) => !item.typeName.includes(' + МОНТАЖ'))
-      const deliveryAdd = needsDelivery ? state.deliveryPrice : 0
-      return itemsTotal + deliveryAdd + measurementAdd + urgentAdd
+      const deliveryAdd = (needsDelivery && state.delivery === 'Доставка') ? this.deliveryPriceCalculated : 0
+      
+      // Базовая сумма заказа (сетки + доставка + замер)
+      const baseTotal = itemsTotal + deliveryAdd + measurementAdd
+
+      const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
+
+      // Срочность считается от итоговой суммы (сетки + доставка + замер)
+      const urgentFactor = ((marginConfig?.urgent_margin_percent !== null && marginConfig?.urgent_margin_percent !== undefined) ? marginConfig.urgent_margin_percent : (pricingStore.pricing?.markup.urgent_profit_factor ?? 10))
+      const urgentAdd = state.discountType === 'srochnyi' 
+        ? Math.max(Math.round((baseTotal * (urgentFactor / 100)) / 50) * 50, 400)
+        : 0
+      
+      if (import.meta.server) {
+        if (pricingStore.pricing?.markup) {
+          pricingStore.pricing.markup.urgent_profit_factor = urgentFactor
+          pricingStore.pricing.markup.delivery_profit_factor = ((marginConfig?.delivery_margin_percent !== null && marginConfig?.delivery_margin_percent !== undefined) ? marginConfig.delivery_margin_percent : (pricingStore.pricing.markup.delivery_profit_factor ?? 33))
+          pricingStore.pricing.markup.installation_profit_factor = ((marginConfig?.installation_margin_percent !== null && marginConfig?.installation_margin_percent !== undefined) ? marginConfig.installation_margin_percent : (pricingStore.pricing.markup.installation_profit_factor ?? 33))
+          pricingStore.pricing.markup.measurement_profit_factor = ((marginConfig?.measurement_margin_percent !== null && marginConfig?.measurement_margin_percent !== undefined) ? marginConfig.measurement_margin_percent : (pricingStore.pricing.markup.measurement_profit_factor ?? 5))
+        }
+      }
+
+      const total = baseTotal + (urgentAdd || 0)
+      return isNaN(total) ? 0 : total
     },
-    /** Доплата за монтаж за 1 шт (для отображения в калькуляторе) */
-    extrasInstallation(): number {
-      return PRICING_CONFIG.extras.installation
+    /** Доплата за монтаж за 1 шт: база из админки × (1 + коэффициент монтажа), округление до 50. Без принудительного минимума. */
+    extrasInstallation(state): number {
+      const pricingStore = usePricingStore()
+      const tenantStore = useTenantStore()
+      if (!pricingStore.pricing) return PRICING_CONFIG.extras.installation
+
+      const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
+
+      const isVstavnaya = state.config.frameType === 'vstavnaya'
+      const basePrice = isVstavnaya 
+        ? (pricingStore.pricing.services.find((s: any) => s.id === 'installation_vsn')?.price ?? 100)
+        : (pricingStore.pricing.services.find((s: any) => s.id === 'installation')?.price ?? 400)
+      const factor = ((marginConfig?.installation_margin_percent !== null && marginConfig?.installation_margin_percent !== undefined) ? marginConfig.installation_margin_percent : (pricingStore.pricing.markup.installation_profit_factor ?? 33)) / 100
+      return roundTo(basePrice + basePrice * factor, 50)
     },
-    /** Доплата за металл. ручки за 1 шт */
-    extrasHandleMetal(): number {
-      return PRICING_CONFIG.extras.handleMetal
+    /** Доплата за металл. ручки (8₽×2 шт из админки). В калькуляторе для клиента округление 50, для дилера 10. */
+    extrasHandleMetal(state): number {
+      const pricingStore = usePricingStore()
+      const tenantStore = useTenantStore()
+      const p = pricingStore.pricing
+      const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
+      const cost = p ? ((p.components.find((c: any) => c.id === 'handle_metal')?.price ?? 8) * 2) : 16
+      return toClientPriceFromCost(cost, state.config.type, p ?? undefined, marginConfig)
     },
     /** Покраска по RAL (100 ₽/м.п.) для текущей позиции — выводить отдельно и вычитать из прибыли. 0, если цвет не RAL. */
     currentRalPaintingAmount(state): number {
-      return getRalPaintingAmount(state.config.width, state.config.height, state.config.color)
+      const pricingStore = usePricingStore()
+      const tenantStore = useTenantStore()
+      const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
+      return getRalPaintingAmount(state.config.width, state.config.height, state.config.color, pricingStore.pricing ?? undefined, marginConfig)
     },
     /** Сумма покраски RAL по всем позициям в корзине (позиции с цветом RAL). */
     totalRalPaintingAmount(state): number {
+      const pricingStore = usePricingStore()
+      const tenantStore = useTenantStore()
+      const marginConfig = (tenantStore.config as any).margin_config as MarginConfig
       return state.items
         .filter((item) => item.color === 'RAL')
-        .reduce((sum, item) => sum + getRalPaintingAmount(item.width, item.height, 4), 0)
+        .reduce((sum, item) => sum + getRalPaintingAmount(item.width, item.height, 4, pricingStore.pricing ?? undefined, marginConfig), 0)
     },
   },
   actions: {
     addToOrder() {
       const base = this.currentPrice
-      const installation = this.config.installation ? PRICING_CONFIG.extras.installation : 0
-      const metal = this.config.handleType === 'metal' ? PRICING_CONFIG.extras.handleMetal : 0
+      const installation = this.config.installation ? this.extrasInstallation : 0
+      const metal = this.config.handleType === 'metal' ? this.extrasHandleMetal : 0
       const price = (base + installation + metal) * this.config.count
 
-      const colorName = ['БЕЛАЯ', 'КОРИЧНЕВАЯ', 'АНТРАЦИТ', 'RAL'][this.config.color - 1]
+      const colorName = COLOR_NAMES[this.config.color]
       const handleName = this.config.handleType === 'metal' ? 'МЕТАЛЛ' : 'ПВХ'
-      const frameName = this.config.frameType === 'vstavnaya' ? 'ВСТАВНАЯ VSN' : 'РАМОЧНАЯ'
+      const frameName = FRAME_TYPE_NAMES[this.config.frameType]
+
+      // Размеры в config уже скорректированы, берем их напрямую
+      const finalWidth = this.config.width
+      const finalHeight = this.config.height
+      let methodLabel = ''
+
+      if (this.config.measurementMethod === 'stvorka') {
+        methodLabel = 'ПО СТВОРКЕ (-5/5 мм)'
+      } else if (this.config.measurementMethod === 'proem') {
+        const isVstavnaya = this.config.frameType === 'vstavnaya'
+        const wCorr = isVstavnaya ? 17 : 50
+        const hCorr = isVstavnaya ? 12 : 50
+        methodLabel = `ПО ПРОЕМУ (+${wCorr}/${hCorr} мм)`
+      } else {
+        methodLabel = 'ПО СЕТКЕ'
+      }
 
       this.items.push({
         id: Date.now(),
         type: this.config.type,
-        typeName: `${this.config.typeName} (${handleName})${this.config.installation ? ' + МОНТАЖ' : ''}`,
+        typeName: `${MESH_TYPE_NAMES[this.config.type]} (${handleName})${this.config.installation ? ' + МОНТАЖ' : ''}`,
         frameTypeName: frameName,
         color: colorName,
-        width: this.config.width,
-        height: this.config.height,
+        width: finalWidth,
+        height: finalHeight,
         count: this.config.count,
         price,
+        measurementMethod: methodLabel,
+        handleType: this.config.handleType,
+        installation: this.config.installation,
       })
     },
     removeItem(id: number) {
@@ -378,6 +325,51 @@ export const useOrderStore = defineStore('order', {
     },
     updateConfig(newConfig: Partial<typeof this.config>) {
       this.config = { ...this.config, ...newConfig }
+    },
+    updateItemCount(id: number, count: number) {
+      const item = this.items.find(i => i.id === id)
+      if (item) {
+        const unitPrice = item.price / item.count
+        item.count = Math.max(1, count)
+        item.price = unitPrice * item.count
+      }
+    },
+    setMeasurementMethod(method: 'stvorka' | 'proem' | 'old_mesh' | '') {
+      const oldMethod = this.config.measurementMethod
+      if (oldMethod === method) return
+
+      // Если новый метод пустой (сброс), просто сохраняем и выходим
+      if (method === '') {
+        this.config.measurementMethod = ''
+        return
+      }
+
+      // 1. Сначала возвращаемся к "чистому" замеру (отменяем предыдущую корректировку)
+      if (oldMethod === 'stvorka') {
+        this.config.width += 5
+        this.config.height += 5
+      } else if (oldMethod === 'proem') {
+        const isVstavnaya = this.config.frameType === 'vstavnaya'
+        const wCorr = isVstavnaya ? 17 : 50
+        const hCorr = isVstavnaya ? 12 : 50
+        this.config.width -= wCorr
+        this.config.height -= hCorr
+      }
+
+      // 2. Применяем новую корректировку к текущим значениям
+      if (method === 'stvorka') {
+        this.config.width -= 5
+        this.config.height -= 5
+      } else if (method === 'proem') {
+        const isVstavnaya = this.config.frameType === 'vstavnaya'
+        const wCorr = isVstavnaya ? 17 : 50
+        const hCorr = isVstavnaya ? 12 : 50
+        this.config.width += wCorr
+        this.config.height += hCorr
+      }
+
+      // 3. Сохраняем новый метод
+      this.config.measurementMethod = method
     },
     setDelivery(value: string, price: number) {
       this.delivery = value

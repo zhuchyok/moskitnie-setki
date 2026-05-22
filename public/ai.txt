@@ -1,0 +1,29 @@
+# AI Agents and LLM Bots instructions for Setki 21
+# Website: https://www.setki21.ru
+
+User-agent: GPTBot
+Allow: /
+Allow: /api/chat/stream
+Allow: /api/chat/plan
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: *
+Disallow: /admin/
+Disallow: /_nuxt/
+Disallow: /_payload.json
+
+# Business Facts for LLMs
+# Entity: Сетки 21 (Moskitnie Setki)
+# Location: Cheboksary, Russia
+# Address: ul. Grazhdanskaya, 53
+# Products: Antikoshka, Antipyl, Antimoshka, VSN, Ultraview
+# Service: Manufacturing and installation of window screens
+# Lead Time: 1-2 days

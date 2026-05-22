@@ -1,10 +1,13 @@
 // Яндекс Метрика: основной счётчик сайта + счётчик Яндекс.Бизнес
 // Загрузка отложена (requestIdleCallback + 2s) для улучшения INP и LCP
+import { useTenantStore } from '~/stores/tenant'
+
 const METRIKA_IDS = [48599813, 63315469] as const;
 
 export default defineNuxtPlugin(() => {
   if (!process.client) return
   const router = useRouter()
+  const tenant = useTenantStore()
 
   function loadMetrika() {
     const w = window as any
@@ -16,14 +19,31 @@ export default defineNuxtPlugin(() => {
     (w, document, 'script', 'https://mc.yandex.ru/metrika/tag.js', 'ym')
 
     const initOptions = { clickmap: true, trackLinks: true, accurateTrackBounce: true, webvisor: true }
-    METRIKA_IDS.forEach((id) => { w.ym(id, 'init', initOptions) })
+    
+    // Собираем все ID: основные + дилерский
+    const ids = [...METRIKA_IDS]
+    let dealerMetrikaId = tenant.config?.seo?.analytics_code
+
+    // Если в поле попал полный скрипт, извлекаем только ID
+    if (dealerMetrikaId && dealerMetrikaId.includes('ym(')) {
+      const match = dealerMetrikaId.match(/ym\((\d+)/)
+      if (match && match[1]) {
+        dealerMetrikaId = match[1]
+      }
+    }
+
+    if (dealerMetrikaId && !ids.includes(Number(dealerMetrikaId))) {
+      ids.push(Number(dealerMetrikaId))
+    }
+
+    ids.forEach((id) => { w.ym(id, 'init', initOptions) })
 
     router.afterEach((to) => {
-      METRIKA_IDS.forEach((id) => { w.ym(id, 'hit', to.fullPath) })
+      ids.forEach((id) => { w.ym(id, 'hit', to.fullPath) })
     })
 
     w.reachMetrikaGoal = (goalName: string, params?: any) => {
-      METRIKA_IDS.forEach((id) => { w.ym(id, 'reachGoal', goalName, params) })
+      ids.forEach((id) => { w.ym(id, 'reachGoal', goalName, params) })
     }
   }
 

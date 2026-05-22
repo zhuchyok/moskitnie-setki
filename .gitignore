@@ -30,6 +30,11 @@ Thumbs.db
 
 # Local
 *.local
+.env.deploy
 
 # Backup (optional - keep for reference)
 # OLD_STATIC_BACKUP/
+moskit-api/target/
+moskit-core/target/
+docs/reports/cro-quality-gates/*.json
+docs/reports/cro-quality-gates/*.md

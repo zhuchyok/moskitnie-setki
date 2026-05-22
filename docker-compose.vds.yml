@@ -1,0 +1,19 @@
+# На VDS API в двух сетях (default + atra-network); имя "postgres" резолвится в atra-postgres.
+# Явно указываем хост setki21_src-postgres-1, чтобы подключаться к Postgres этого стека.
+services:
+  api:
+    environment:
+      - DATABASE_URL=postgres://moskit:password@setki21_src-postgres-1:5432/moskit
+    networks:
+      - default
+      - shared
+
+  web:
+    networks:
+      - default
+      - shared
+
+networks:
+  shared:
+    external: true
+    name: ${SETKI21_SHARED_NETWORK:-atra-network}

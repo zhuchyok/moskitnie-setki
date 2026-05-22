@@ -11,17 +11,26 @@ Allow: /antipyl/
 Allow: /antimoshka/
 Allow: /vstavnye/
 Allow: /remont/
+Allow: /ultravyu/
 Allow: /privacy/
+Allow: /contacts/
+Allow: /delivery/
+Allow: /karta-sajta/
+
+# Запретить индексацию дилеров
+Disallow: /dealers/
+Disallow: /dealers
+
+# Разрешить индексацию изображений (SEO 2026: SGE, Image Search)
+Allow: /images/
+Allow: /upload/
+Allow: /images/optimized/
 
 # Запретить индексацию служебных директорий
-Disallow: /bitrix/
-Disallow: /css/
-Disallow: /js/
-Disallow: /images/
-Disallow: /upload/
+Disallow: /_nuxt/
 Disallow: /ajax/
 Disallow: /*.php$
-Disallow: /*?*
+# Не блокировать все query: полезные URL с параметрами (каталог, UTM) остаются доступны
 Disallow: /admin/
 Disallow: /tmp/
 Disallow: /cache/
@@ -30,6 +39,10 @@ Disallow: /cache/
 User-agent: Yandex
 Crawl-delay: 2
 Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term
+Allow: /
+Allow: /images/
+Allow: /upload/
+Allow: /images/optimized/
 
 User-agent: Googlebot
 Crawl-delay: 1

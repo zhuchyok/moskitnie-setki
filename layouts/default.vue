@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { useTenantStore } from '~/stores/tenant'
+
+const tenant = useTenantStore()
+const route = useRoute()
+const { isPaidTraffic, segment, variant, rolloutWave } = useTrafficExperiment()
+
 const navLinks = [
   { name: 'МОСКИТНАЯ', path: '/' },
   { name: 'АНТИМОШКА', path: '/antimoshka' },
@@ -54,8 +60,86 @@ const closeMobileMenu = () => {
   mobileMenuOpen.value = false
 }
 
-// Хлебные крошки из текущего маршрута
-const BASE_URL = 'https://www.setki21.ru'
+// Модалка «Заказать обратный звонок»: у дилеров — на email дилера (contacts.emails[0] или основной email)
+const showCallbackModal = ref(false)
+const callbackToEmail = computed(() => {
+  const emails = tenant.config?.contacts?.emails
+  if (Array.isArray(emails) && emails.length > 0 && emails[0]) return String(emails[0]).trim()
+  const mainEmail = tenant.config?.email
+  if (mainEmail) return String(mainEmail).trim()
+  return undefined
+})
+
+const callbackCtaLabel = computed(() => (isPaidTraffic.value ? 'Рассчитать стоимость' : 'Заказать обратный звонок'))
+
+async function handleHeaderCtaClick() {
+  if (!isPaidTraffic.value) {
+    try {
+      ;(window as any).reachMetrikaGoal?.('CTA_CALLBACK_CLICK', {
+        segment: segment.value,
+        variant_id: variant.value,
+        rollout_wave: rolloutWave.value,
+        dealer_domain: window.location.hostname
+      })
+    } catch (_) {}
+    showCallbackModal.value = true
+    return
+  }
+
+  try {
+    ;(window as any).reachMetrikaGoal?.('CTA_CALCULATE_CLICK', {
+      segment: segment.value,
+      variant_id: variant.value,
+      rollout_wave: rolloutWave.value,
+      dealer_domain: window.location.hostname
+    })
+  } catch (_) {}
+
+  if (import.meta.client && route.path === '/') {
+    scrollToCalculatorWithRetry()
+    return
+  }
+
+  if (import.meta.client) {
+    sessionStorage.setItem('scroll_to_calculator', '1')
+  }
+  await navigateTo({ path: '/' })
+}
+
+function scrollToCalculatorWithRetry(attempt = 0) {
+  if (!import.meta.client) return
+  const calculator = document.getElementById('calculator')
+  if (calculator) {
+    calculator.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    sessionStorage.removeItem('scroll_to_calculator')
+    return
+  }
+  if (attempt < 20) {
+    window.setTimeout(() => scrollToCalculatorWithRetry(attempt + 1), 120)
+  }
+}
+
+onMounted(() => {
+  if (route.path === '/' && sessionStorage.getItem('scroll_to_calculator') === '1') {
+    scrollToCalculatorWithRetry()
+  }
+})
+
+watch(
+  () => route.path,
+  (path) => {
+    if (!import.meta.client) return
+    if (path === '/' && sessionStorage.getItem('scroll_to_calculator') === '1') {
+      scrollToCalculatorWithRetry()
+    }
+  }
+)
+
+// Ссылка на политику конфиденциальности из админки дилера (legal.privacy_policy_url) или дефолт /privacy
+const privacyPolicyUrl = computed(() => tenant.config?.legal?.privacy_policy_url?.trim() || '/privacy')
+
+// Хлебные крошки: текущий origin (аудит 2026-03-10 — не хардкод www.setki21.ru)
+const BASE_URL = useUnicodeOrigin()
 const pathNames: Record<string, string> = {
   '/': 'Главная',
   '/antimoshka': 'Антимошка',
@@ -69,7 +153,6 @@ const pathNames: Record<string, string> = {
   '/privacy': 'Политика конфиденциальности',
   '/karta-sajta': 'Карта сайта'
 }
-const route = useRoute()
 const breadcrumbs = computed(() => {
   const path = route.path.replace(/\/$/, '') || '/'
   const items: { path: string; name: string }[] = []
@@ -92,48 +175,112 @@ const breadcrumbSchema = computed(() => ({
     item: `${BASE_URL}${item.path === '/' ? '' : item.path}`
   }))
 }))
+// Фавикон: favicon_url || logo_url (аудит 2026-03-10); абсолютный URL при SSR от текущего origin
+const requestURL = useRequestURL()
+
+useSeoMeta({
+  ogSiteName: computed(() => tenant.config.dealer_name || 'Сетки 21'),
+})
+
+const { geoRegionCode } = useGeoData()
+const geoCity = computed(() => tenant.config.city || 'Чебоксары')
+
+useHead({
+  meta: computed(() => [
+    { name: 'geo.placename', content: geoCity.value },
+    { name: 'geo.region', content: geoRegionCode.value },
+    { name: 'geo.country', content: 'RU' },
+  ])
+})
 useHead({
   script: computed(() => [
     { type: 'application/ld+json', children: JSON.stringify(breadcrumbSchema.value) }
-  ])
+  ]),
+    link: computed(() => {
+    const rawUrl = tenant.config.branding?.favicon_url || '/api/v1/tenant/favicon'
+    const origin = requestURL?.origin || (typeof window !== 'undefined' ? window.location.origin : '')
+    const logoUrl = rawUrl.startsWith('http') ? rawUrl : (origin ? origin.replace(/\/$/, '') + rawUrl : rawUrl)
+    const isPng = logoUrl.toLowerCase().endsWith('.png') || logoUrl.includes('/favicon') || logoUrl.includes('/api/')
+    const isSvg = logoUrl.toLowerCase().endsWith('.svg')
+    const logoPath = tenant.config.branding?.logo_url || ''
+    const logoHash = logoPath ? (logoPath.split('/').pop()?.replace(/\.[^.]+$/, '').substring(0, 8) || '') : ''
+    const v = (tenant.config.dealer_id || 'default') + (logoHash ? '_' + logoHash : '')
+    const hostSlug = typeof window !== 'undefined' ? window.location.hostname.replace(/\./g, '_') : (requestURL?.host || '').replace(/\./g, '_')
+    const q = logoUrl.includes('?') ? `&v=${v}&h=${hostSlug}` : `?v=${v}&h=${hostSlug}`
+    const href = logoUrl + q
+
+    return [
+      { key: 'favicon', rel: 'icon', type: isSvg ? 'image/svg+xml' : (isPng ? 'image/png' : 'image/x-icon'), sizes: isSvg ? 'any' : '120x120', href },
+      { key: 'shortcut', rel: 'shortcut icon', type: isSvg ? 'image/svg+xml' : (isPng ? 'image/png' : 'image/x-icon'), href },
+      { key: 'apple', rel: 'apple-touch-icon', sizes: '180x180', href }
+    ]
+  })
 })
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col font-sans text-brand-dark selection:bg-brand-blue selection:text-white" style="color: #333333">
+  <div class="min-h-screen flex flex-col font-sans text-brand-dark selection:bg-brand-blue selection:text-white" style="color: #333333" :style="{ '--brand-primary': tenant.config.branding?.primary_color || '#2A6AB2' }">
     <!-- Top Header -->
     <header class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
       <div class="container mx-auto px-4 py-3">
         <div class="flex flex-wrap justify-between items-center gap-4">
-          <!-- Logo Section -->
+            <!-- Logo Section: не показывать лого/название до загрузки конфига, чтобы на сайте дилера не мелькала «Сетки 21» -->
           <NuxtLink to="/" class="logo-link flex items-center gap-3 sm:gap-4 group min-w-0 flex-shrink-0" style="color: inherit; text-decoration: none">
-            <img src="/images/logo_clean.png?v=2" alt="Сетки 21" class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 object-contain transition-transform group-hover:scale-105" width="48" height="48" loading="eager" decoding="async" />
-            <div class="min-w-0" style="color: #333333">
-              <p class="text-base sm:text-lg md:text-xl font-black leading-none text-brand-blue tracking-tight uppercase m-0" style="color: #2A6AB2" aria-label="Сетки 21">СЕТКИ 21</p>
-              <p class="text-[9px] sm:text-[10px] uppercase tracking-widest font-bold mt-0.5" style="color: #9ca3af">
-                <span class="sm:hidden">Производство</span>
-                <span class="hidden sm:inline">Производство замер монтаж от 1 дня</span>
-              </p>
-            </div>
+            <template v-if="tenant.isLoaded">
+              <img :src="tenant.config.branding?.logo_url || '/images/logo_clean.png?v=2'" :alt="tenant.config.dealer_name || 'Сетки 21'" class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 object-contain transition-transform group-hover:scale-105" width="48" height="48" loading="eager" decoding="async" />
+              <div class="min-w-0" style="color: #333333">
+                <p class="text-base sm:text-lg md:text-xl font-black leading-none text-brand-blue tracking-tight uppercase m-0" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" :aria-label="tenant.config.dealer_name || 'Сетки 21'">{{ tenant.config.dealer_name || 'СЕТКИ 21' }}</p>
+                <p class="text-[9px] sm:text-[10px] uppercase tracking-widest font-bold mt-0.5" style="color: #9ca3af">
+                  <span class="sm:hidden">Производство</span>
+                  <span class="hidden sm:inline">{{ tenant.config.branding?.short_description || 'Производство замер монтаж от 1 дня' }}</span>
+                </p>
+              </div>
+            </template>
+            <template v-else>
+              <div class="h-10 sm:h-12 w-10 sm:w-12 flex-shrink-0 rounded-lg bg-gray-100 animate-pulse" aria-hidden="true" />
+              <div class="min-w-0 flex flex-col gap-1">
+                <div class="h-5 sm:h-6 w-24 sm:w-28 rounded bg-gray-100 animate-pulse" aria-hidden="true" />
+                <div class="h-3 w-32 sm:w-40 rounded bg-gray-50 animate-pulse" aria-hidden="true" />
+              </div>
+            </template>
           </NuxtLink>
 
-          <!-- Contact Section -->
+          <!-- Contact Section: плейсхолдер до загрузки конфига -->
           <div class="flex items-center gap-6" style="color: #333333">
-            <div class="hidden lg:block text-right">
-              <p class="text-[10px] font-bold uppercase mb-1" style="color: #9ca3af">Режим работы: Пн–Пт 10:00–18:00</p>
-              <p class="text-sm font-bold">Чебоксары и Новочебоксарск</p>
-            </div>
-            <a
-              href="tel:+78352381420"
-              class="flex flex-col items-end group"
-              style="color: inherit; text-decoration: none"
-              @click="() => { try { (window as any).reachMetrikaGoal?.('CALL_CLICK') } catch (_) {} }"
-            >
-              <span class="text-xl font-black group-hover:text-brand-blue transition-colors leading-none" style="color: #333333">
-                +7 (8352) 38-14-20
-              </span>
-              <span class="text-[10px] font-bold border-b border-brand-blue/30 group-hover:border-brand-blue transition-all uppercase tracking-wider" style="color: #2A6AB2; border-color: rgba(42,106,178,0.3)">Заказать обратный звонок</span>
-            </a>
+            <template v-if="tenant.isLoaded">
+              <div class="hidden lg:block text-right">
+                <p class="text-[10px] font-bold uppercase mb-1" style="color: #9ca3af">Режим работы: {{ tenant.config.branding?.working_hours || 'Пн–Пт 10:00–18:00' }}</p>
+                <p class="text-sm font-bold">{{ tenant.config.city || 'Чебоксары и Новочебоксарск' }}</p>
+              </div>
+              <div class="flex flex-col items-end">
+                <a
+                  :href="'tel:' + (tenant.config.phone || '+78352381420').replace(/[^0-9+]/g, '')"
+                  class="phone-link block"
+                  style="color: inherit; text-decoration: none"
+                  :style="{ '--brand-primary': tenant.config.branding?.primary_color || '#2A6AB2' }"
+                  @click="() => { try { (window as any).reachMetrikaGoal?.('CALL_CLICK') } catch (_) {} }"
+                >
+                  <span class="text-xl font-black transition-colors leading-none phone-number" style="color: #333333">
+                    {{ tenant.config.phone || '+7 (8352) 38-14-20' }}
+                  </span>
+                </a>
+                <button
+                  type="button"
+                  class="text-[10px] font-bold border-b transition-all uppercase tracking-wider mt-0.5 hover:opacity-80"
+                  :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2', borderColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '4D' }"
+                  @click="handleHeaderCtaClick"
+                >
+                  {{ callbackCtaLabel }}
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <div class="hidden lg:block text-right">
+                <div class="h-3 w-28 rounded bg-gray-100 animate-pulse mb-1" aria-hidden="true" />
+                <div class="h-4 w-36 rounded bg-gray-100 animate-pulse" aria-hidden="true" />
+              </div>
+              <div class="h-8 w-32 rounded bg-gray-100 animate-pulse" aria-hidden="true" />
+            </template>
           </div>
         </div>
 
@@ -166,8 +313,8 @@ useHead({
                   :to="link.path" 
                   @click="closeMobileMenu"
                   class="block px-4 py-3 rounded-xl text-sm font-black transition-all uppercase tracking-wider"
-                  active-class="bg-brand-blue text-white shadow-md"
-                  inactive-class="text-gray-600 hover:text-brand-blue hover:bg-blue-50"
+                  active-class="nav-link-active text-white shadow-md"
+                  inactive-class="text-gray-600 hover-brand-text hover-brand-bg"
                 >
                   {{ link.name }}
                 </NuxtLink>
@@ -183,8 +330,8 @@ useHead({
               <NuxtLink 
                 :to="link.path" 
                 class="px-3 py-2 rounded-lg text-[11px] sm:text-xs font-black transition-all uppercase tracking-wider"
-                active-class="bg-brand-blue text-white shadow-md transform -translate-y-0.5"
-                inactive-class="text-gray-500 hover:text-brand-blue hover:bg-blue-50"
+                active-class="nav-link-active text-white shadow-md transform -translate-y-0.5"
+                inactive-class="text-gray-500 hover-brand-text hover-brand-bg"
               >
                 {{ link.name }}
               </NuxtLink>
@@ -195,16 +342,18 @@ useHead({
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow">
-      <nav v-if="breadcrumbs.length" class="container mx-auto px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500" aria-label="Хлебные крошки">
-        <ol class="flex flex-wrap items-center gap-1.5">
-          <li v-for="(item, i) in breadcrumbs" :key="item.path" class="flex items-center gap-1.5">
-            <template v-if="i > 0"><span aria-hidden="true">/</span></template>
-            <NuxtLink v-if="i < breadcrumbs.length - 1" :to="item.path" class="hover:text-brand-blue transition-colors">{{ item.name }}</NuxtLink>
-            <span v-else class="text-brand-dark" aria-current="page">{{ item.name }}</span>
-          </li>
-        </ol>
-      </nav>
+    <main class="flex-grow relative">
+      <div v-if="breadcrumbs.length > 1 && route.path !== '/'" class="absolute top-0 left-0 right-0 z-20">
+        <nav class="container mx-auto px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500" aria-label="Хлебные крошки">
+          <ol class="flex flex-wrap items-center gap-1.5">
+            <li v-for="(item, i) in breadcrumbs" :key="item.path" class="flex items-center gap-1.5">
+              <template v-if="i > 0"><span aria-hidden="true">/</span></template>
+              <NuxtLink v-if="i < breadcrumbs.length - 1" :to="item.path" class="hover-brand-text transition-colors">{{ item.name }}</NuxtLink>
+              <span v-else class="text-brand-dark" aria-current="page">{{ item.name }}</span>
+            </li>
+          </ol>
+        </nav>
+      </div>
       <slot />
     </main>
 
@@ -214,19 +363,31 @@ useHead({
         <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div class="col-span-1 md:col-span-2">
             <div class="flex items-center gap-4 mb-6">
-              <img src="/images/logo_clean.png" alt="Сетки 21" class="h-10 brightness-0 invert" />
-              <div>
-                <h3 class="text-xl font-black text-white uppercase tracking-tight">СЕТКИ 21</h3>
-                <p class="text-[10px] text-gray-500 uppercase tracking-widest">Производство замер монтаж от 1 дня</p>
-              </div>
+              <template v-if="tenant.isLoaded">
+                <img :src="tenant.config.branding?.logo_url || '/images/logo_clean.png'" 
+                     :alt="tenant.config.dealer_name || 'Сетки 21'" 
+                     class="h-14 sm:h-16 w-auto object-contain bg-white/10 rounded-xl p-2" 
+                     @error="(e: any) => e.target.src = '/images/logo_clean.png'" />
+                <div>
+                  <h3 class="text-xl md:text-2xl font-black text-white uppercase tracking-tight">{{ tenant.config.dealer_name || 'СЕТКИ 21' }}</h3>
+                  <p class="text-[10px] text-white uppercase tracking-widest opacity-60">{{ tenant.config.branding?.short_description || 'Производство замер монтаж от 1 дня' }}</p>
+                </div>
+              </template>
+              <template v-else>
+                <div class="h-14 sm:h-16 w-14 sm:w-16 rounded-xl bg-white/10 animate-pulse shrink-0" aria-hidden="true" />
+                <div class="flex flex-col gap-2">
+                  <div class="h-6 w-32 rounded bg-white/10 animate-pulse" aria-hidden="true" />
+                  <div class="h-3 w-48 rounded bg-white/10 animate-pulse" aria-hidden="true" />
+                </div>
+              </template>
             </div>
-            <p class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
-              Изготовим москитные сетки на окна в Чебоксарах и Новочебоксарске по индивидуальным размерам за 1 день. 
-              Используем только качественные комплектующие и металлический крепеж.
+            <p v-if="tenant.isLoaded" class="text-gray-400 text-sm leading-relaxed max-w-md font-medium">
+              Заказать москитные сетки в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }} от производителя {{ tenant.config.dealer_name || 'Москитные сетки 21' }}. Изготовление от 1 дня, металлический крепеж, замер и установка. Рамочные, Антикошка, Антипыль, Ультравью, вставные VSN.
             </p>
+            <div v-else class="h-12 w-full max-w-md rounded bg-white/5 animate-pulse" aria-hidden="true" />
           </div>
           <div>
-            <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm">Продукция</h4>
+            <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm" :style="{ borderColor: tenant.config.branding?.primary_color || '#2A6AB2' }">Продукция</h4>
             <ul class="space-y-3 text-sm text-gray-400">
               <li v-for="link in navLinks" :key="link.path">
                 <NuxtLink :to="link.path" class="footer-link hover:text-white transition-colors uppercase text-xs font-bold">{{ link.name }}</NuxtLink>
@@ -234,24 +395,36 @@ useHead({
             </ul>
           </div>
           <div>
-            <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm">Контакты</h4>
+            <h4 class="font-bold text-lg mb-6 border-l-4 border-brand-blue pl-4 uppercase tracking-widest text-sm" :style="{ borderColor: tenant.config.branding?.primary_color || '#2A6AB2' }">Контакты</h4>
             <div class="space-y-4 text-sm text-gray-400 font-medium">
-              <p>📍 Чебоксары, ул. Гражданская, 53, оф.1</p>
-              <p>📍 Новочебоксарск, ул. Винокурова, 109</p>
-              <p>🕐 Пн–Пт 10:00–18:00</p>
-              <p>📞 +7 (8352) 38-14-20</p>
-              <p>✉️ <a href="mailto:info@setki21.ru" class="hover:text-white transition-colors">info@setki21.ru</a></p>
-              <p class="text-gray-500 text-xs">Работаем по Чебоксарам и Новочебоксарску</p>
+              <template v-if="tenant.config.contacts?.branches?.length">
+                <div v-for="branch in tenant.config.contacts.branches" :key="branch.id" class="mb-4 last:mb-0">
+                  <p v-if="branch.name" class="text-white font-bold text-xs uppercase tracking-wider mb-1">{{ branch.name }}</p>
+                  <p>📍 {{ branch.address }}</p>
+                </div>
+              </template>
+              <p v-else-if="tenant.config.city">📍 {{ tenant.config.city }}</p>
+              <p v-else>📍 Чебоксары, ул. Гражданская, 53, оф.1</p>
+
+              <p v-if="tenant.config.branding?.working_hours">🕐 {{ tenant.config.branding.working_hours }}</p>
+              <p v-else>🕐 Пн–Пт 10:00–18:00</p>
+              <p v-if="tenant.config.phone">📞 {{ tenant.config.phone }}</p>
+              <p v-else>📞 +7 (8352) 38-14-20</p>
+              <p v-if="tenant.config.email">✉️ <a :href="'mailto:' + tenant.config.email" class="hover:text-white transition-colors">{{ tenant.config.email }}</a></p>
+              <p v-else-if="tenant.config.contacts?.emails?.length">✉️ <a :href="'mailto:' + tenant.config.contacts.emails[0]" class="hover:text-white transition-colors">{{ tenant.config.contacts.emails[0] }}</a></p>
+              <p v-else>✉️ <a href="mailto:info@setki21.ru" class="hover:text-white transition-colors">info@setki21.ru</a></p>
+              <p class="text-gray-500 text-xs">Работаем по {{ tenant.config.city || 'Чебоксарам и Новочебоксарске' }}</p>
             </div>
           </div>
         </div>
         <div class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-          <p>© {{ footerYear }} Сетки 21. Все права защищены.</p>
+          <p>© {{ footerYear }} {{ tenant.isLoaded ? (tenant.config.dealer_name || 'Сетки 21') : '…' }}. Все права защищены.</p>
           <div class="flex flex-wrap justify-center gap-6">
             <NuxtLink to="/contacts" class="hover:text-white transition-colors">Контакты</NuxtLink>
             <NuxtLink to="/delivery" class="hover:text-white transition-colors">Доставка и замер</NuxtLink>
-            <NuxtLink to="/privacy" class="hover:text-white transition-colors">Политика конфиденциальности</NuxtLink>
+            <NuxtLink :to="privacyPolicyUrl" class="hover:text-white transition-colors">Политика конфиденциальности</NuxtLink>
             <NuxtLink to="/karta-sajta" class="hover:text-white transition-colors">Карта сайта</NuxtLink>
+            <NuxtLink to="/admin/dealers" class="hover:text-white transition-colors">Дилерам</NuxtLink>
           </div>
         </div>
       </div>
@@ -284,29 +457,41 @@ useHead({
                 <b class="text-brand-dark">необходимые</b> (для работы сайта), 
                 <b class="text-brand-dark">аналитические</b> (для сбора статистики), 
                 <b class="text-brand-dark">маркетинговые</b> (для персонализации рекламы). 
-                Подробнее см. <NuxtLink to="/privacy" class="text-brand-blue font-bold underline decoration-2 underline-offset-4 hover:text-[#1e5a9a] transition-colors">Политику обработки персональных данных</NuxtLink>.
+                Подробнее см. <NuxtLink :to="privacyPolicyUrl" class="text-brand-blue font-bold underline decoration-2 underline-offset-4 hover-brand-text transition-colors" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Политику обработки персональных данных</NuxtLink>.
               </p>
               
               <!-- Чекбоксы и кнопки -->
               <div class="flex flex-wrap items-center gap-6">
                 <label class="flex items-center gap-2 cursor-not-allowed">
-                  <input type="checkbox" checked disabled class="w-4 h-4 accent-brand-blue" />
+                  <input type="checkbox" checked disabled class="w-4 h-4" :style="{ accentColor: tenant.config.branding?.primary_color || '#2A6AB2' }" />
                   <span class="text-sm font-bold text-gray-400">Необходимые</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" v-model="analyticsChecked" class="w-4 h-4 accent-brand-blue cursor-pointer" />
-                  <span class="text-sm font-bold text-brand-dark group-hover:text-brand-blue transition-colors">Аналитические</span>
+                  <input type="checkbox" v-model="analyticsChecked" class="w-4 h-4 cursor-pointer" :style="{ accentColor: tenant.config.branding?.primary_color || '#2A6AB2' }" />
+                  <span class="text-sm font-bold text-brand-dark group-hover:text-brand-blue transition-colors" :style="{ '--hover-color': tenant.config.branding?.primary_color || '#2A6AB2' }">Аналитические</span>
                 </label>
                 <label class="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" v-model="marketingChecked" class="w-4 h-4 accent-brand-blue cursor-pointer" />
-                  <span class="text-sm font-bold text-brand-dark group-hover:text-brand-blue transition-colors">Маркетинговые</span>
+                  <input type="checkbox" v-model="marketingChecked" class="w-4 h-4 cursor-pointer" :style="{ accentColor: tenant.config.branding?.primary_color || '#2A6AB2' }" />
+                  <span class="text-sm font-bold text-brand-dark group-hover:text-brand-blue transition-colors" :style="{ '--hover-color': tenant.config.branding?.primary_color || '#2A6AB2' }">Маркетинговые</span>
                 </label>
                 
                 <div class="flex gap-3 ml-auto">
-                  <button @click="saveSelectedCookies" class="bg-white border-2 border-brand-blue text-brand-blue font-black py-3 px-6 rounded-xl hover:bg-brand-blue hover:text-white transition-all text-xs uppercase tracking-wider">
+                  <button 
+                    @click="saveSelectedCookies" 
+                    class="btn-outline-dynamic bg-white border-2 font-black py-3 px-6 rounded-xl transition-all text-xs uppercase tracking-wider" 
+                    :style="{ 
+                      borderColor: tenant.config.branding?.primary_color || '#2A6AB2', 
+                      color: tenant.config.branding?.primary_color || '#2A6AB2',
+                      '--dynamic-brand-color': tenant.config.branding?.primary_color || '#2A6AB2'
+                    }"
+                  >
                     Сохранить выбор
                   </button>
-                  <button @click="acceptAllCookies" class="bg-brand-blue text-white font-black py-3 px-6 rounded-xl hover:bg-[#1e5a9a] transition-all shadow-lg shadow-brand-blue/30 text-xs uppercase tracking-wider">
+                  <button 
+                    @click="acceptAllCookies" 
+                    class="bg-brand-blue text-white font-black py-3 px-6 rounded-xl hover:opacity-90 transition-all shadow-lg text-xs uppercase tracking-wider" 
+                    :style="{ backgroundColor: tenant.config.branding?.primary_color || '#2A6AB2' }"
+                  >
                     Принять все
                   </button>
                 </div>
@@ -316,12 +501,32 @@ useHead({
         </div>
       </div>
     </Transition>
+
+    <CallbackModal v-model:open="showCallbackModal" :to-email="callbackToEmail" />
   </div>
 </template>
 
 <style>
+/* Цвет дилера при hover (--brand-primary задаётся на корне layout) */
+.hover-brand-text:hover {
+  color: var(--brand-primary, #2A6AB2) !important;
+}
+.hover-brand-bg:hover {
+  background-color: color-mix(in srgb, var(--brand-primary, #2A6AB2) 12%, white) !important;
+}
+.nav-link-active {
+  background-color: var(--brand-primary, #2A6AB2) !important;
+  color: white !important;
+}
 .router-link-active {
-  @apply bg-brand-blue text-white shadow-md;
+  @apply shadow-md;
+}
+
+/* Fix for hover on outline buttons with dynamic colors */
+.btn-outline-dynamic:hover {
+  background-color: var(--dynamic-brand-color, #2A6AB2) !important;
+  color: white !important;
+  border-color: var(--dynamic-brand-color, #2A6AB2) !important;
 }
 
 /* Logo link should never have active background */
@@ -339,5 +544,15 @@ useHead({
 }
 .footer-link.router-link-active:hover {
   color: #ffffff !important;
+}
+
+/* Cookie banner hover colors */
+.group:hover .group-hover\:text-brand-blue {
+  color: var(--hover-color, #2A6AB2) !important;
+}
+
+/* Phone number hover color */
+.phone-link:hover .phone-number {
+  color: var(--brand-primary, #2A6AB2) !important;
 }
 </style>

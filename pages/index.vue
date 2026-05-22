@@ -1,209 +1,315 @@
 <script setup lang="ts">
 const store = useOrderStore()
+const tenant = useTenantStore()
+const { isPaidTraffic, variant } = useTrafficExperiment()
 onMounted(() => {
   store.updateConfig({ frameType: 'standart', type: 'standart', typeName: 'СТАНДАРТ' })
 })
 
-const title = 'Москитные сетки на окна в Чебоксарах и Новочебоксарске — цены от 850 руб'
-const description = 'Производство и установка москитных сеток в Чебоксарах и Новочебоксарске по низким ценам. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!'
-const keywords = 'москитные сетки, москитная сетка, окна, чебоксары, новочебоксарск, заказать, купить, цена, установка, замер, производство'
-const url = 'https://www.setki21.ru/'
-const image = 'https://www.setki21.ru/images/logo_final_v58.png'
+const isPaidVariantB = computed(() => isPaidTraffic.value && variant.value === 'B')
+const isOrganicVariantB = computed(() => !isPaidTraffic.value && variant.value === 'B')
 
-const localBusinessSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: 'Сетки 21',
-  image,
-  '@id': 'https://www.setki21.ru',
-  url,
-  sameAs: ['https://yandex.ru/maps?ol=biz&oid=53004331040'],
-  telephone: '+7 (8352) 38-14-20',
-  email: 'info@setki21.ru',
-  priceRange: 'RUB',
-  areaServed: [{ '@type': 'City', name: 'Чебоксары' }, { '@type': 'City', name: 'Новочебоксарск' }],
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'ул. Гражданская, 53, оф.1',
-    addressLocality: 'Чебоксары',
-    postalCode: '428000',
-    addressCountry: 'RU'
-  },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: 56.137451,
-    longitude: 47.244032
-  },
-  openingHoursSpecification: {
-    '@type': 'OpeningHoursSpecification',
-    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-    opens: '10:00',
-    closes: '18:00'
-  },
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.9',
-    reviewCount: '89'
-  },
-  review: [
-    {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Анна С.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5' },
-      reviewBody: 'Отличное качество сеток, замерщик приехал вовремя, установка заняла всего час.'
+const heroTitle = computed(() => {
+  if (isPaidVariantB.value) {
+    return 'Точная цена москитной сетки за 1 минуту'
+  }
+  if (isOrganicVariantB.value) {
+    return 'Подберем москитную сетку под ваш случай'
+  }
+  return 'Москитная сетка на окна — от производителя'
+})
+
+const heroDescription = computed(() => {
+  if (isPaidVariantB.value) {
+    return `Рассчитайте стоимость за минуту без ожидания звонка. ${tenant.config.dealer_name || 'Сетки 21'} изготовит заказ под ваши размеры и согласует удобный замер в ${tenant.config.city || 'вашем городе'}.`
+  }
+  if (isOrganicVariantB.value) {
+    return `Поможем выбрать тип сетки под задачи семьи: от базовой защиты до Антикошки и Антипыли. Подберем решение, рассчитаем стоимость и подскажем оптимальный вариант для ${tenant.config.city || 'вашего города'}.`
+  }
+  return tenant.config.seo?.content?.main || `Собственное производство москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от 850 ₽. Работаем для вас более 13 лет. Изготовим на окна по индивидуальным размерам — срок от 1 до 5 рабочих дней в зависимости от сезона. Профессиональный замер и монтаж на любые типы окон от компании ${tenant.config.dealer_name || 'Сетки 21'}.`
+})
+
+const title = computed(() => tenant.config.seo?.title || `Москитные сетки на окна в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} — цены от 850 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
+const description = computed(() => tenant.config.seo?.description || `Производство и установка москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от компании ${tenant.config.dealer_name || 'Сетки 21'}. Замер за 1 день, металлические крепления в комплекте. Закажите онлайн!`)
+const keywords = computed(() => tenant.config.seo?.keywords || `москитные сетки, москитная сетка, окна, ${tenant.config.city}, ${tenant.config.dealer_name}, заказать, купить, цена, установка, замер, производство, антикошка, антипыль, vsn`)
+const unicodeOrigin = useUnicodeOrigin()
+const url = computed(() => unicodeOrigin ? `${unicodeOrigin}/` : 'https://www.setki21.ru/')
+const image = computed(() => tenant.config.branding?.logo_url || (unicodeOrigin ? `${unicodeOrigin}/images/logo_final_v58.png` : 'https://www.setki21.ru/images/logo_final_v58.png'))
+
+const { geoCoords, geoRegionName } = useGeoData()
+
+const localBusinessSchema = computed(() => {
+  const rating = tenant.config.seo?.rating
+  const hours = tenant.config.contacts?.hours
+  const mapLinks: string[] = tenant.config.contacts?.map_links ?? []
+
+  const localBusiness: Record<string, unknown> = {
+    '@type': 'LocalBusiness',
+    '@id': `${url.value}#localbusiness`,
+    parentOrganization: { '@id': `${url.value}#organization` },
+    name: `${tenant.config.dealer_name || 'Сетки 21'} ${tenant.config.city || 'Чебоксары'}`,
+    image: image.value,
+    telephone: tenant.config.phone || '+7 (8352) 38-14-20',
+    email: tenant.config.contacts?.emails?.[0] || 'info@setki21.ru',
+    priceRange: 'RUB',
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: tenant.config.contacts?.address || 'ул. Гражданская, 53',
+      addressLocality: tenant.config.city || 'Чебоксары',
+      addressRegion: geoRegionName.value || undefined,
+      addressCountry: 'RU'
     },
-    {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Дмитрий М.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5' },
-      reviewBody: 'Устанавливали сетки на балкон. Качество материалов на высоте, крепления надежные.'
-    },
-    {
-      '@type': 'Review',
-      author: { '@type': 'Person', name: 'Елена К.' },
-      reviewRating: { '@type': 'Rating', ratingValue: '5' },
-      reviewBody: 'Заказывали Антимошку на дачу в Чебоксарах. Сделали за день, привезли и установили. Рекомендую.'
-    }
-  ]
-}
+    openingHoursSpecification: hours ?? [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        opens: '10:00',
+        closes: '18:00'
+      }
+    ],
+  }
 
-const organizationSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: 'Сетки 21',
-  url: 'https://www.setki21.ru',
-  logo: 'https://www.setki21.ru/images/logo_final_v58.png',
-  contactPoint: {
-    '@type': 'ContactPoint',
-    telephone: '+7 (8352) 38-14-20',
-    email: 'info@setki21.ru',
-    contactType: 'customer service',
-    areaServed: ['Чебоксары', 'Новочебоксарск'],
-    availableLanguage: 'Russian',
-    openingHoursSpecification: {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-      opens: '10:00',
-      closes: '18:00'
+  if (geoCoords.value) {
+    localBusiness.geo = {
+      '@type': 'GeoCoordinates',
+      latitude: geoCoords.value.lat,
+      longitude: geoCoords.value.lon,
     }
-  },
-  sameAs: ['https://yandex.ru/maps?ol=biz&oid=53004331040']
-}
+  }
 
-const websiteSchema = {
+  if (rating?.ratingValue && rating?.reviewCount) {
+    localBusiness.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(rating.ratingValue),
+      reviewCount: String(rating.reviewCount),
+      bestRating: '5',
+      worstRating: '1',
+    }
+  }
+
+  if (mapLinks.length > 0) {
+    localBusiness.sameAs = mapLinks
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${url.value}#organization`,
+        name: tenant.config.dealer_name || 'Сетки 21',
+        url: url.value,
+        logo: image.value,
+        contactPoint: {
+          '@type': 'ContactPoint',
+          telephone: tenant.config.phone || '+7 (8352) 38-14-20',
+          contactType: 'customer service',
+          areaServed: tenant.config.city || 'Чебоксары',
+          availableLanguage: 'Russian'
+        }
+      },
+      localBusiness
+    ]
+  }
+})
+
+const websiteSchema = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'Сетки 21',
-  url: 'https://www.setki21.ru',
-  description: 'Производство и установка москитных сеток в Чебоксарах и Новочебоксарске. Замер за 1 день.',
-  publisher: { '@type': 'Organization', name: 'Сетки 21', url: 'https://www.setki21.ru' },
-  inLanguage: 'ru-RU',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: 'https://www.setki21.ru/?q={search_term_string}'
-    },
-    'query-input': 'required name=search_term_string'
+  '@id': `${url.value}#website`,
+  name: tenant.config.dealer_name || 'Сетки 21',
+  url: url.value,
+  description: `Производство и установка москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}.`,
+  publisher: { '@id': `${url.value}#organization` }
+}))
+
+const productSchema = computed(() => {
+  const rating = tenant.config.seo?.rating
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'Рамочная москитная сетка',
+    description: `Рамочная москитная сетка Fiberglass на окна в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}. Металлический крепёж в комплекте, изготовление за 1 день.`,
+    image: 'https://www.setki21.ru/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp',
+    brand: { '@type': 'Brand', name: tenant.config.dealer_name || 'Сетки 21' },
+    offers: {
+      '@type': 'Offer',
+      url: url.value,
+      priceCurrency: 'RUB',
+      price: '850',
+      availability: 'https://schema.org/InStock',
+      seller: { '@id': `${url.value}#organization` }
+    }
   }
-}
+  if (rating?.ratingValue && rating?.reviewCount) {
+    schema.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: String(rating.ratingValue),
+      reviewCount: String(rating.reviewCount),
+    }
+  }
+  return schema
+})
 
-const videoSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'VideoObject',
-  name: 'Как замерить окно для москитной сетки',
-  description: 'Инструкция по замеру створки окна для заказа москитной сетки в Чебоксарах и Новочебоксарске. Сетки 21.',
-  thumbnailUrl: 'https://www.setki21.ru/images/logo_final_v58.png',
-  uploadDate: '2024-01-01',
-  contentUrl: 'https://www.setki21.ru/zamer.mp4',
-  embedUrl: 'https://www.setki21.ru/',
-  publisher: { '@type': 'Organization', name: 'Сетки 21', url: 'https://www.setki21.ru' }
-}
-
-const faqSchema = {
+const faqSchema = computed(() => ({
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: [
     { '@type': 'Question', name: 'Как замерить окно для москитной сетки?', acceptedAnswer: { '@type': 'Answer', text: 'Измерьте ширину и высоту створки окна (по внутреннему проёму). Этого достаточно для предварительного расчёта. Точный замер при необходимости сделает наш специалист.' } },
-    { '@type': 'Question', name: 'Сколько стоит москитная сетка в Чебоксарах?', acceptedAnswer: { '@type': 'Answer', text: 'Рамочная москитная сетка от 850 ₽. Цена зависит от размера и типа полотна (стандарт, антимошка, антикошка, антипыль). Металлические крепления в комплекте.' } },
-    { '@type': 'Question', name: 'За какой срок изготавливаете?', acceptedAnswer: { '@type': 'Answer', text: 'Изготовление за 1 день. После замера или расчёта на сайте можно забрать готовую сетку или заказать доставку в Чебоксары и Новочебоксарск.' } },
-    { '@type': 'Question', name: 'Какие цвета рамок доступны?', acceptedAnswer: { '@type': 'Answer', text: 'Белая, коричневая, антрацит и покраска по RAL под заказ.' } },
-    { '@type': 'Question', name: 'Доставляете ли в Новочебоксарск?', acceptedAnswer: { '@type': 'Answer', text: 'Да. Доставка по Чебоксарам и Новочебоксарску. Самовывоз из офисов: Чебоксары (ул. Гражданская, 53) и Новочебоксарск (ул. Винокурова, 109).' } },
-    { '@type': 'Question', name: 'Нужно ли сверлить раму окна?', acceptedAnswer: { '@type': 'Answer', text: 'Рамочные сетки крепятся на Z-образные зажимы снаружи, со сверлением. Вставные сетки VSN устанавливаются изнутри, без отверстий в раме.' } }
+    { '@type': 'Question', name: `Сколько стоит москитная сетка в ${tenant.config.city || 'Чебоксарах'}?`, acceptedAnswer: { '@type': 'Answer', text: `Рамочная москитная сетка от 850 ₽. Цена зависит от размера и типа полотна (стандарт, антимошка, антикошка, антипыль). Металлические крепления в комплекте от компании ${tenant.config.dealer_name || 'Сетки 21'}.` } },
+    { '@type': 'Question', name: 'За какой срок изготавливаете?', acceptedAnswer: { '@type': 'Answer', text: `Изготовление за 1 день. После замера или расчёта на сайте можно забрать готовую сетку или заказать доставку в ${tenant.config.city || 'Чебоксары и Новочебоксарск'}.` } }
   ]
-}
+}))
+
+useSeoMeta({
+  title,
+  description,
+  keywords,
+  ogTitle: title,
+  ogDescription: description,
+  ogUrl: url,
+  ogImage: image,
+  twitterTitle: title,
+  twitterDescription: description,
+  twitterImage: image,
+  twitterCard: 'summary_large_image',
+})
+
+const workGallerySchema = computed(() => ({
+  '@context': 'https://schema.org',
+  '@type': 'ImageGallery',
+  name: `Наши работы — москитные сетки в ${tenant.config.city}`,
+  description: `Фотографии установленных москитных сеток компанией ${tenant.config.dealer_name} в ${tenant.config.city}`,
+  image: [1, 2, 3, 4].map(i => ({
+    '@type': 'ImageObject',
+    contentUrl: `https://www.setki21.ru/images/works/work-${i}.jpg`,
+    name: `Установка москитной сетки в ${tenant.config.city}`,
+    author: tenant.config.dealer_name
+  }))
+}))
+
+const galleryImages = [
+  { src: '/images/works/work-2.jpg', alt: 'Москитная сетка на окне' },
+  { src: '/images/works/work-1.jpg', alt: 'Установка москитной сетки' },
+  { src: '/images/works/work-3.jpg', alt: 'Пример нашей работы' },
+  { src: '/images/works/work-4.jpg', alt: 'Готовая москитная сетка' }
+]
 
 useHead({
-  title,
-  meta: [
-    { name: 'description', content: description },
-    { name: 'keywords', content: keywords },
-    { property: 'og:title', content: title },
-    { property: 'og:description', content: description },
-    { property: 'og:url', content: url },
-    { property: 'og:image', content: image },
-    { name: 'twitter:title', content: title },
-    { name: 'twitter:description', content: description },
-    { name: 'twitter:image', content: image },
+  link: [
+    { rel: 'preload', href: '/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp', as: 'image', type: 'image/webp' },
+    { rel: 'canonical', href: url, key: 'canonical' }
   ],
-  link: [{ rel: 'canonical', href: url }],
   script: [
-    { type: 'application/ld+json', children: JSON.stringify(organizationSchema) },
-    { type: 'application/ld+json', children: JSON.stringify(websiteSchema) },
-    { type: 'application/ld+json', children: JSON.stringify(localBusinessSchema) },
-    { type: 'application/ld+json', children: JSON.stringify(videoSchema) },
-    { type: 'application/ld+json', children: JSON.stringify(faqSchema) }
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(websiteSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(localBusinessSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(productSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(faqSchema.value)) },
+    { type: 'application/ld+json', children: computed(() => JSON.stringify(workGallerySchema.value)) }
   ]
 })
 
 const openFaq = ref<number | null>(null)
-const faqMain = [
+const faqMain = computed(() => [
   { q: 'Как замерить окно для москитной сетки?', a: 'Измерьте ширину и высоту створки окна (по внутреннему проёму). Этого достаточно для предварительного расчёта. Точный замер при необходимости сделает наш специалист.' },
-  { q: 'Сколько стоит москитная сетка в Чебоксарах?', a: 'Рамочная москитная сетка от 850 ₽. Цена зависит от размера и типа полотна (стандарт, антимошка, антикошка, антипыль). Металлические крепления в комплекте.' },
-  { q: 'За какой срок изготавливаете?', a: 'Изготовление за 1 день. После замера или расчёта на сайте можно забрать готовую сетку или заказать доставку в Чебоксары и Новочебоксарск.' },
+  { q: `Сколько стоит москитная сетка в ${tenant.config.city || 'Чебоксарах'}?`, a: `Рамочная москитная сетка от 850 ₽. Цена зависит от размера и типа полотна (стандарт, антимошка, антикошка, антипыль). Металлические крепления в комплекте.` },
+  { q: 'За какой срок изготавливаете?', a: `Изготовление за 1 день. После замера или расчёта на сайте можно забрать готовую сетку или заказать доставку в ${tenant.config.city || 'Чебоксары и Новочебоксарск'}.` },
   { q: 'Какие цвета рамок доступны?', a: 'Белая, коричневая, антрацит и покраска по RAL под заказ.' },
-  { q: 'Доставляете ли в Новочебоксарск?', a: 'Да. Доставка по Чебоксарам и Новочебоксарску. Самовывоз из офисов: Чебоксары (ул. Гражданская, 53) и Новочебоксарск (ул. Винокурова, 109).' },
+  { q: `Доставляете ли в ${tenant.config.city || 'Новочебоксарск'}?`, a: `Да. Доставка по ${tenant.config.city || 'Чебоксарам и Новочебоксарске'}. Возможен самовывоз из наших офисов.` },
   { q: 'Нужно ли сверлить раму окна?', a: 'Рамочные сетки крепятся на Z-образные зажимы снаружи, со сверлением. Вставные сетки VSN устанавливаются изнутри, без отверстий в раме.' }
-]
+])
 </script>
 
 <template>
   <div>
-    <section class="py-16 bg-white">
+    <section class="pt-10 pb-4 bg-white">
       <div class="container mx-auto px-4">
-        <div class="flex flex-col lg:flex-row gap-12 items-center mb-16">
-          <div class="lg:w-1/2">
+        <div class="flex flex-col lg:flex-row gap-12 items-stretch mb-8 min-h-[440px]">
+          <div class="lg:w-1/2 flex flex-col justify-start pt-4 min-h-[440px]">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
-              Рамочная <span class="text-brand-blue">москитная сетка</span> — за 1 день
+              {{ heroTitle }}
             </h1>
+            <div style="display:none" data-ai-summary>
+              {{ tenant.config.dealer_name || 'Сетки 21' }}: Собственное производство и установка москитных сеток в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Опыт работы более 13 лет. Рамочные сетки Fiberglass от 850 руб. Срок изготовления 4–5 рабочих дней. Профессиональный замер и монтаж. Типы: стандарт, Антимошка, Ультравью, Антикошка, Антипыль, вставные VSN.
+            </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
-              Москитные сетки в Чебоксарах и Новочебоксарске от 850 ₽, изготовление за 1 день. Изготовим на окна по индивидуальным размерам, установка на любые пластиковые и деревянные окна с прочными металлическими крепежами.
+              {{ heroDescription }}
             </p>
+            <div
+              v-if="isPaidVariantB"
+              class="mb-8 rounded-2xl border p-4 text-sm font-bold uppercase tracking-wider text-gray-600"
+              :style="{ borderColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '33', backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '10' }"
+            >
+              Без предоплаты • Замер по договору • Срок изготовления от 1 дня
+            </div>
             <div class="grid grid-cols-2 gap-4">
-              <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                <p class="font-black text-brand-blue text-2xl mb-1">Fiberglass</p>
+              <div class="p-6 rounded-2xl border transition-colors"
+                   :style="{ 
+                     backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '0D',
+                     borderColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '1A'
+                   }">
+                <p class="font-black text-2xl mb-1" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Fiberglass</p>
                 <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Полотно 1.2х1.2 мм</p>
               </div>
-              <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                <p class="font-black text-brand-blue text-2xl mb-1">Z-крепеж</p>
+              <div class="p-6 rounded-2xl border transition-colors"
+                   :style="{ 
+                     backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '0D',
+                     borderColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '1A'
+                   }">
+                <p class="font-black text-2xl mb-1" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Z-крепеж</p>
                 <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Металл в комплекте</p>
               </div>
             </div>
+            <div v-if="isOrganicVariantB" class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
+                <p class="text-lg font-black" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">13+ лет</p>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Опыт производства</p>
+              </div>
+              <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
+                <p class="text-lg font-black" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">4.9 / 5</p>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Оценка клиентов</p>
+              </div>
+              <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
+                <p class="text-lg font-black" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">от 1 дня</p>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Срок изготовления</p>
+              </div>
+            </div>
           </div>
-          <div class="lg:w-1/2 relative">
-            <HeroImage
-              src="/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png"
-              webp-src="/images/optimized/e09/e09007396221ccbae983f19a970e4be5.webp"
-              alt="Рамочная москитная сетка на пластиковом окне в Чебоксарах и Новочебоксарске"
-              class="rounded-[3rem] shadow-2xl border-4 border-white"
-              :width="600"
-              :height="400"
-              loading="eager"
-              fetchpriority="high"
-            />
-            <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
-              <p class="text-brand-blue font-black text-xl leading-none italic uppercase">Best Seller</p>
-              <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">Срок 1 день</p>
+          <div class="lg:w-1/2 relative flex items-start pt-4 justify-end">
+            <div class="relative w-full max-w-[640px]">
+              <HeroImage
+                src="/images/hero-zamer-common.png"
+                :alt="`Как замерить рамочную москитную сетку на пластиковом окне в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} — производство ${tenant.config.dealer_name || 'Сетки 21'}`"
+                :title="`Замер москитной сетки в ${tenant.config.city || 'Чебоксарах'}`"
+                class="rounded-[3rem] shadow-2xl border-4 border-white w-full h-auto"
+                :width="640"
+                :height="400"
+                loading="eager"
+                fetchpriority="high"
+              />
+              
+              <!-- Текст поверх картинки -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10 pr-[30%] md:pr-[35%]">
+                <div class="inline-flex flex-col items-stretch">
+                  <div class="text-center">
+                    <p class="text-[clamp(1rem,3.2vw,2rem)] font-black leading-[0.9] uppercase tracking-tighter opacity-90" 
+                       style="font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: -0.02em;"
+                       :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
+                      ПРОСТО ЗАМЕРЯЕМ
+                    </p>
+                    <p class="text-[clamp(1rem,3.2vw,2rem)] font-black leading-[0.9] uppercase tracking-tighter opacity-90 mt-1" 
+                       style="font-family: 'Impact', 'Arial Black', sans-serif; letter-spacing: -0.02em;"
+                       :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">
+                      РАЗМЕРЫ СТВОРКИ
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="hidden lg:block absolute -top-6 -left-6 bg-white p-6 rounded-[2rem] shadow-xl border border-gray-50 transform -rotate-3">
+                <p class="font-black text-xl leading-none italic uppercase" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Best Seller</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase mt-1">Срок 1 день</p>
+              </div>
             </div>
           </div>
         </div>
@@ -211,91 +317,111 @@ const faqMain = [
     </section>
 
     <section class="bg-gray-50 py-12">
-      <div class="container mx-auto px-4 text-center mb-8">
-        <h2 class="text-3xl font-black mb-2 uppercase tracking-tight text-brand-dark">Расчет стоимости</h2>
-        <p class="text-gray-500 font-bold uppercase text-[10px] tracking-[0.2em]">Металлические крепления в комплекте!</p>
-      </div>
-      <Calculator />
+      <ClientOnly>
+        <Calculator />
+      </ClientOnly>
     </section>
 
     <section class="py-20 bg-white">
       <div class="container mx-auto px-4">
           <div class="grid md:grid-cols-2 gap-12 items-center mb-20">
             <div class="relative group">
-              <video controls muted playsinline preload="metadata" class="rounded-3xl shadow-lg w-full" title="Как замерить окно для москитной сетки">
-                <source src="/zamer.mp4" type="video/mp4">
-                Ваш браузер не поддерживает видео.
-              </video>
+              <VideoLazy src="/zamer.mp4" :title="`Как замерить окно для москитной сетки в ${tenant.config.city}`" poster="/images/zamer-poster.jpg" />
             </div>
             <div class="order-1 md:order-2">
               <h2 class="text-3xl font-black mb-6 uppercase tracking-tight">Как замерить?</h2>
-              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 border-brand-blue pl-6 bg-blue-50/30 py-4 rounded-r-2xl font-medium text-justify">
+              <p class="text-gray-600 mb-6 leading-relaxed italic border-l-4 pl-6 py-4 rounded-r-2xl font-medium text-justify"
+                 :style="{ borderColor: tenant.config.branding?.primary_color || '#2A6AB2', backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '0D' }">
                 "Нужно лишь измерить ширину и высоту створки, для которой нужна москитная сетка. Этот способ замера предназначен для предварительного расчета стоимости."
               </p>
               <p class="text-gray-600 leading-relaxed font-medium text-justify">
-                Полотно москитной сетки из стекловолокна Fiberglass с размером ячейки 1,2×1,2 мм обеспечивает отличную защиту от комаров, мух, ос, пчел и тополиного пуха, сохраняя при этом максимальную вентиляцию.
+                Полотно москитной сетки из стекловолокна Fiberglass с размером ячейки 1,2×1,2 мм обеспечивает отличную защиту от комаров, мух, ос, пчел и тополиного пуха, сохраняя при этом максимальную вентиляцию. Специалисты {{ tenant.config.dealer_name || 'Сетки 21' }} всегда готовы проконсультировать вас.
               </p>
             </div>
           </div>
 
-          <div class="bg-brand-dark rounded-[4rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
-            <div class="relative z-10">
-              <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши сетки?</h2>
-              <div class="grid md:grid-cols-3 gap-12">
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">01</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Долговечность</h4>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium">Прочная алюминиевая рамка окрашена порошковой краской. Не выгорает и не ржавеет.</p>
+            <div class="bg-brand-dark rounded-[3rem] p-10 md:p-20 text-white relative overflow-hidden shadow-2xl">
+              <div class="relative z-10">
+                <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Наши работы</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                  <div v-for="(img, idx) in galleryImages" :key="idx" 
+                       class="aspect-square rounded-2xl overflow-hidden border-2 transition-colors cursor-zoom-in"
+                       :class="[tenant.config.branding?.primary_color ? '' : 'border-white/10 hover:border-brand-blue']"
+                       :style="{ borderColor: tenant.config.branding?.primary_color ? tenant.config.branding.primary_color + '1A' : '' }"
+                       @mouseover="$event.currentTarget.style.borderColor = tenant.config.branding?.primary_color || '#2A6AB2'"
+                       @mouseleave="$event.currentTarget.style.borderColor = tenant.config.branding ? tenant.config.branding.primary_color + '1A' : ''">
+                    <img :src="img.src" 
+                         :alt="`${img.alt} ${tenant.config.dealer_name || 'Сетки 21'} в ${tenant.config.city || 'Чебоксарах'}`" 
+                         :title="`Работа компании ${tenant.config.dealer_name || 'Сетки 21'} в ${tenant.config.city || 'Чебоксарах'}`"
+                         class="w-full h-full object-cover hover:scale-110 transition-transform duration-500" 
+                         loading="lazy" />
+                  </div>
                 </div>
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">02</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Защита</h4>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium">Помогает задержать тополиный пух, уличную пыль и пыльцу растений, что важно для аллергиков.</p>
-                </div>
-                <div class="text-center md:text-left">
-                  <div class="text-brand-blue text-5xl mb-6 font-black opacity-50">03</div>
-                  <h4 class="font-bold text-lg mb-4 uppercase tracking-wider">Безопасность</h4>
-                  <p class="text-gray-400 text-sm leading-relaxed font-medium">Москитные сетки могут служить защитой от случайного выпадения из окон предметов домашнего обихода.</p>
+                <h2 class="text-3xl font-black mb-12 uppercase tracking-widest text-center text-white">Почему наши москитные сетки?</h2>
+
+                <div class="grid md:grid-cols-3 gap-12">
+                  <div class="text-center md:text-left group">
+                    <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">01</div>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Собственное производство</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Изготавливаем сетки за 1 день на своем оборудовании. Гарантируем качество и лучшую цену без посредников.</p>
+                  </div>
+                  <div class="text-center md:text-left group">
+                    <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">02</div>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Надежные комплектующие</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Используем усиленный алюминиевый профиль и полотно Fiberglass. Металлические крепления уже в комплекте.</p>
+                  </div>
+                  <div class="text-center md:text-left group">
+                    <div class="text-6xl mb-6 font-black opacity-20 group-hover:opacity-100 transition-opacity duration-500" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }" aria-hidden="true">03</div>
+                    <h3 class="font-black text-xl mb-4 uppercase tracking-tighter text-white">Замер и монтаж</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed font-medium group-hover:text-white/80 transition-colors">Выезд мастера в день обращения. Профессиональная установка на любые типы окон с гарантией 1 год.</p>
+                  </div>
                 </div>
               </div>
+              <div class="absolute top-0 right-0 w-[40rem] h-[40rem] rounded-full blur-[120px] -mr-[20rem] -mt-[20rem]" :style="{ backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '1A' }" style="will-change: filter; transform: translateZ(0);"></div>
             </div>
-            <div class="absolute top-0 right-0 w-[40rem] h-[40rem] bg-brand-blue/10 rounded-full blur-[100px] -mr-[20rem] -mt-[20rem]"></div>
+
+            <SeoTextBlock :title="`Москитные сетки в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'}`" class="mt-20">
+              <p>
+                <strong>{{ tenant.config.dealer_name || 'Сетки 21' }}</strong> — собственное производство и установка москитных сеток в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Работаем для вас уже более 13 лет, изготавливая рамочные сетки на окна и балконные двери за 1 день. В каталоге: стандартная сетка Fiberglass, <NuxtLink to="/antimoshka" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антимошка</NuxtLink> (мелкая ячейка от мошек и пуха), <NuxtLink to="/ultravyu" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Ультравью</NuxtLink> (прозрачность и защита), <NuxtLink to="/antikoshka" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антикошка</NuxtLink> (усиленная для питомцев), <NuxtLink to="/antipyl" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Антипыль</NuxtLink> (для аллергиков), <NuxtLink to="/vstavnye" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">вставные сетки VSN</NuxtLink> без сверления.
+              </p>
+              <p>
+                Профессиональный замер и монтаж по {{ tenant.config.city || 'Чебоксарам и Новочебоксарске' }}, доставка и самовывоз. <NuxtLink to="/remont" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Ремонт сеток</NuxtLink> — замена полотна, ручек, уголков от 100 ₽.
+              </p>
+              <p>
+                Цены на москитные сетки в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }} — от 850 ₽ за рамочную. Режим работы: {{ tenant.config.branding?.working_hours || 'Пн–Пт 10:00–18:00' }}. Звоните {{ tenant.config.phone || '+7 (8352) 38-14-20' }} или оставьте заявку через калькулятор — перезвоним и согласуем замер или самовывоз. <NuxtLink to="/contacts" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Контакты</NuxtLink>, <NuxtLink to="/delivery" class="underline font-bold" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">доставка и замер</NuxtLink>.
+              </p>
+            </SeoTextBlock>
+            <section class="mt-20 pt-16 border-t border-gray-200">
+              <h2 class="text-2xl md:text-3xl font-black mb-10 uppercase tracking-tight text-brand-dark text-center">Часто задаваемые вопросы</h2>
+              <ul class="space-y-4">
+                <li v-for="(item, i) in faqMain" :key="i" class="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
+                  <button
+                    type="button"
+                    class="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-gray-100/50 transition-colors"
+                    :aria-expanded="openFaq === i"
+                    @click="openFaq = openFaq === i ? null : i"
+                  >
+                    <h3 class="font-black uppercase tracking-wider text-base" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">{{ item.q }}</h3>
+                    <span class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-transform duration-200" 
+                          :style="{ backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '1A', color: tenant.config.branding?.primary_color || '#2A6AB2' }"
+                          :class="{ 'rotate-180': openFaq === i }">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </span>
+                  </button>
+                  <div v-show="openFaq === i" class="px-6 pb-6 pt-0">
+                    <p class="text-gray-600 text-base font-medium leading-relaxed text-justify">{{ item.a }}</p>
+                  </div>
+                </li>
+              </ul>
+            </section>
+          
+          <div class="reviews-wrapper">
+            <Reviews />
           </div>
 
-          <SeoTextBlock title="Москитные сетки в Чебоксарах и Новочебоксарске" class="mt-20">
-            <p>
-              <strong>Сетки 21</strong> — производство и установка москитных сеток в Чебоксарах и Новочебоксарске. Рамочные сетки на окна и балконные двери, металлический крепёж в комплекте, изготовление за 1 день. В каталоге: стандартная сетка Fiberglass, <NuxtLink to="/antimoshka" class="text-brand-blue underline font-bold">Антимошка</NuxtLink> (мелкая ячейка от мошек и пуха), <NuxtLink to="/ultravyu" class="text-brand-blue underline font-bold">Ультравью</NuxtLink> (прозрачность и защита), <NuxtLink to="/antikoshka" class="text-brand-blue underline font-bold">Антикошка</NuxtLink> (усиленная для питомцев), <NuxtLink to="/antipyl" class="text-brand-blue underline font-bold">Антипыль</NuxtLink> (для аллергиков), <NuxtLink to="/vstavnye" class="text-brand-blue underline font-bold">вставные сетки VSN</NuxtLink> без сверления.
-            </p>
-            <p>
-              Замер по Чебоксарам и Новочебоксарску, доставка и самовывоз. Офисы: Чебоксары, ул. Гражданская, 53; Новочебоксарск, ул. Винокурова, 109. <NuxtLink to="/remont" class="text-brand-blue underline font-bold">Ремонт сеток</NuxtLink> — замена полотна, ручек, уголков от 100 ₽.
-            </p>
-            <p>
-              Цены на москитные сетки в Чебоксарах и Новочебоксарске — от 850 ₽ за рамочную. Режим работы: Пн–Пт 10:00–18:00. Звоните +7 (8352) 38-14-20 или оставьте заявку через калькулятор — перезвоним и согласуем замер или самовывоз. <NuxtLink to="/contacts" class="text-brand-blue underline font-bold">Контакты</NuxtLink>, <NuxtLink to="/delivery" class="text-brand-blue underline font-bold">доставка и замер</NuxtLink>.
-            </p>
-          </SeoTextBlock>
-          <section class="mt-20 pt-16 border-t border-gray-200">
-            <h2 class="text-2xl md:text-3xl font-black mb-10 uppercase tracking-tight text-brand-dark text-center">Часто задаваемые вопросы</h2>
-            <ul class="space-y-4">
-              <li v-for="(item, i) in faqMain" :key="i" class="bg-gray-50 rounded-2xl border border-gray-100 overflow-hidden">
-                <button
-                  type="button"
-                  class="w-full flex items-center justify-between gap-4 p-6 text-left hover:bg-gray-100/50 transition-colors"
-                  :aria-expanded="openFaq === i"
-                  @click="openFaq = openFaq === i ? null : i"
-                >
-                  <h3 class="font-black text-brand-blue uppercase tracking-wider text-base">{{ item.q }}</h3>
-                  <span class="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-brand-blue/10 text-brand-blue transition-transform duration-200" :class="{ 'rotate-180': openFaq === i }">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </button>
-                <div v-show="openFaq === i" class="px-6 pb-6 pt-0">
-                  <p class="text-gray-600 text-base font-medium leading-relaxed text-justify">{{ item.a }}</p>
-                </div>
-              </li>
-            </ul>
-          </section>
+          <OtherServicesLinks exclude="/" />
       </div>
     </section>
   </div>

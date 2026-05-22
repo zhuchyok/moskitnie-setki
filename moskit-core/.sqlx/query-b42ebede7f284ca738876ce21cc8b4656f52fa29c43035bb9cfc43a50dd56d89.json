@@ -1,0 +1,124 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, name, city, phone, email, address, domain, margin_config,\n                   delivery_mode as \"delivery_mode: DeliveryMode\", payment_type as \"payment_type: PaymentType\",\n                   balance, branding, contacts, legal_info, seo_config, is_active, created_at, updated_at\n            FROM dealers\n            WHERE id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "city",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "phone",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "email",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "address",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "domain",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "margin_config",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 8,
+        "name": "delivery_mode: DeliveryMode",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "payment_type: PaymentType",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "balance",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 11,
+        "name": "branding",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 12,
+        "name": "contacts",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 13,
+        "name": "legal_info",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 14,
+        "name": "seo_config",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 15,
+        "name": "is_active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 16,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 17,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "b42ebede7f284ca738876ce21cc8b4656f52fa29c43035bb9cfc43a50dd56d89"
+}

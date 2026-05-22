@@ -1,0 +1,59 @@
+import { defineStore } from 'pinia'
+
+interface User {
+  id: string
+  email: string
+  name: string
+  role: 'admin' | 'dealer' | 'director' | 'manager' | 'subdealer'
+  dealer_id?: string
+  parent_id?: string
+}
+
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    user: null as User | null,
+    token: null as string | null,
+  }),
+
+  getters: {
+    isLoggedIn: (state) => !!state.token,
+    isAuthenticated: (state) => !!state.token,
+    isAdmin: (state) => state.user?.role === 'admin',
+  },
+
+  actions: {
+    setAuth(user: User, token: string) {
+      this.user = user
+      this.token = token
+      
+      const userCookie = useCookie('auth_user', { maxAge: 60 * 60 * 24 * 7, path: '/' })
+      const tokenCookie = useCookie('auth_token', { maxAge: 60 * 60 * 24 * 7, path: '/' })
+      
+      userCookie.value = JSON.stringify(user)
+      tokenCookie.value = token
+    },
+
+    initAuth() {
+      const userCookie = useCookie('auth_user', { path: '/' })
+      const tokenCookie = useCookie('auth_token', { path: '/' })
+      
+      if (userCookie.value && tokenCookie.value) {
+        this.user = userCookie.value as any
+        this.token = tokenCookie.value as any
+      }
+    },
+
+    logout() {
+      this.user = null
+      this.token = null
+      
+      const userCookie = useCookie('auth_user', { path: '/' })
+      const tokenCookie = useCookie('auth_token', { path: '/' })
+      
+      userCookie.value = null
+      tokenCookie.value = null
+      
+      navigateTo('/')
+    }
+  }
+})

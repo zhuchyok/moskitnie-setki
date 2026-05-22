@@ -3,59 +3,59 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
     
     <url>
-        <loc>https://setki21.ru/</loc>
+        <loc>https://www.setki21.ru/</loc>
         <image:image>
-            <image:loc>https://setki21.ru/images/logo.png</image:loc>
+            <image:loc>https://www.setki21.ru/images/logo.png</image:loc>
             <image:title>Москитные сетки в Чебоксарах и Новочебоксарске</image:title>
             <image:caption>Производство и установка москитных сеток</image:caption>
         </image:image>
         <image:image>
-            <image:loc>https://setki21.ru/images/doors.png</image:loc>
+            <image:loc>https://www.setki21.ru/images/doors.png</image:loc>
             <image:title>Москитные сетки на двери</image:title>
             <image:caption>Качественные москитные сетки для дверей</image:caption>
         </image:image>
     </url>
     
     <url>
-        <loc>https://setki21.ru/antikoshka/</loc>
+        <loc>https://www.setki21.ru/antikoshka/</loc>
         <image:image>
-            <image:loc>https://setki21.ru/upload/iblock/6ec/6ecd680a4de616cd7a4118fe7c4e82ae.png</image:loc>
+            <image:loc>https://www.setki21.ru/upload/iblock/6ec/6ecd680a4de616cd7a4118fe7c4e82ae.png</image:loc>
             <image:title>Сетка антикошка</image:title>
             <image:caption>Защита от кошек и собак</image:caption>
         </image:image>
     </url>
     
     <url>
-        <loc>https://setki21.ru/antipyl/</loc>
+        <loc>https://www.setki21.ru/antipyl/</loc>
         <image:image>
-            <image:loc>https://setki21.ru/upload/iblock/963/963b80b25938266f19cda63ac6f838b4.png</image:loc>
+            <image:loc>https://www.setki21.ru/upload/iblock/963/963b80b25938266f19cda63ac6f838b4.png</image:loc>
             <image:title>Сетка антипыль</image:title>
             <image:caption>Защита от пыли и тополиного пуха</image:caption>
         </image:image>
     </url>
     
     <url>
-        <loc>https://setki21.ru/antimoshka/</loc>
+        <loc>https://www.setki21.ru/antimoshka/</loc>
         <image:image>
-            <image:loc>https://setki21.ru/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png</image:loc>
+            <image:loc>https://www.setki21.ru/upload/iblock/e09/e09007396221ccbae983f19a970e4be5.png</image:loc>
             <image:title>Сетка антимошка</image:title>
             <image:caption>Защита от мошек и комаров</image:caption>
         </image:image>
     </url>
     
     <url>
-        <loc>https://setki21.ru/vstavnye/</loc>
+        <loc>https://www.setki21.ru/vstavnye/</loc>
         <image:image>
-            <image:loc>https://setki21.ru/images/dev.png</image:loc>
+            <image:loc>https://www.setki21.ru/images/dev.png</image:loc>
             <image:title>Вставные москитные сетки</image:title>
             <image:caption>Вставные сетки для пластиковых окон</image:caption>
         </image:image>
     </url>
     
     <url>
-        <loc>https://setki21.ru/remont/</loc>
+        <loc>https://www.setki21.ru/remont/</loc>
         <image:image>
-            <image:loc>https://setki21.ru/images/h.png</image:loc>
+            <image:loc>https://www.setki21.ru/images/h.png</image:loc>
             <image:title>Ремонт москитных сеток</image:title>
             <image:caption>Профессиональный ремонт сеток</image:caption>
         </image:image>

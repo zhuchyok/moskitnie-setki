@@ -3,6 +3,7 @@ import { useTenantStore } from '~/stores/tenant'
 
 const tenant = useTenantStore()
 const route = useRoute()
+const { isPaidTraffic, segment, variant } = useTrafficExperiment()
 
 const navLinks = [
   { name: 'МОСКИТНАЯ', path: '/' },
@@ -69,73 +70,27 @@ const callbackToEmail = computed(() => {
   return undefined
 })
 
-const paidTrafficCookie = useCookie<'yes' | undefined>('paid_traffic', {
-  maxAge: 60 * 60 * 24 * 30,
-  sameSite: 'lax'
-})
-
-const PAID_UTM_MEDIUMS = new Set([
-  'cpc',
-  'ppc',
-  'paid',
-  'display',
-  'cpm',
-  'cpv',
-  'banner',
-  'rsya',
-  'search'
-])
-
-function getQueryValue(value: string | string[] | undefined): string {
-  if (Array.isArray(value)) return String(value[0] || '').trim().toLowerCase()
-  return String(value || '').trim().toLowerCase()
-}
-
-function isPaidTrafficQuery(query: Record<string, unknown>): boolean {
-  const clickIdKeys = ['yclid', 'gclid', 'fbclid', 'msclkid']
-  const hasClickId = clickIdKeys.some((key) => {
-    const raw = query[key] as string | string[] | undefined
-    return Boolean(getQueryValue(raw))
-  })
-  if (hasClickId) return true
-
-  const utmMedium = getQueryValue(query.utm_medium as string | string[] | undefined)
-  const utmSource = getQueryValue(query.utm_source as string | string[] | undefined)
-
-  if (PAID_UTM_MEDIUMS.has(utmMedium)) return true
-  if (utmSource && PAID_UTM_MEDIUMS.has(utmSource)) return true
-  return false
-}
-
-const hasPaidMarkers = computed(() => isPaidTrafficQuery(route.query as Record<string, unknown>))
-if (hasPaidMarkers.value) {
-  paidTrafficCookie.value = 'yes'
-}
-
-const isPaidTraffic = computed(() => paidTrafficCookie.value === 'yes' || hasPaidMarkers.value)
 const callbackCtaLabel = computed(() => (isPaidTraffic.value ? 'Рассчитать стоимость' : 'Заказать обратный звонок'))
-
-watch(
-  () => route.query,
-  (query) => {
-    if (isPaidTrafficQuery(query as Record<string, unknown>)) {
-      paidTrafficCookie.value = 'yes'
-    }
-  },
-  { deep: true }
-)
 
 async function handleHeaderCtaClick() {
   if (!isPaidTraffic.value) {
     try {
-      ;(window as any).reachMetrikaGoal?.('CTA_CALLBACK_CLICK')
+      ;(window as any).reachMetrikaGoal?.('CTA_CALLBACK_CLICK', {
+        segment: segment.value,
+        variant_id: variant.value,
+        dealer_domain: window.location.hostname
+      })
     } catch (_) {}
     showCallbackModal.value = true
     return
   }
 
   try {
-    ;(window as any).reachMetrikaGoal?.('CTA_CALCULATE_CLICK')
+    ;(window as any).reachMetrikaGoal?.('CTA_CALCULATE_CLICK', {
+      segment: segment.value,
+      variant_id: variant.value,
+      dealer_domain: window.location.hostname
+    })
   } catch (_) {}
 
   if (import.meta.client && route.path === '/') {

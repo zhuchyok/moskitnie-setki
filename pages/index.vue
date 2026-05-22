@@ -1,8 +1,32 @@
 <script setup lang="ts">
 const store = useOrderStore()
 const tenant = useTenantStore()
+const { isPaidTraffic, variant } = useTrafficExperiment()
 onMounted(() => {
   store.updateConfig({ frameType: 'standart', type: 'standart', typeName: 'СТАНДАРТ' })
+})
+
+const isPaidVariantB = computed(() => isPaidTraffic.value && variant.value === 'B')
+const isOrganicVariantB = computed(() => !isPaidTraffic.value && variant.value === 'B')
+
+const heroTitle = computed(() => {
+  if (isPaidVariantB.value) {
+    return 'Точная цена москитной сетки за 1 минуту'
+  }
+  if (isOrganicVariantB.value) {
+    return 'Подберем москитную сетку под ваш случай'
+  }
+  return 'Москитная сетка на окна — от производителя'
+})
+
+const heroDescription = computed(() => {
+  if (isPaidVariantB.value) {
+    return `Рассчитайте стоимость за минуту без ожидания звонка. ${tenant.config.dealer_name || 'Сетки 21'} изготовит заказ под ваши размеры и согласует удобный замер в ${tenant.config.city || 'вашем городе'}.`
+  }
+  if (isOrganicVariantB.value) {
+    return `Поможем выбрать тип сетки под задачи семьи: от базовой защиты до Антикошки и Антипыли. Подберем решение, рассчитаем стоимость и подскажем оптимальный вариант для ${tenant.config.city || 'вашего города'}.`
+  }
+  return tenant.config.seo?.content?.main || `Собственное производство москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от 850 ₽. Работаем для вас более 13 лет. Изготовим на окна по индивидуальным размерам — срок от 1 до 5 рабочих дней в зависимости от сезона. Профессиональный замер и монтаж на любые типы окон от компании ${tenant.config.dealer_name || 'Сетки 21'}.`
 })
 
 const title = computed(() => tenant.config.seo?.title || `Москитные сетки на окна в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} — цены от 850 руб | ${tenant.config.dealer_name || 'Сетки 21'}`)
@@ -203,14 +227,21 @@ const faqMain = computed(() => [
         <div class="flex flex-col lg:flex-row gap-12 items-stretch mb-8 min-h-[440px]">
           <div class="lg:w-1/2 flex flex-col justify-start pt-4 min-h-[440px]">
             <h1 class="text-4xl md:text-5xl font-black mb-6 leading-tight uppercase tracking-tight">
-              Москитная <span class="text-brand-blue" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">сетка на окна</span> — от производителя
+              {{ heroTitle }}
             </h1>
             <div style="display:none" data-ai-summary>
               {{ tenant.config.dealer_name || 'Сетки 21' }}: Собственное производство и установка москитных сеток в {{ tenant.config.city || 'Чебоксарах и Новочебоксарске' }}. Опыт работы более 13 лет. Рамочные сетки Fiberglass от 850 руб. Срок изготовления 4–5 рабочих дней. Профессиональный замер и монтаж. Типы: стандарт, Антимошка, Ультравью, Антикошка, Антипыль, вставные VSN.
             </div>
             <p class="text-lg text-gray-600 mb-8 leading-relaxed font-medium text-justify">
-              {{ tenant.config.seo?.content?.main || `Собственное производство москитных сеток в ${tenant.config.city || 'Чебоксарах и Новочебоксарске'} от 850 ₽. Работаем для вас более 13 лет. Изготовим на окна по индивидуальным размерам — срок от 1 до 5 рабочих дней в зависимости от сезона. Профессиональный замер и монтаж на любые типы окон от компании ${tenant.config.dealer_name || 'Сетки 21'}.` }}
+              {{ heroDescription }}
             </p>
+            <div
+              v-if="isPaidVariantB"
+              class="mb-8 rounded-2xl border p-4 text-sm font-bold uppercase tracking-wider text-gray-600"
+              :style="{ borderColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '33', backgroundColor: (tenant.config.branding?.primary_color || '#2A6AB2') + '10' }"
+            >
+              Без предоплаты • Замер по договору • Срок изготовления от 1 дня
+            </div>
             <div class="grid grid-cols-2 gap-4">
               <div class="p-6 rounded-2xl border transition-colors"
                    :style="{ 
@@ -227,6 +258,20 @@ const faqMain = computed(() => [
                    }">
                 <p class="font-black text-2xl mb-1" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">Z-крепеж</p>
                 <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Металл в комплекте</p>
+              </div>
+            </div>
+            <div v-if="isOrganicVariantB" class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
+                <p class="text-lg font-black" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">13+ лет</p>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Опыт производства</p>
+              </div>
+              <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
+                <p class="text-lg font-black" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">4.9 / 5</p>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Оценка клиентов</p>
+              </div>
+              <div class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
+                <p class="text-lg font-black" :style="{ color: tenant.config.branding?.primary_color || '#2A6AB2' }">от 1 дня</p>
+                <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Срок изготовления</p>
               </div>
             </div>
           </div>

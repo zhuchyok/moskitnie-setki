@@ -575,6 +575,8 @@ const submitOrder = async () => {
           height: i.height,
           color: i.color,
           color_id: i.color === 'КОРИЧНЕВАЯ' ? 2 : (i.color === 'АНТРАЦИТ' ? 3 : (i.color === 'RAL' ? 4 : 1)),
+          handle_type: i.typeName.includes('(МЕТАЛЛ)') ? 'metal' : 'pvc',
+          installation: i.typeName.includes('+ МОНТАЖ'),
           mesh_type: i.type,
           frame_type: i.frameTypeName,
           measurement_method: i.measurementMethod
@@ -625,7 +627,7 @@ const submitOrder = async () => {
 
 <template>
   <!-- Отступы: как в блоке «Ваш заказ» (p-10 md:p-16). Между блоками — тот же размер (space-y-10 md:space-y-16). -->
-  <div ref="calculatorRef" class="container mx-auto px-4 space-y-10 md:space-y-16 scroll-mt-40">
+  <div id="calculator" ref="calculatorRef" class="container mx-auto px-4 space-y-10 md:space-y-16 scroll-mt-40">
     <!-- Калькулятор -->
     <div class="bg-white rounded-[3rem] shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-100 h-auto lg:min-h-[680px] lg:h-[740px]">
       <!-- Визуализация (Левая часть) -->

@@ -10,6 +10,8 @@ jobs:
   quality-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      NTFY_URL: ${{ secrets.NTFY_URL }}
 
     steps:
       - name: Checkout repository
@@ -29,6 +31,57 @@ jobs:
 
       - name: Run CRO quality gate
         run: npm run cro:quality-gate
+
+      - name: Send ntfy summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import glob
+          import json
+          import os
+          import urllib.request
+
+          ntfy_url = (os.getenv("NTFY_URL") or "").strip()
+          if not ntfy_url:
+              print("[cro-quality-gate] NTFY_URL is not set, skip notification")
+              raise SystemExit(0)
+
+          report_files = sorted(glob.glob("docs/reports/cro-quality-gates/*.json"))
+          if not report_files:
+              print("[cro-quality-gate] report not found, skip notification")
+              raise SystemExit(0)
+
+          latest = report_files[-1]
+          with open(latest, "r", encoding="utf-8") as f:
+              report = json.load(f)
+
+          status = report.get("status", "UNKNOWN")
+          passed = report.get("passed", 0)
+          total = report.get("total", 0)
+          run_id = report.get("run_id", "n/a")
+          icon = "✅" if status == "PASS" else "❌"
+          title = f"{icon} CRO Gate {status}"
+          body = (
+              f"run_id: {run_id}\n"
+              f"result: {passed}/{total}\n"
+              f"repo: {os.getenv('GITHUB_REPOSITORY', 'unknown')}\n"
+              f"run: {os.getenv('GITHUB_SERVER_URL', 'https://github.com')}/"
+              f"{os.getenv('GITHUB_REPOSITORY', '')}/actions/runs/{os.getenv('GITHUB_RUN_ID', '')}"
+          )
+
+          req = urllib.request.Request(
+              ntfy_url,
+              data=body.encode("utf-8"),
+              method="POST",
+              headers={
+                  "Title": title,
+                  "Priority": "high" if status != "PASS" else "default",
+                  "Tags": "chart_with_upwards_trend,rotating_light" if status != "PASS" else "chart_with_upwards_trend,white_check_mark",
+              },
+          )
+          with urllib.request.urlopen(req, timeout=15) as resp:
+              print(f"[cro-quality-gate] ntfy sent: HTTP {resp.status}")
+          PY
 
       - name: Upload gate reports
         if: always()

@@ -58,4 +58,5 @@
 - В workflow:
   - автоподхват доменов из `https://setki21.ru/api/v1/admin/dealers`,
   - прогон `npm run cro:quality-gate`,
+  - отправка краткого статуса в `ntfy` (если задан `GitHub Secret: NTFY_URL`),
   - сохранение отчетов в artifacts (retention 14 дней).
